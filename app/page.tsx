@@ -5,7 +5,7 @@ import { CTA } from "./(main)/waitlist";
 
 export default function Home() {
   return (
-    <div className="lowercase">
+    <div>
       <Hero />
       <FeatureSection />
       <CTA />

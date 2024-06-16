@@ -1,11 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { FieldErrors, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import * as z from "zod";
 import { Section, Container } from "~/components/blocks";
 import { Button } from "~/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 
 const formSchema = z.object({
@@ -17,24 +18,31 @@ const formSchema = z.object({
 export function CTA() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-    },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+    //  clear the form
+    form.reset();
+
+    toast.success("you have joined the waitlist 🚀");
   }
 
+  const onError = (errors: FieldErrors<z.infer<typeof formSchema>>) => {
+    if (errors.email) {
+      toast.error(errors.email.message);
+    }
+  };
+
   return (
-    <Section className="sm:mb-20">
+    <Section className="sm:my-12 sm:mb-20">
       <Container className="flex flex-col items-center text-center">
         <h2 className="!my-0 text-3xl">Ready to get started? Join the waitlist now!</h2>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 flex h-fit items-center justify-center gap-2">
+          <form
+            onSubmit={form.handleSubmit(onSubmit, onError)}
+            className="mt-8 flex h-fit items-center justify-center gap-2"
+          >
             <FormField
               control={form.control}
               name="email"
@@ -44,12 +52,10 @@ export function CTA() {
                   <FormControl>
                     <Input className="md:w-64" placeholder="duncan@linkboard.dev" {...field} />
                   </FormControl>
-                  {/* TODO: Replace with sonner */}
-                  {/* <FormMessage /> */}
                 </FormItem>
               )}
             />
-            <Button type="submit">Submit</Button>
+            <Button type="submit">submit</Button>
           </form>
         </Form>
       </Container>
