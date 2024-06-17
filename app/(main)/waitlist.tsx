@@ -21,10 +21,17 @@ export function CTA() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    //  clear the form
     form.reset();
-
     toast.success("you have joined the waitlist 🚀");
+
+    fetch("https://formbase.dev/s/eSsSeBTc9tHzIo7", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ email: values.email }),
+    })
+      .then((response) => response.json())
+      .then((response) => console.log(response))
+      .catch((err) => console.error(err));
   }
 
   const onError = (errors: FieldErrors<z.infer<typeof formSchema>>) => {
