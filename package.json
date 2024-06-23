@@ -41,5 +41,25 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "overrides": {
+      "array-includes": "npm:@nolyfill/array-includes@latest",
+      "array.prototype.findlast": "npm:@nolyfill/array.prototype.findlast@latest",
+      "array.prototype.findlastindex": "npm:@nolyfill/array.prototype.findlastindex@latest",
+      "array.prototype.flat": "npm:@nolyfill/array.prototype.flat@latest",
+      "array.prototype.flatmap": "npm:@nolyfill/array.prototype.flatmap@latest",
+      "array.prototype.toreversed": "npm:@nolyfill/array.prototype.toreversed@latest",
+      "array.prototype.tosorted": "npm:@nolyfill/array.prototype.tosorted@latest",
+      "es-iterator-helpers": "npm:@nolyfill/es-iterator-helpers@latest",
+      "hasown": "npm:@nolyfill/hasown@latest",
+      "object.assign": "npm:@nolyfill/object.assign@latest",
+      "object.entries": "npm:@nolyfill/object.entries@latest",
+      "object.fromentries": "npm:@nolyfill/object.fromentries@latest",
+      "object.groupby": "npm:@nolyfill/object.groupby@latest",
+      "object.hasown": "npm:@nolyfill/object.hasown@latest",
+      "object.values": "npm:@nolyfill/object.values@latest",
+      "string.prototype.matchall": "npm:@nolyfill/string.prototype.matchall@latest"
+    }
   }
 }
