@@ -9,12 +9,12 @@ export const Footer = () => {
         <Container className="not-prose flex flex-col md:flex-row md:gap-2 gap-6 justify-between md:items-center">
           <div className="flex gap-2">
             <a href="https://github.com/ephraimduncan" target="_blank">
-              <Button variant="outline" size="icon">
+              <Button>
                 <Github />
               </Button>
             </a>
             <a href="https://x.com/ephraimduncan" target="_blank">
-              <Button variant="outline" size="icon">
+              <Button>
                 <Twitter />
               </Button>
             </a>
