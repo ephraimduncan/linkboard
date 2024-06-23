@@ -1,6 +1,6 @@
 import { Section, Container } from "~/components/blocks";
 import { Github, Twitter } from "lucide-react";
-import { Button } from "~/components/ui/button";
+import { Button } from "~/components/primitives/button";
 
 export const Footer = () => {
   return (

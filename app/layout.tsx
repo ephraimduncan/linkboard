@@ -4,7 +4,7 @@ import { GeistSans } from "geist/font/sans";
 
 import "./globals.css";
 import { cn } from "~/lib/utils";
-import { Toaster } from "~/components/ui/sonner";
+import { Toaster } from "~/components/primitives/sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
