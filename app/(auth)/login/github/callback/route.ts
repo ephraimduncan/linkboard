@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { generateId } from "lucia";
 import { OAuth2RequestError } from "arctic";
 import { eq } from "drizzle-orm";
-import { discord, lucia } from "~/lib/auth";
+import { github, lucia } from "~/lib/auth";
 import { db } from "~/server/db";
 import { Paths } from "~/lib/constants";
 import { users, oauthAccounts } from "~/server/db/schema";
@@ -11,7 +11,7 @@ export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
-  const storedState = cookies().get("discord_oauth_state")?.value ?? null;
+  const storedState = cookies().get("github_oauth_state")?.value ?? null;
 
   if (!code || !state || !storedState || state !== storedState) {
     return new Response(null, {
@@ -21,33 +21,40 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   try {
-    const tokens = await discord.validateAuthorizationCode(code);
+    const tokens = await github.validateAuthorizationCode(code);
 
-    const discordUserRes = await fetch("https://discord.com/api/users/@me", {
+    const githubUserRes = await fetch("https://api.github.com/user", {
       headers: {
         Authorization: `Bearer ${tokens.accessToken}`,
       },
     });
-    const discordUser = (await discordUserRes.json()) as DiscordUser;
-    const username = discordUser.username;
-    const name = discordUser.global_name;
+    const githubUser = (await githubUserRes.json()) as GitHubUser;
 
-    if (!discordUser.email || !discordUser.verified) {
+    const githubEmailRes = await fetch("https://api.github.com/user/emails", {
+      headers: {
+        Authorization: `Bearer ${tokens.accessToken}`,
+      },
+    });
+    const githubEmails = (await githubEmailRes.json()) as GitHubEmail[];
+    const primaryEmail = githubEmails.find((email) => email.primary);
+
+    if (!primaryEmail || !primaryEmail.verified) {
       return new Response(
         JSON.stringify({
-          error: "Your Discord account must have a verified email address.",
+          error: "Your GitHub account must have a verified primary email address.",
         }),
         { status: 400, headers: { Location: Paths.Login } }
       );
     }
 
-    const avatar = discordUser.avatar
-      ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.webp`
-      : null;
+    const avatar = githubUser.avatar_url;
+    const username = githubUser.login;
+    const name = githubUser.name;
+    const email = primaryEmail.email;
 
-    // Check if the OAuth account already exists
     const existingOAuthAccount = await db.query.oauthAccounts.findFirst({
-      where: (table, { eq, and }) => and(eq(table.provider, "discord"), eq(table.providerAccountId, discordUser.id)),
+      where: (table, { eq, and }) =>
+        and(eq(table.provider, "github"), eq(table.providerAccountId, githubUser.id.toString())),
       with: {
         user: true,
       },
@@ -56,8 +63,8 @@ export async function GET(request: Request): Promise<Response> {
     if (existingOAuthAccount) {
       const updateData: Partial<typeof users.$inferInsert> = {
         avatar,
-        username,
         name,
+        username,
       };
 
       if (!existingOAuthAccount.user.avatar && avatar) {
@@ -84,15 +91,15 @@ export async function GET(request: Request): Promise<Response> {
     }
 
     const existingUser = await db.query.users.findFirst({
-      where: (table, { eq }) => eq(table.email, discordUser.email!),
+      where: (table, { eq }) => eq(table.email, email),
     });
 
     if (existingUser) {
       await db.insert(oauthAccounts).values({
         id: generateId(21),
         userId: existingUser.id,
-        provider: "discord",
-        providerAccountId: discordUser.id,
+        provider: "github",
+        providerAccountId: githubUser.id.toString(),
       });
 
       const updateData: Partial<typeof users.$inferInsert> = {
@@ -125,11 +132,10 @@ export async function GET(request: Request): Promise<Response> {
       });
     }
 
-    // New user, create user and OAuth account
     const userId = generateId(21);
     await db.insert(users).values({
       id: userId,
-      email: discordUser.email,
+      email,
       emailVerified: true,
       avatar,
       username,
@@ -139,8 +145,8 @@ export async function GET(request: Request): Promise<Response> {
     await db.insert(oauthAccounts).values({
       id: generateId(21),
       userId: userId,
-      provider: "discord",
-      providerAccountId: discordUser.id,
+      provider: "github",
+      providerAccountId: githubUser.id.toString(),
     });
 
     const session = await lucia.createSession(userId, {});
@@ -165,15 +171,17 @@ export async function GET(request: Request): Promise<Response> {
   }
 }
 
-interface DiscordUser {
-  id: string;
-  username: string;
-  avatar: string | null;
-  banner: string | null;
-  global_name: string | null;
-  banner_color: string | null;
-  mfa_enabled: boolean;
-  locale: string;
+interface GitHubUser {
+  id: number;
+  login: string;
+  name: string | null;
   email: string | null;
+  avatar_url: string | null;
+}
+
+interface GitHubEmail {
+  email: string;
+  primary: boolean;
   verified: boolean;
+  visibility: string | null;
 }

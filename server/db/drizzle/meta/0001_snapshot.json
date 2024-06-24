@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "ce1eb13c-be97-49b4-9480-07da6440faeb",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "006adbb0-eb48-4a45-a0b4-7ceaac9798b8",
+  "prevId": "ce1eb13c-be97-49b4-9480-07da6440faeb",
   "tables": {
     "linkboard_bookmark_collections": {
       "name": "linkboard_bookmark_collections",
@@ -287,27 +287,6 @@
           "type": "text(255)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "access_token": {
-          "name": "access_token",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "refresh_token": {
-          "name": "refresh_token",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         }
       },

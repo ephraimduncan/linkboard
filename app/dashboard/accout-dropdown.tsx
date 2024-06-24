@@ -13,7 +13,7 @@ export function AccountDropdownMenu({ anchor }: { anchor: "top start" | "bottom 
       </DropdownItem>
       <DropdownItem onClick={async () => await logout()}>
         <ArrowRightStartOnRectangleIcon />
-        <DropdownLabel>Log out</DropdownLabel>
+        <DropdownLabel className="!lowercase">Log out</DropdownLabel>
       </DropdownItem>
     </DropdownMenu>
   );

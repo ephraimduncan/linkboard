@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
+import { Link } from "~/components/primitives/link";
 import { validateRequest } from "~/lib/auth/validate-request";
 import { Paths } from "~/lib/constants";
-import { Login } from "./login";
 
 export const metadata = {
   title: "Login",
@@ -13,5 +13,10 @@ export default async function LoginPage() {
 
   if (user) redirect(Paths.Dashboard);
 
-  return <Login />;
+  return (
+    <>
+      <Link href="/login/discord">Log in with Discord</Link>
+      <Link href="/login/github">Log in with Github</Link>
+    </>
+  );
 }

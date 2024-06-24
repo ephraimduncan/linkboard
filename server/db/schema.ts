@@ -18,20 +18,48 @@ export const users = sqliteTable(
   {
     ...timestamp,
     id: text("id", { length: 21 }).primaryKey(),
-    discordId: text("discord_id", { length: 255 }).unique(),
     email: text("email", { length: 255 }).unique().notNull(),
     emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
-    hashedPassword: text("hashed_password", { length: 255 }),
     avatar: text("avatar", { length: 255 }),
+    username: text("username", { length: 255 }),
+    name: text("name", { length: 255 }),
   },
   (table) => ({
     emailIdx: index("user_email_idx").on(table.email),
-    discordIdx: index("user_discord_idx").on(table.discordId),
+    usernameIdx: index("user_username_idx").on(table.username),
   })
 );
 
+export const oauthAccounts = sqliteTable(
+  "oauth_accounts",
+  {
+    ...timestamp,
+    id: text("id", { length: 21 }).primaryKey(),
+    userId: text("user_id", { length: 21 }).notNull(),
+    provider: text("provider", { length: 20 }).notNull(), // e.g., 'discord', 'google', 'github'
+    providerAccountId: text("provider_account_id", { length: 255 }).notNull(),
+  },
+  (table) => ({
+    userProviderIdx: index("user_provider_idx").on(table.userId, table.provider),
+    providerAccountIdx: index("provider_account_idx").on(table.provider, table.providerAccountId),
+  })
+);
+
+export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
+  user: one(users, {
+    fields: [oauthAccounts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userRelations = relations(users, ({ many }) => ({
+  oauthAccounts: many(oauthAccounts),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+export type OAuthAccount = typeof oauthAccounts.$inferSelect;
+export type NewOAuthAccount = typeof oauthAccounts.$inferInsert;
 
 export const sessions = sqliteTable(
   "sessions",
@@ -42,33 +70,6 @@ export const sessions = sqliteTable(
   },
   (table) => ({
     userIdx: index("session_user_idx").on(table.userId),
-  })
-);
-
-export const emailVerificationCodes = sqliteTable(
-  "email_verification_codes",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id", { length: 21 }).unique().notNull(),
-    email: text("email", { length: 255 }).notNull(),
-    code: text("code", { length: 8 }).notNull(),
-    expiresAt: integer("expires_at").notNull(),
-  },
-  (table) => ({
-    userIdx: index("verification_code_user_idx").on(table.userId),
-    emailIdx: index("verification_code_email_idx").on(table.email),
-  })
-);
-
-export const passwordResetTokens = sqliteTable(
-  "password_reset_tokens",
-  {
-    id: text("id", { length: 40 }).primaryKey(),
-    userId: text("user_id", { length: 21 }).notNull(),
-    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-  },
-  (table) => ({
-    userIdx: index("password_token_user_idx").on(table.userId),
   })
 );
 

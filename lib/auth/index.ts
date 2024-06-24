@@ -1,5 +1,5 @@
 import { Lucia, TimeSpan } from "lucia";
-import { Discord } from "arctic";
+import { Discord, GitHub } from "arctic";
 import { DrizzleSQLiteAdapter, SQLiteSessionTable } from "@lucia-auth/adapter-drizzle";
 import { env } from "~/env";
 import { db } from "~/server/db";
@@ -20,6 +20,8 @@ export const lucia = new Lucia(adapter, {
       avatar: attributes.avatar,
       createdAt: attributes.createdAt,
       updatedAt: attributes.updatedAt,
+      username: attributes.username,
+      name: attributes.name,
     };
   },
   sessionExpiresIn: new TimeSpan(30, "d"),
@@ -38,6 +40,8 @@ export const discord = new Discord(
   env.DISCORD_CLIENT_SECRET,
   absoluteUrl("/login/discord/callback")
 );
+
+export const github = new GitHub(env.GITHUB_CLIENT_ID, env.GITHUB_CLIENT_SECRET);
 
 declare module "lucia" {
   interface Register {
