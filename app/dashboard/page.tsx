@@ -1,15 +1,15 @@
 import { Input, InputGroup } from "~/components/primitives/input";
-import { MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/16/solid";
+import { MagnifyingGlassIcon } from "@heroicons/react/16/solid";
 import { BookmarkList } from "~/components/bookmark-list";
 import { AddLinkDialog } from "./add-link-dialog";
 import { api } from "~/trpc/server";
-import { auth } from "~/lib/auth/validate-request";
 
 // remove this
 type Bookmark = {
-  id: number;
+  id: string;
   title: string;
   url: string;
+  isPublic: boolean;
   description: string;
   tags?: {
     tag: {

@@ -19,9 +19,17 @@ export const bookmarkRouter = createTRPCRouter({
 
   delete: protectedProcedure
     .input(inputs.DeleteBookmarkSchema)
-    .mutation(async ({ ctx, input }) => services.deleteBookmark(ctx, input)),
+    .mutation(({ ctx, input }) => services.deleteBookmark(ctx, input)),
 
   myBookmarks: protectedProcedure
     .input(inputs.MyBookmarksSchema)
     .query(({ ctx, input }) => services.myBookmarks(ctx, input)),
+
+  refetch: protectedProcedure
+    .input(inputs.RefetchBookmarkSchema)
+    .mutation(({ ctx, input }) => services.refetchBookmark(ctx, input)),
+
+  toggleVisibility: protectedProcedure
+    .input(inputs.ToggleBookmarkVisibilitySchema)
+    .mutation(({ ctx, input }) => services.toggleBookmarkVisibility(ctx, input)),
 });

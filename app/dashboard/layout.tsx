@@ -1,5 +1,5 @@
 import { Avatar } from "~/components/primitives/avatar";
-import { Dropdown, DropdownButton, DropdownItem, DropdownLabel, DropdownMenu } from "~/components/primitives/dropdown";
+import { Dropdown, DropdownButton } from "~/components/primitives/dropdown";
 import { Navbar, NavbarItem, NavbarSection, NavbarSpacer } from "~/components/primitives/navbar";
 import {
   Sidebar,
@@ -10,12 +10,10 @@ import {
   SidebarSpacer,
 } from "~/components/primitives/sidebar";
 import { SidebarLayout } from "~/components/primitives/sidebar-layout";
-import { ArrowRightStartOnRectangleIcon, ChevronUpIcon, UserCircleIcon } from "@heroicons/react/16/solid";
+import { ChevronUpIcon } from "@heroicons/react/16/solid";
 import { SidebarNavigation } from "./sidebar-nav";
 import { auth } from "~/lib/auth/validate-request";
 import { redirect } from "next/navigation";
-import { logout } from "~/lib/auth/actions";
-import { Button } from "~/components/primitives/button";
 import { AccountDropdownMenu } from "./accout-dropdown";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

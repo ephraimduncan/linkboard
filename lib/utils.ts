@@ -51,3 +51,12 @@ export function formatPrice(price: number | string, options: Intl.NumberFormatOp
 export function absoluteUrl(path: string) {
   return new URL(path, env.NEXT_PUBLIC_APP_URL).href;
 }
+
+export function truncateText(title: string, maxLength: number = 60): string {
+  if (title.length <= maxLength) return title;
+
+  const lastSpace = title.lastIndexOf(" ", maxLength);
+  if (lastSpace === -1) return title.slice(0, maxLength) + "...";
+
+  return title.slice(0, lastSpace) + "...";
+}

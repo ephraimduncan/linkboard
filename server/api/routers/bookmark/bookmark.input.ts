@@ -33,9 +33,19 @@ export const MyBookmarksSchema = z.object({
   perPage: z.number().int().default(12),
 });
 
+export const RefetchBookmarkSchema = z.object({
+  id: z.string(),
+});
+
+export const ToggleBookmarkVisibilitySchema = z.object({
+  id: z.string(),
+});
+
 export type ListBookmarksInput = z.infer<typeof ListBookmarksSchema>;
 export type GetBookmarkInput = z.infer<typeof GetBookmarkSchema>;
 export type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>;
 export type UpdateBookmarkInput = z.infer<typeof UpdateBookmarkSchema>;
 export type DeleteBookmarkInput = z.infer<typeof DeleteBookmarkSchema>;
 export type MyBookmarksInput = z.infer<typeof MyBookmarksSchema>;
+export type RefetchBookmarkInput = z.infer<typeof RefetchBookmarkSchema>;
+export type ToggleBookmarkVisibilityInput = z.infer<typeof RefetchBookmarkSchema>;

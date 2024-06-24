@@ -6,6 +6,8 @@ import type {
   GetBookmarkInput,
   ListBookmarksInput,
   MyBookmarksInput,
+  RefetchBookmarkInput,
+  ToggleBookmarkVisibilityInput,
   UpdateBookmarkInput,
 } from "./bookmark.input";
 import { bookmarks, bookmarkTags, tags } from "~/server/db/schema";
@@ -189,4 +191,63 @@ export const myBookmarks = async (ctx: ProtectedTRPCContext, input: MyBookmarksI
       },
     },
   });
+};
+
+export const refetchBookmark = async (ctx: ProtectedTRPCContext, input: RefetchBookmarkInput) => {
+  const bookmark = await ctx.db.query.bookmarks.findFirst({
+    where: (table, { eq }) => eq(table.id, input.id),
+  });
+
+  if (!bookmark) {
+    throw new Error("Bookmark not found");
+  }
+
+  try {
+    const response = await fetch(bookmark.url);
+    const html = await response.text();
+
+    const dom = new JSDOM(html);
+    const newTitle = dom.window.document.title || dom.window.document.querySelector("title")?.textContent || "";
+    const newDescription = dom.window.document.querySelector("meta[name='description']")?.getAttribute("content") || "";
+
+    // Update the bookmark with new title and description
+    const [updatedBookmark] = await ctx.db
+      .update(bookmarks)
+      .set({
+        title: newTitle,
+        description: newDescription,
+      })
+      .where(eq(bookmarks.id, input.id))
+      .returning();
+
+    return updatedBookmark;
+  } catch (error) {
+    console.error("Error refetching bookmark:", error);
+    throw new Error("Failed to refetch bookmark");
+  }
+};
+
+export const toggleBookmarkVisibility = async (ctx: ProtectedTRPCContext, input: ToggleBookmarkVisibilityInput) => {
+  const bookmark = await ctx.db.query.bookmarks.findFirst({
+    where: (table, { eq }) => eq(table.id, input.id),
+  });
+
+  if (!bookmark) {
+    throw new Error("Bookmark not found");
+  }
+
+  // Ensure the user owns the bookmark
+  if (bookmark.userId !== ctx.user.id) {
+    throw new Error("You do not have permission to modify this bookmark");
+  }
+
+  const [updatedBookmark] = await ctx.db
+    .update(bookmarks)
+    .set({
+      isPublic: !bookmark.isPublic,
+    })
+    .where(eq(bookmarks.id, input.id))
+    .returning();
+
+  return updatedBookmark;
 };
