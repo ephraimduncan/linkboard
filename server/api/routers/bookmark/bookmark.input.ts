@@ -11,8 +11,6 @@ export const GetBookmarkSchema = z.object({
 
 export const CreateBookmarkSchema = z.object({
   url: z.string().url(),
-  title: z.string().min(1).max(255),
-  description: z.string().max(1000).optional(),
   isPublic: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
 });

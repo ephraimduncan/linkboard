@@ -10,6 +10,7 @@ import type {
 } from "./bookmark.input";
 import { bookmarks, bookmarkTags, tags } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
+import { JSDOM } from "jsdom";
 
 export const listBookmarks = async (ctx: ProtectedTRPCContext, input: ListBookmarksInput) => {
   return ctx.db.query.bookmarks.findMany({
@@ -56,13 +57,20 @@ export const createBookmark = async (ctx: ProtectedTRPCContext, input: CreateBoo
   const bookmarkId = generateId(15);
 
   await ctx.db.transaction(async (trx) => {
+    const response = await fetch(input.url);
+    const html = await response.text();
+
+    const dom = new JSDOM(html);
+    const title = dom.window.document.title || document.querySelector("title")?.textContent || "";
+    const description = dom.window.document.querySelector("meta[name='description']")?.getAttribute("content") || "";
+
     // Insert the bookmark
     await trx.insert(bookmarks).values({
       id: bookmarkId,
       userId: ctx.user.id,
       url: input.url,
-      title: input.title,
-      description: input.description,
+      title,
+      description,
       isPublic: input.isPublic,
     });
 

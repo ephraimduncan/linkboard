@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { api } from "~/trpc/react";
 import { Loader } from "lucide-react";
+import { revalidateFromClient } from "../revalidate-on-client";
 
 const CreateBookmarkSchema = z.object({
   url: z.string().url("Invalid URL"),
@@ -20,7 +21,11 @@ const CreateBookmarkSchema = z.object({
 type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>;
 
 export const AddLinkDialog = () => {
-  const { data, mutate, isLoading, error } = api.bookmark.create.useMutation();
+  const { data, mutate, isLoading, error } = api.bookmark.create.useMutation({
+    onSuccess: () => {
+      revalidateFromClient("/dashboard");
+    },
+  });
 
   const form = useForm<CreateBookmarkInput>({
     resolver: zodResolver(CreateBookmarkSchema),
@@ -37,8 +42,6 @@ export const AddLinkDialog = () => {
 
     mutate({
       url: data.url,
-      title: "sample title",
-      description: "sample description",
       isPublic: false,
       tags: data.tags ? data.tags.split(",") : [],
     });
