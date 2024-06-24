@@ -23,8 +23,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     redirect("/login");
   }
 
-  console.log(user);
-
   return (
     <div className="bg-white max-lg:flex-col lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
       <SidebarLayout
