@@ -11,8 +11,9 @@ import type {
   UpdateBookmarkInput,
 } from "./bookmark.input";
 import { bookmarks, bookmarkTags, tags } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { JSDOM } from "jsdom";
+import { TRPCError } from "@trpc/server";
 
 export const listBookmarks = async (ctx: ProtectedTRPCContext, input: ListBookmarksInput) => {
   return ctx.db.query.bookmarks.findMany({
@@ -66,7 +67,6 @@ export const createBookmark = async (ctx: ProtectedTRPCContext, input: CreateBoo
     const title = dom.window.document.title || document.querySelector("title")?.textContent || "";
     const description = dom.window.document.querySelector("meta[name='description']")?.getAttribute("content") || "";
 
-    // Insert the bookmark
     await trx.insert(bookmarks).values({
       id: bookmarkId,
       userId: ctx.user.id,
@@ -76,14 +76,11 @@ export const createBookmark = async (ctx: ProtectedTRPCContext, input: CreateBoo
       isPublic: input.isPublic,
     });
 
-    // Process tags
     for (const tagName of input.tags) {
-      // Check if the tag already exists
       let tag = await trx.query.tags.findFirst({
         where: eq(tags.name, tagName),
       });
 
-      // If the tag doesn't exist, create it
       if (!tag) {
         const tagId = generateId(15);
         await trx.insert(tags).values({
@@ -93,7 +90,6 @@ export const createBookmark = async (ctx: ProtectedTRPCContext, input: CreateBoo
         tag = { id: tagId, name: tagName, createdAt: new Date(), updatedAt: new Date() };
       }
 
-      // Create the bookmark-tag association
       await trx.insert(bookmarkTags).values({
         id: generateId(15),
         bookmarkId: bookmarkId,
@@ -107,7 +103,6 @@ export const createBookmark = async (ctx: ProtectedTRPCContext, input: CreateBoo
 
 export const updateBookmark = async (ctx: ProtectedTRPCContext, input: UpdateBookmarkInput) => {
   await ctx.db.transaction(async (trx) => {
-    // Update the bookmark
     await trx
       .update(bookmarks)
       .set({
@@ -118,17 +113,13 @@ export const updateBookmark = async (ctx: ProtectedTRPCContext, input: UpdateBoo
       })
       .where(eq(bookmarks.id, input.id));
 
-    // Remove existing tag associations
     await trx.delete(bookmarkTags).where(eq(bookmarkTags.bookmarkId, input.id));
 
-    // Process new tags
     for (const tagName of input.tags) {
-      // Check if the tag already exists
       let tag = await trx.query.tags.findFirst({
         where: eq(tags.name, tagName),
       });
 
-      // If the tag doesn't exist, create it
       if (!tag) {
         const tagId = generateId(15);
         await trx.insert(tags).values({
@@ -138,7 +129,6 @@ export const updateBookmark = async (ctx: ProtectedTRPCContext, input: UpdateBoo
         tag = { id: tagId, name: tagName, createdAt: new Date(), updatedAt: new Date() };
       }
 
-      // Create the bookmark-tag association
       await trx.insert(bookmarkTags).values({
         id: generateId(15),
         bookmarkId: input.id,
@@ -147,7 +137,6 @@ export const updateBookmark = async (ctx: ProtectedTRPCContext, input: UpdateBoo
     }
   });
 
-  // Fetch and return the updated bookmark
   const updatedBookmark = await ctx.db.query.bookmarks.findFirst({
     where: eq(bookmarks.id, input.id),
     with: {
@@ -163,9 +152,40 @@ export const updateBookmark = async (ctx: ProtectedTRPCContext, input: UpdateBoo
   return updatedBookmark;
 };
 
-export const deleteBookmark = async (ctx: ProtectedTRPCContext, { id }: DeleteBookmarkInput) => {
-  const [item] = await ctx.db.delete(bookmarks).where(eq(bookmarks.id, id)).returning();
-  return item;
+export const deleteBookmark = async (ctx: ProtectedTRPCContext, input: DeleteBookmarkInput) => {
+  try {
+    return await ctx.db.transaction(async (trx) => {
+      const bookmark = await trx.query.bookmarks.findFirst({
+        where: and(eq(bookmarks.id, input.id), eq(bookmarks.userId, ctx.user.id)),
+      });
+
+      if (!bookmark) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark not found or you do not have permission to delete it",
+        });
+      }
+
+      await trx.delete(bookmarkTags).where(eq(bookmarkTags.bookmarkId, input.id));
+      const [deletedBookmark] = await trx.delete(bookmarks).where(eq(bookmarks.id, input.id)).returning();
+
+      return {
+        success: true,
+        deletedBookmark,
+        message: "Bookmark successfully deleted",
+      };
+    });
+  } catch (error) {
+    if (error instanceof TRPCError) {
+      throw error;
+    }
+
+    console.error("Error deleting bookmark:", error);
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "An unexpected error occurred while deleting the bookmark ",
+    });
+  }
 };
 
 export const myBookmarks = async (ctx: ProtectedTRPCContext, input: MyBookmarksInput) => {
@@ -210,7 +230,6 @@ export const refetchBookmark = async (ctx: ProtectedTRPCContext, input: RefetchB
     const newTitle = dom.window.document.title || dom.window.document.querySelector("title")?.textContent || "";
     const newDescription = dom.window.document.querySelector("meta[name='description']")?.getAttribute("content") || "";
 
-    // Update the bookmark with new title and description
     const [updatedBookmark] = await ctx.db
       .update(bookmarks)
       .set({
