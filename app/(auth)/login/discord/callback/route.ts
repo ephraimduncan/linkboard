@@ -54,11 +54,7 @@ export async function GET(request: Request): Promise<Response> {
     });
 
     if (existingOAuthAccount) {
-      const updateData: Partial<typeof users.$inferInsert> = {
-        avatar,
-        username,
-        name,
-      };
+      const updateData: Partial<typeof users.$inferInsert> = {};
 
       if (!existingOAuthAccount.user.avatar && avatar) {
         updateData.avatar = avatar;
@@ -72,7 +68,9 @@ export async function GET(request: Request): Promise<Response> {
         updateData.username = username;
       }
 
-      await db.update(users).set(updateData).where(eq(users.id, existingOAuthAccount.userId));
+      if (Object.keys(updateData).length > 0) {
+        await db.update(users).set(updateData).where(eq(users.id, existingOAuthAccount.userId));
+      }
 
       const session = await lucia.createSession(existingOAuthAccount.userId, {});
       const sessionCookie = lucia.createSessionCookie(session.id);
@@ -96,10 +94,7 @@ export async function GET(request: Request): Promise<Response> {
       });
 
       const updateData: Partial<typeof users.$inferInsert> = {
-        avatar,
         emailVerified: true,
-        username,
-        name,
       };
 
       if (!existingUser.avatar && avatar) {
@@ -114,7 +109,9 @@ export async function GET(request: Request): Promise<Response> {
         updateData.username = username;
       }
 
-      await db.update(users).set(updateData).where(eq(users.id, existingUser.id));
+      if (Object.keys(updateData).length > 0) {
+        await db.update(users).set(updateData).where(eq(users.id, existingUser.id));
+      }
 
       const session = await lucia.createSession(existingUser.id, {});
       const sessionCookie = lucia.createSessionCookie(session.id);
