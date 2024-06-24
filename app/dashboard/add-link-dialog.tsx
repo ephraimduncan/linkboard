@@ -14,6 +14,7 @@ import { Loader } from "lucide-react";
 
 const CreateBookmarkSchema = z.object({
   url: z.string().url("Invalid URL"),
+  tags: z.string().optional(),
 });
 
 type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>;
@@ -39,6 +40,7 @@ export const AddLinkDialog = () => {
       title: "sample title",
       description: "sample description",
       isPublic: false,
+      tags: data.tags ? data.tags.split(",") : [],
     });
 
     form.reset();
@@ -66,6 +68,17 @@ export const AddLinkDialog = () => {
                   <FormItem>
                     <FormControl>
                       <Input placeholder="https://duncan.land" {...field} name="url" value={field.value || ""} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder="Add tags" {...field} name="tags" value={field.value || ""} />
                     </FormControl>
                   </FormItem>
                 )}

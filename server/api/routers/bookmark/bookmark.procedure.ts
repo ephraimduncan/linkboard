@@ -14,7 +14,7 @@ export const bookmarkRouter = createTRPCRouter({
     .mutation(({ ctx, input }) => services.createBookmark(ctx, input)),
 
   update: protectedProcedure
-    .input(inputs.updateBookmarkSchema)
+    .input(inputs.UpdateBookmarkSchema)
     .mutation(({ ctx, input }) => services.updateBookmark(ctx, input)),
 
   delete: protectedProcedure

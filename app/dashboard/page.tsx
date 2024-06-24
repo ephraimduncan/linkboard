@@ -10,7 +10,14 @@ type Bookmark = {
   title: string;
   url: string;
   description: string;
-  tags?: string[];
+  tags?: {
+    tag: {
+      createdAt: Date;
+      updatedAt: Date;
+      id: string;
+      name: string;
+    };
+  }[];
   createdAt: string;
   //   username?: string;
 };

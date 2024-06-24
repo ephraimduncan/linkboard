@@ -5,7 +5,14 @@ type Bookmark = {
   title: string;
   url: string;
   description: string;
-  tags?: string[];
+  tags?: {
+    tag: {
+      createdAt: Date;
+      updatedAt: Date;
+      id: string;
+      name: string;
+    };
+  }[];
   createdAt: string;
   //   username?: string;
 };
@@ -30,9 +37,9 @@ export const BookmarkList = ({ bookmarks }: { bookmarks: Bookmark[] }) => {
             </a>
           </div>
           <div className="flex items-center text-xs text-muted-foreground mt-1">
-            {bookmark.tags && (
+            {bookmark.tags && bookmark.tags.length > 0 && (
               <>
-                <span className="mr-2">{bookmark.tags.join(", ")}</span>
+                <span className="mr-2">{bookmark.tags?.map((tag) => tag.tag.name).join(", ")}</span>
                 <span className="mr-2">•</span>
               </>
             )}
