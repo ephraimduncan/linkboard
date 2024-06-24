@@ -3,25 +3,7 @@ import { MagnifyingGlassIcon } from "@heroicons/react/16/solid";
 import { BookmarkList } from "~/components/bookmark-list";
 import { AddLinkDialog } from "./add-link-dialog";
 import { api } from "~/trpc/server";
-
-// remove this
-type Bookmark = {
-  id: string;
-  title: string;
-  url: string;
-  isPublic: boolean;
-  description: string;
-  tags?: {
-    tag: {
-      createdAt: Date;
-      updatedAt: Date;
-      id: string;
-      name: string;
-    };
-  }[];
-  createdAt: string;
-  //   username?: string;
-};
+import { BookmarkWithTags } from "~/server/db/schema";
 
 export default async function DashboardPage() {
   const bookmarks = await api.bookmark.myBookmarks.query({});
@@ -37,7 +19,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-8">
-        <BookmarkList bookmarks={bookmarks as unknown as Bookmark[]} />
+        <BookmarkList bookmarks={bookmarks as unknown as BookmarkWithTags[]} />
       </div>
     </div>
   );

@@ -101,6 +101,9 @@ export const bookmarkRelations = relations(bookmarks, ({ one, many }) => ({
 
 export type Bookmark = typeof bookmarks.$inferSelect;
 export type NewBookmark = typeof bookmarks.$inferInsert;
+export type BookmarkWithTags = Bookmark & {
+  tags: { tag: Tag }[];
+};
 
 export const tags = sqliteTable(
   "tags",

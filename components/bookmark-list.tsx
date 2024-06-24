@@ -2,24 +2,7 @@ import React from "react";
 import { truncateText } from "~/lib/utils";
 import { ContextMenu, ContextMenuTrigger } from "~/components/primitives/context-menu";
 import { BookmarkContextMenu } from "./bookmark-context-menu";
-
-type Bookmark = {
-  id: string;
-  title: string;
-  url: string;
-  description: string;
-  isPublic: boolean;
-  tags?: {
-    tag: {
-      createdAt: Date;
-      updatedAt: Date;
-      id: string;
-      name: string;
-    };
-  }[];
-  createdAt: string;
-  //   username?: string;
-};
+import { BookmarkWithTags } from "~/server/db/schema";
 
 const addReferral = (url: string) => {
   const parsedUrl = new URL(url);
@@ -27,7 +10,9 @@ const addReferral = (url: string) => {
   return parsedUrl.toString();
 };
 
-export const BookmarkList = ({ bookmarks }: { bookmarks: Bookmark[] }) => {
+type BookmarkListProps = { bookmarks: BookmarkWithTags[] };
+
+export const BookmarkList = ({ bookmarks }: BookmarkListProps) => {
   return (
     <div>
       {bookmarks.map((bookmark) => (
@@ -45,7 +30,7 @@ export const BookmarkList = ({ bookmarks }: { bookmarks: Bookmark[] }) => {
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 {bookmark.tags && bookmark.tags.length > 0 && (
                   <>
-                    <span className="mr-2">{bookmark.tags?.map((tag) => tag.tag.name).join(", ")}</span>
+                    <span className="mr-2">{bookmark.tags.map((t) => t.tag.name).join(", ")}</span>
                     <span className="mr-2">•</span>
                   </>
                 )}

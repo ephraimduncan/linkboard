@@ -12,26 +12,9 @@ import { cn } from "~/lib/utils";
 import { revalidateFromClient } from "~/app/revalidate-on-client";
 import { LockClose } from "./icons/lock-close";
 import { LockOpen } from "./icons/lock-open";
+import { BookmarkWithTags } from "~/server/db/schema";
 
-type Bookmark = {
-  id: string;
-  title: string;
-  url: string;
-  description: string;
-  isPublic: boolean;
-  tags?: {
-    tag: {
-      createdAt: Date;
-      updatedAt: Date;
-      id: string;
-      name: string;
-    };
-  }[];
-  createdAt: string;
-  //   username?: string;
-};
-
-export function BookmarkContextMenu({ bookmark }: { bookmark: Bookmark }) {
+export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }) {
   const { mutate: refetchBookmark, isLoading: isRefreshingBookmark } = api.bookmark.refetch.useMutation({
     onSuccess: () => {
       revalidateFromClient("/dashboard");
@@ -56,26 +39,26 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: Bookmark }) {
     {
       icon: Copy,
       label: "Copy",
-      onClick: async (bookmark: Bookmark) => {
+      onClick: async (bookmark: BookmarkWithTags) => {
         await navigator.clipboard.writeText(bookmark.url);
         toast.success("Copied to clipboard");
       },
     },
-    { icon: Pencil, label: "Edit", onClick: (bookmark: Bookmark) => console.log("Edit", bookmark) },
+    { icon: Pencil, label: "Edit", onClick: (bookmark: BookmarkWithTags) => console.log("Edit", bookmark) },
     {
       icon: Trash,
       label: "Delete",
-      onClick: (bookmark: Bookmark) => deleteBookmark({ id: bookmark.id }),
+      onClick: (bookmark: BookmarkWithTags) => deleteBookmark({ id: bookmark.id }),
     },
     {
       icon: Refresh,
       label: "Refresh",
-      onClick: async (bookmark: Bookmark) => refetchBookmark({ id: bookmark.id }),
+      onClick: async (bookmark: BookmarkWithTags) => refetchBookmark({ id: bookmark.id }),
     },
     {
       icon: bookmark.isPublic ? LockClose : LockOpen,
       label: bookmark.isPublic ? "Make private" : "Make public",
-      onClick: async (bookmark: Bookmark) => toggleBookmarkVisibility({ id: bookmark.id }),
+      onClick: async (bookmark: BookmarkWithTags) => toggleBookmarkVisibility({ id: bookmark.id }),
     },
   ];
 
