@@ -28,3 +28,4 @@ export const uncachedValidateRequest = async (): Promise<
 };
 
 export const validateRequest = cache(uncachedValidateRequest);
+export const auth = cache(uncachedValidateRequest);

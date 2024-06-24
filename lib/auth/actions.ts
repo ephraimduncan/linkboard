@@ -115,6 +115,7 @@ export async function signup(_: any, formData: FormData): Promise<ActionResponse
 }
 
 export async function logout(): Promise<{ error: string } | void> {
+  "use server";
   const { session } = await validateRequest();
   if (!session) {
     return {
@@ -140,9 +141,9 @@ export async function resendVerificationEmail(): Promise<{
     columns: { expiresAt: true },
   });
 
-  if (lastSent && isWithinExpirationDate(lastSent.expiresAt)) {
+  if (lastSent && isWithinExpirationDate(new Date(lastSent.expiresAt))) {
     return {
-      error: `Please wait ${timeFromNow(lastSent.expiresAt)} before resending`,
+      error: `Please wait ${timeFromNow(new Date(lastSent.expiresAt))} before resending`,
     };
   }
   const verificationCode = await generateEmailVerificationCode(user.id, user.email);
@@ -172,7 +173,7 @@ export async function verifyEmail(_: any, formData: FormData): Promise<{ error: 
 
   if (!dbCode || dbCode.code !== code) return { error: "Invalid verification code" };
 
-  if (!isWithinExpirationDate(dbCode.expiresAt)) return { error: "Verification code expired" };
+  if (!isWithinExpirationDate(new Date(dbCode.expiresAt))) return { error: "Verification code expired" };
 
   if (dbCode.email !== user.email) return { error: "Email does not match" };
 
