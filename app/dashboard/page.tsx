@@ -1,12 +1,22 @@
 import { Input, InputGroup } from "~/components/primitives/input";
 import { MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/16/solid";
-import { Button } from "~/components/primitives/button";
 import { BookmarkList } from "~/components/bookmark-list";
-import { getBookmarks } from "~/sample-data";
 import { AddLinkDialog } from "./add-link-dialog";
+import { api } from "~/trpc/server";
+
+// remove this
+type Bookmark = {
+  id: number;
+  title: string;
+  url: string;
+  description: string;
+  tags?: string[];
+  createdAt: string;
+  //   username?: string;
+};
 
 export default async function DashboardPage() {
-  const bookmarks = getBookmarks();
+  const bookmarks = await api.bookmark.myBookmarks.query({});
 
   return (
     <div>
@@ -19,7 +29,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-8">
-        <BookmarkList bookmarks={bookmarks} />
+        <BookmarkList bookmarks={bookmarks as unknown as Bookmark[]} />
       </div>
     </div>
   );
