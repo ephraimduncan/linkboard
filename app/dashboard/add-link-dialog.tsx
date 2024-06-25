@@ -6,45 +6,55 @@ import { Dialog, DialogActions, DialogBody, DialogTitle } from "~/components/pri
 import { Input } from "~/components/primitives/input";
 import { useState } from "react";
 import { PlusIcon } from "@heroicons/react/16/solid";
-import { Form, FormControl, FormField, FormItem } from "~/components/primitives/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "~/components/primitives/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { api } from "~/trpc/react";
 import { Loader } from "lucide-react";
 import { revalidateFromClient } from "../revalidate-on-client";
+import { MultiInput } from "~/components/primitives/multi-input";
 
 const CreateBookmarkSchema = z.object({
   url: z.string().url("Invalid URL"),
-  tags: z.string().optional(),
+  tags: z.array(z.string()).min(1, {
+    message: "At least one tag is required.",
+  }),
 });
 
 type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>;
 
 export const AddLinkDialog = () => {
-  const { data, mutate, isLoading, error } = api.bookmark.create.useMutation({
-    onSuccess: () => {
-      revalidateFromClient("/dashboard");
-    },
-  });
+  const { mutateAsync: addBookmark, isLoading } = api.bookmark.create.useMutation();
 
   const form = useForm<CreateBookmarkInput>({
     resolver: zodResolver(CreateBookmarkSchema),
     defaultValues: {
       url: "",
+      tags: [],
     },
   });
 
   const onSubmit = async (data: CreateBookmarkInput) => {
-    console.log({
-      title: "You submitted the following values:",
-      data,
-    });
-
-    mutate({
-      url: data.url,
-      isPublic: false,
-      tags: data.tags ? data.tags.split(",") : [],
-    });
+    await addBookmark(
+      {
+        url: data.url,
+        isPublic: false,
+        tags: data.tags,
+      },
+      {
+        onSuccess: () => {
+          revalidateFromClient("/dashboard");
+        },
+      }
+    );
 
     form.reset();
     setIsOpen(false);
@@ -58,31 +68,37 @@ export const AddLinkDialog = () => {
         <PlusIcon />
         Add link
       </Button>
-      <Dialog open={isOpen} onClose={setIsOpen}>
+      <Dialog open={isOpen} onClose={setIsOpen} className="space-y-4">
         <DialogTitle>add link</DialogTitle>
 
         <DialogBody>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+            <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
               <FormField
                 control={form.control}
                 name="url"
                 render={({ field }) => (
                   <FormItem>
+                    <FormLabel>URL</FormLabel>
                     <FormControl>
                       <Input placeholder="https://duncan.land" {...field} name="url" value={field.value || ""} />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="tags"
                 render={({ field }) => (
                   <FormItem>
+                    <FormLabel>Tags</FormLabel>
                     <FormControl>
-                      <Input placeholder="Add tags" {...field} name="tags" value={field.value || ""} />
+                      <MultiInput {...field} />
                     </FormControl>
+                    <FormDescription>Enter tags related to your bookmark</FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -93,8 +109,8 @@ export const AddLinkDialog = () => {
           <Button plain onClick={() => setIsOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={form.handleSubmit(onSubmit)}>
-            {isLoading && <Loader className="animate-spin" />}
+          <Button disabled={isLoading} onClick={form.handleSubmit(onSubmit)}>
+            {isLoading && <Loader className="animate-spin size-4" />}
             {isLoading ? "Adding..." : "Add link"}
           </Button>
         </DialogActions>
