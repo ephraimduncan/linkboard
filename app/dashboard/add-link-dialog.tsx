@@ -21,10 +21,11 @@ import { api } from "~/trpc/react";
 import { Loader } from "lucide-react";
 import { revalidateFromClient } from "../revalidate-on-client";
 import { MultiInput } from "~/components/primitives/multi-input";
+import { toast } from "sonner";
 
 const CreateBookmarkSchema = z.object({
   url: z.string().url("Invalid URL"),
-  tags: z.array(z.string()).min(1, {
+  tags: z.array(z.string().trim()).min(1, {
     message: "At least one tag is required.",
   }),
 });
@@ -52,6 +53,8 @@ export const AddLinkDialog = () => {
       {
         onSuccess: () => {
           revalidateFromClient("/dashboard");
+
+          toast.success("Bookmark added");
         },
       }
     );
