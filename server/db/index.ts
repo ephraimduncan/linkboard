@@ -34,11 +34,9 @@ class QueryLogger implements Logger {
   }
 }
 
-const connection = createClient({
-  //   url: "DATABASE_URL",
-  //   authToken: "DATABASE_AUTH_TOKEN",
-
-  url: "file:local.sqlite",
+export const connection = createClient({
+  url: env.SQLITE_URL,
+  authToken: env.SQLITE_AUTH_TOKEN,
 });
 
 export const db = drizzle(connection, { schema, logger: new QueryLogger() });
