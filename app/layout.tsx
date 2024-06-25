@@ -6,6 +6,7 @@ import "./globals.css";
 import { cn } from "~/lib/utils";
 import { Toaster } from "~/components/primitives/sonner";
 import { TRPCReactProvider } from "~/trpc/react";
+import { cookies } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="!lowercase">
       <body className={cn(inter.className, GeistSans.variable)}>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <TRPCReactProvider cookies={cookies().toString()}>{children}</TRPCReactProvider>
       </body>
       <Toaster />
     </html>

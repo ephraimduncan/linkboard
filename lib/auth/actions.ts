@@ -1,25 +1,13 @@
 "use server";
 
-import { z } from "zod";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { generateId, Scrypt } from "lucia";
-import { isWithinExpirationDate, TimeSpan, createDate } from "oslo";
-import { generateRandomString, alphabet } from "oslo/crypto";
 import { and, eq } from "drizzle-orm";
 import { lucia } from "~/lib/auth";
 import { db } from "~/server/db";
-import {
-  loginSchema,
-  signupSchema,
-  type LoginInput,
-  type SignupInput,
-  resetPasswordSchema,
-} from "~/lib/validators/auth";
-import { oauthAccounts, users } from "~/server/db/schema";
+import { oauthAccounts } from "~/server/db/schema";
 import { validateRequest } from "~/lib/auth/validate-request";
-import { Paths } from "../constants";
-import { env } from "~/env";
 
 export interface ActionResponse<T> {
   fieldError?: Partial<Record<keyof T, string | undefined>>;
