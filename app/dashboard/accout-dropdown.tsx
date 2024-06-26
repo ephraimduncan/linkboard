@@ -18,6 +18,7 @@ import { revalidateFromClient } from "../revalidate-on-client";
 import { TRPCClientError } from "@trpc/client";
 import { User as UserIcon } from "~/components/icons/user";
 import { Logout } from "~/components/icons/logout";
+import { Alert, AlertActions, AlertDescription, AlertTitle } from "~/components/primitives/alert";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -26,7 +27,8 @@ const formSchema = z.object({
 });
 
 export function AccountDropdownMenu({ anchor, user }: { anchor: "top start" | "bottom end"; user: User }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isAccountSettingOpen, setIsAccountSettingOpen] = useState(false);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   const { mutateAsync: updateUser, isLoading: isUpdatingAccount } = api.user.updateProfile.useMutation();
 
@@ -45,7 +47,7 @@ export function AccountDropdownMenu({ anchor, user }: { anchor: "top start" | "b
       toast.success("Account information updated");
 
       revalidateFromClient("/dashboard");
-      setIsOpen(false);
+      setIsAccountSettingOpen(false);
     } catch (error) {
       let errorMessage = "Failed to update account information";
 
@@ -71,15 +73,15 @@ export function AccountDropdownMenu({ anchor, user }: { anchor: "top start" | "b
       <DropdownMenu className="min-w-56 p-1 mx-auto" anchor={anchor}>
         <DropdownItem href="#">
           <UserIcon className="size-4 mr-2" />
-          <DropdownLabel onClick={() => setIsOpen(true)}>My account</DropdownLabel>
+          <DropdownLabel onClick={() => setIsAccountSettingOpen(true)}>My account</DropdownLabel>
         </DropdownItem>
-        <DropdownItem onClick={async () => await logout()}>
+        <DropdownItem onClick={() => setIsLogoutDialogOpen(true)}>
           <Logout className="size-4 mr-2" />
           <DropdownLabel className="!lowercase">Log out</DropdownLabel>
         </DropdownItem>
       </DropdownMenu>
 
-      <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
+      <Dialog open={isAccountSettingOpen} onClose={() => setIsAccountSettingOpen(false)}>
         <DialogTitle>Account Details</DialogTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -125,7 +127,7 @@ export function AccountDropdownMenu({ anchor, user }: { anchor: "top start" | "b
               />
             </DialogBody>
             <DialogActions>
-              <Button plain onClick={() => setIsOpen(false)}>
+              <Button plain onClick={() => setIsAccountSettingOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={!form.formState.isDirty || isUpdatingAccount}>
@@ -136,6 +138,26 @@ export function AccountDropdownMenu({ anchor, user }: { anchor: "top start" | "b
           </form>
         </Form>
       </Dialog>
+
+      <Alert open={isLogoutDialogOpen} onClose={setIsLogoutDialogOpen}>
+        <AlertTitle>Are you sure you want to logout?</AlertTitle>
+        <AlertDescription>
+          This will end your session, and you will need to log in again to add bookmarks with the extension.
+        </AlertDescription>
+        <AlertActions>
+          <Button plain onClick={() => setIsLogoutDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={async () => {
+              await logout();
+              setIsLogoutDialogOpen(false);
+            }}
+          >
+            logout
+          </Button>
+        </AlertActions>
+      </Alert>
     </>
   );
 }
