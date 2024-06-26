@@ -25,9 +25,7 @@ import { toast } from "sonner";
 
 const CreateBookmarkSchema = z.object({
   url: z.string().url("Invalid URL"),
-  tags: z.array(z.string().trim()).min(1, {
-    message: "At least one tag is required.",
-  }),
+  tags: z.array(z.string().trim()),
 });
 
 type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>;
