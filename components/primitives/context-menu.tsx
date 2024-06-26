@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
-import { CheckIcon, ChevronRightIcon } from "@radix-ui/react-icons";
+import { CheckIcon } from "@radix-ui/react-icons";
 import { cn } from "~/lib/utils";
 
 const ContextMenu = ContextMenuPrimitive.Root;
@@ -51,7 +51,7 @@ const ContextMenuItem = React.forwardRef<
     className={cn(
       "group cursor-default rounded-lg px-3.5 py-2.5 focus:outline-none sm:px-3 sm:py-1.5",
       "text-left text-base/6 text-stone-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
-      "data-[highlighted]:bg-blue-500 data-[highlighted]:text-white",
+      "data-[highlighted]:bg-stone-700 data-[highlighted]:text-white",
       "data-[disabled]:opacity-50",
       "forced-color-adjust-none forced-colors:data-[highlighted]:bg-[Highlight] forced-colors:data-[highlighted]:text-[HighlightText] forced-colors:[&>[data-slot=icon]]:data-[highlighted]:text-[HighlightText]",
       "col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] items-center supports-[grid-template-columns:subgrid]:grid-cols-subgrid",
@@ -74,7 +74,7 @@ const ContextMenuCheckboxItem = React.forwardRef<
     className={cn(
       "group cursor-default rounded-lg px-3.5 py-2.5 focus:outline-none sm:px-3 sm:py-1.5",
       "text-left text-base/6 text-stone-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
-      "data-[highlighted]:bg-blue-500 data-[highlighted]:text-white",
+      "data-[highlighted]:bg-stone-700 data-[highlighted]:text-white",
       "data-[disabled]:opacity-50",
       "forced-color-adjust-none forced-colors:data-[highlighted]:bg-[Highlight] forced-colors:data-[highlighted]:text-[HighlightText]",
       "relative pl-8",
@@ -102,7 +102,7 @@ const ContextMenuRadioItem = React.forwardRef<
     className={cn(
       "group cursor-default rounded-lg px-3.5 py-2.5 focus:outline-none sm:px-3 sm:py-1.5",
       "text-left text-base/6 text-stone-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
-      "data-[highlighted]:bg-blue-500 data-[highlighted]:text-white",
+      "data-[highlighted]:bg-stone-700 data-[highlighted]:text-white",
       "data-[disabled]:opacity-50",
       "forced-color-adjust-none forced-colors:data-[highlighted]:bg-[Highlight] forced-colors:data-[highlighted]:text-[HighlightText]",
       "relative pl-8",

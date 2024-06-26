@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Copy } from "./icons/copy";
 import { Pencil } from "./icons/pencil";
 import { Trash } from "./icons/trash";
@@ -13,21 +13,26 @@ import { revalidateFromClient } from "~/app/revalidate-on-client";
 import { LockClose } from "./icons/lock-close";
 import { LockOpen } from "./icons/lock-open";
 import { BookmarkWithTags } from "~/server/db/schema";
+import { Alert, AlertActions, AlertDescription, AlertTitle } from "./primitives/alert";
+import { Button } from "./primitives/button";
+import { Loader } from "lucide-react";
 
 export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }) {
-  const { mutate: refetchBookmark, isLoading: isRefreshingBookmark } = api.bookmark.refetch.useMutation({
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const { mutateAsync: refetchBookmark, isLoading: isRefreshingBookmark } = api.bookmark.refetch.useMutation({
     onSuccess: () => {
       revalidateFromClient("/dashboard");
       toast.success("Bookmark refreshed");
     },
   });
-  const { mutate: deleteBookmark, isLoading: isDeletingBookmark } = api.bookmark.delete.useMutation({
+  const { mutateAsync: deleteBookmark, isLoading: isDeletingBookmark } = api.bookmark.delete.useMutation({
     onSuccess: () => {
       revalidateFromClient("/dashboard");
       toast.success("Bookmark deleted");
     },
   });
-  const { mutate: toggleBookmarkVisibility, isLoading: isTogglingVisibility } =
+  const { mutateAsync: toggleBookmarkVisibility, isLoading: isTogglingVisibility } =
     api.bookmark.toggleVisibility.useMutation({
       onSuccess: () => {
         revalidateFromClient("/dashboard");
@@ -48,7 +53,7 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }
     {
       icon: Trash,
       label: "Delete",
-      onClick: (bookmark: BookmarkWithTags) => deleteBookmark({ id: bookmark.id }),
+      onClick: (bookmark: BookmarkWithTags) => setIsDeleteDialogOpen(true),
     },
     {
       icon: Refresh,
@@ -63,20 +68,42 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }
   ];
 
   return (
-    <ContextMenuContent>
-      {ContextMenuItems.map((item, index) => (
-        <ContextMenuItem disabled={isRefreshingBookmark} key={index} onClick={() => item.onClick(bookmark)}>
-          <div className="flex items-center gap-1.5">
-            <item.icon
-              className={cn("size-4", {
-                "animate-spin": isRefreshingBookmark && item.label === "Refresh",
-                "animate-pulse": isDeletingBookmark && item.label === "Delete",
-              })}
-            />
-            {item.label}
-          </div>
-        </ContextMenuItem>
-      ))}
-    </ContextMenuContent>
+    <>
+      <ContextMenuContent>
+        {ContextMenuItems.map((item, index) => (
+          <ContextMenuItem disabled={isRefreshingBookmark} key={index} onClick={() => item.onClick(bookmark)}>
+            <div className="flex items-center gap-1.5">
+              <item.icon
+                className={cn("size-4", {
+                  "animate-spin": isRefreshingBookmark && item.label === "Refresh",
+                  "animate-pulse": isDeletingBookmark && item.label === "Delete",
+                })}
+              />
+              {item.label}
+            </div>
+          </ContextMenuItem>
+        ))}
+      </ContextMenuContent>
+
+      <Alert open={isDeleteDialogOpen} onClose={setIsDeleteDialogOpen}>
+        <AlertTitle>Are you sure you want to delete this bookmark?</AlertTitle>
+        <AlertDescription>This action cannot be undone. </AlertDescription>
+        <AlertActions>
+          <Button plain onClick={() => setIsDeleteDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            disabled={isDeletingBookmark}
+            onClick={async () => {
+              await deleteBookmark({ id: bookmark.id });
+              setIsDeleteDialogOpen(false);
+            }}
+          >
+            {isDeletingBookmark && <Loader className="animate-spin size-4" />}
+            Delete
+          </Button>
+        </AlertActions>
+      </Alert>
+    </>
   );
 }
