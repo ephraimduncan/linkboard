@@ -4,11 +4,17 @@ import { ArrowRight } from "lucide-react";
 import AppDemoImage from "~/public/app-demo.png";
 import Image from "next/image";
 import { Link } from "~/components/primitives/link";
+import { auth } from "~/lib/auth/validate-request";
 
-export const Hero = () => {
+export const Hero = async () => {
+  const { user } = await auth();
+
   return (
     <Section className="font-sans mt-20">
       <Container>
+        <div className="flex gap-5 text-lg items-end justify-end">
+          {user ? <Link href="/dashboard">Dasboard</Link> : <Link href="/login">Login</Link>}
+        </div>
         <div>
           <Link
             className="border w-fit p-2 mb-5 font-medium py-0.5 rounded-md text-xs group flex items-center gap-1.5"
