@@ -57,10 +57,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       <Avatar src={user.avatar} className="size-10" alt="" />
 
                       <span className="min-w-0">
-                        <span className="block truncate text-sm/5 font-medium text-stone-950 dark:text-white">
+                        <span className="block truncate text-sm/5 !lowercase font-medium text-stone-950 dark:text-white">
                           {user.name}
                         </span>
-                        <span className="block truncate text-xs/5 font-normal text-stone-500 dark:text-stone-400">
+                        <span className="block truncate text-xs/5 font-normal !lowercase text-stone-500 dark:text-stone-400">
                           {user.email}
                         </span>
                       </span>
