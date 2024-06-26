@@ -8,7 +8,7 @@ export default function Home() {
     <div>
       <Hero />
       <FeatureSection />
-      <CTA />
+      {/* <CTA />  */}
       <Footer />
     </div>
   );
