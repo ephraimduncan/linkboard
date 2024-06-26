@@ -18,7 +18,7 @@ export const BookmarkList = ({ bookmarks }: BookmarkListProps) => {
       {bookmarks.map((bookmark) => (
         <ContextMenu key={bookmark.id}>
           <ContextMenuTrigger>
-            <div className="mb-3 hover:bg-gray-100 p-2 px-3 rounded-lg">
+            <div className="mb-3 hover:bg-stone-100 p-2 px-3 rounded-lg">
               <div className="flex items-center">
                 <a href={addReferral(bookmark.url)} className="font-medium text-black hover:underline mr-2">
                   {truncateText(bookmark.title)}

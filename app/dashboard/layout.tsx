@@ -24,7 +24,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <div className="bg-white max-lg:flex-col lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
+    <div className="bg-white max-lg:flex-col">
       <SidebarLayout
         navbar={
           <Navbar>
@@ -57,10 +57,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       <Avatar src={user.avatar} className="size-10" alt="" />
 
                       <span className="min-w-0">
-                        <span className="block truncate text-sm/5 font-medium text-zinc-950 dark:text-white">
+                        <span className="block truncate text-sm/5 font-medium text-stone-950 dark:text-white">
                           {user.name}
                         </span>
-                        <span className="block truncate text-xs/5 font-normal text-zinc-500 dark:text-zinc-400">
+                        <span className="block truncate text-xs/5 font-normal text-stone-500 dark:text-stone-400">
                           {user.email}
                         </span>
                       </span>

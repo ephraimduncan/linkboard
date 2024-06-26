@@ -29,7 +29,7 @@ const Main = ({ children, className, id }: MainProps) => {
         // `Main` Specific Styles
         "max-w-none prose-p:m-0",
         // General Prose
-        "prose prose-neutral prose:font-sans dark:prose-invert xl:prose-lg",
+        "prose prose-stone prose:font-sans dark:prose-invert xl:prose-lg",
         // Prose Headings
         "prose-headings:font-normal",
         // Prose Strong
@@ -93,7 +93,7 @@ const Article = ({ children, className, id }: ArticleProps) => {
     <article
       className={cn(
         // General Prose
-        "prose prose-neutral prose:font-sans dark:prose-invert xl:prose-lg max-w-none",
+        "prose prose-stone prose:font-sans dark:prose-invert xl:prose-lg max-w-none",
         // Prose Headings
         "prose-headings:font-normal",
         // Prose Paragraphs

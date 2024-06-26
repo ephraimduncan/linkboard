@@ -59,7 +59,7 @@ export const MultiInput = React.forwardRef(function MultiInput(
       className={clsx([
         className,
         "relative block w-full items-center",
-        "rounded-lg border border-zinc-950/10 dark:border-white/10",
+        "rounded-lg border border-stone-950/10 dark:border-white/10",
         "focus-within:ring-2 focus-within:ring-blue-500",
         "p-1",
       ])}
@@ -70,8 +70,8 @@ export const MultiInput = React.forwardRef(function MultiInput(
             key={index}
             className={clsx(
               "inline-flex items-center gap-x-1.5 rounded-md px-1.5 py-0.5 text-sm/5 font-medium sm:text-xs/5 forced-colors:outline",
-              "bg-zinc-50 text-zinc-700 ring-1 ring-inset ring-zinc-900/10",
-              "dark:bg-zinc-500/10 dark:text-zinc-400 dark:ring-zinc-400/20"
+              "bg-stone-50 text-stone-700 ring-1 ring-inset ring-stone-900/10",
+              "dark:bg-stone-500/10 dark:text-stone-400 dark:ring-stone-400/20"
             )}
           >
             {tag}
@@ -81,7 +81,7 @@ export const MultiInput = React.forwardRef(function MultiInput(
                 e.stopPropagation();
                 removeTag(index);
               }}
-              className="ml-1 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+              className="ml-1 text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
             >
               <X className="size-3" />
             </button>
@@ -95,7 +95,7 @@ export const MultiInput = React.forwardRef(function MultiInput(
           onKeyDown={handleInputKeyDown}
           className={clsx([
             "flex-grow min-w-[80px]",
-            "text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-xs/5 dark:text-white",
+            "text-base/6 text-stone-950 placeholder:text-stone-500 sm:text-xs/5 dark:text-white",
             "border-0",
             "bg-transparent dark:bg-transparent",
             "focus:outline-none",
