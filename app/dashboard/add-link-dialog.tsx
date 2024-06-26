@@ -73,7 +73,7 @@ export const AddLinkDialog = () => {
         <PlusIcon />
         Add link
       </Button>
-      <Dialog open={isOpen} onClose={setIsOpen} className="space-y-4">
+      <Dialog open={isOpen} onClose={setIsOpen}>
         <DialogTitle>add link</DialogTitle>
 
         <DialogBody>

@@ -34,7 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <DropdownButton as={NavbarItem}>
                   <Avatar src={user.avatar} />
                 </DropdownButton>
-                <AccountDropdownMenu anchor="bottom end" />
+                <AccountDropdownMenu user={user} anchor="bottom end" />
               </Dropdown>
             </NavbarSection>
           </Navbar>
@@ -67,7 +67,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     </span>
                     <ChevronUpIcon />
                   </DropdownButton>
-                  <AccountDropdownMenu anchor="top start" />
+                  <AccountDropdownMenu user={user} anchor="top start" />
                 </Dropdown>
               </SidebarSection>
             </SidebarBody>

@@ -54,6 +54,7 @@ export function Dialog({
                 className={clsx(
                   className,
                   sizes[size],
+                  "space-y-4",
                   "row-start-2 w-full min-w-0 rounded-t-3xl bg-white p-[--gutter] shadow-lg ring-1 ring-stone-950/10 [--gutter:theme(spacing.8)] sm:mb-auto sm:rounded-2xl dark:bg-stone-900 dark:ring-white/10 forced-colors:outline"
                 )}
               >
