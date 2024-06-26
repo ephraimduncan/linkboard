@@ -56,6 +56,10 @@ export const AddLinkDialog = () => {
 
           toast.success("Bookmark added");
         },
+        onError: (error) => {
+          console.log(error);
+          toast.error("Failed to add bookmark");
+        },
       }
     );
 

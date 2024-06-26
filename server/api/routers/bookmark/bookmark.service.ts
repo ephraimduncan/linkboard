@@ -1,6 +1,7 @@
 import { generateId } from "lucia";
 import type { ProtectedTRPCContext } from "../../trpc";
 import type {
+  CachedBookmarkInput,
   CreateBookmarkInput,
   DeleteBookmarkInput,
   GetBookmarkInput,
@@ -11,9 +12,12 @@ import type {
   UpdateBookmarkInput,
 } from "./bookmark.input";
 import { bookmarks, bookmarkTags, tags } from "~/server/db/schema";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, ExtractTablesWithRelations, inArray, sql } from "drizzle-orm";
 import { JSDOM } from "jsdom";
 import { TRPCError } from "@trpc/server";
+import { redis } from "~/lib/redis";
+import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
+import { ResultSet } from "@libsql/client";
 
 export const listBookmarks = async (ctx: ProtectedTRPCContext, input: ListBookmarksInput) => {
   return ctx.db.query.bookmarks.findMany({
@@ -56,16 +60,44 @@ export const getBookmark = async (ctx: ProtectedTRPCContext, { id }: GetBookmark
   });
 };
 
+export const getOrFetchBookmarkData = async (url: string): Promise<CachedBookmarkInput> => {
+  const cachedData = await redis.get(url);
+  if (cachedData) {
+    return JSON.parse(cachedData);
+  }
+
+  const response = await fetch(url).catch((error) => {
+    console.error("Error fetching bookmark data:", error);
+    throw new Error("Failed to fetch bookmark data");
+  });
+
+  const html = await response.text();
+  const dom = new JSDOM(html);
+  const title = dom.window.document.title || dom.window.document.querySelector("title")?.textContent || "";
+  const description = dom.window.document.querySelector("meta[name='description']")?.getAttribute("content") || "";
+
+  const bookmarkData: CachedBookmarkInput = { title, description };
+  await redis.set(url, JSON.stringify(bookmarkData));
+
+  return bookmarkData;
+};
+
 export const createBookmark = async (ctx: ProtectedTRPCContext, input: CreateBookmarkInput) => {
-  const bookmarkId = generateId(15);
+  return await ctx.db.transaction(async (trx) => {
+    const existingBookmark = await trx.query.bookmarks.findFirst({
+      where: and(eq(bookmarks.userId, ctx.user.id), eq(bookmarks.url, input.url)),
+    });
 
-  await ctx.db.transaction(async (trx) => {
-    const response = await fetch(input.url);
-    const html = await response.text();
+    if (existingBookmark) {
+      await trx.update(bookmarks).set({ updatedAt: new Date() }).where(eq(bookmarks.id, existingBookmark.id));
 
-    const dom = new JSDOM(html);
-    const title = dom.window.document.title || document.querySelector("title")?.textContent || "";
-    const description = dom.window.document.querySelector("meta[name='description']")?.getAttribute("content") || "";
+      await updateBookmarkTags(trx, existingBookmark.id, input.tags);
+
+      return { id: existingBookmark.id };
+    }
+
+    const bookmarkId = generateId(15);
+    const { title, description } = await getOrFetchBookmarkData(input.url);
 
     await trx.insert(bookmarks).values({
       id: bookmarkId,
@@ -74,31 +106,56 @@ export const createBookmark = async (ctx: ProtectedTRPCContext, input: CreateBoo
       title,
       description,
       isPublic: input.isPublic,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
-    for (const tagName of input.tags) {
-      let tag = await trx.query.tags.findFirst({
-        where: eq(tags.name, tagName),
-      });
+    await updateBookmarkTags(trx, bookmarkId, input.tags);
 
-      if (!tag) {
-        const tagId = generateId(15);
-        await trx.insert(tags).values({
-          id: tagId,
-          name: tagName,
-        });
-        tag = { id: tagId, name: tagName, createdAt: new Date(), updatedAt: new Date() };
-      }
+    return { id: bookmarkId };
+  });
+};
 
-      await trx.insert(bookmarkTags).values({
-        id: generateId(15),
-        bookmarkId: bookmarkId,
-        tagId: tag.id,
-      });
-    }
+const updateBookmarkTags = async (
+  trx: SQLiteTransaction<
+    "async",
+    ResultSet,
+    typeof import("/Users/duncan/dev/linkboard/server/db/schema"),
+    ExtractTablesWithRelations<typeof import("/Users/duncan/dev/linkboard/server/db/schema")>
+  >,
+  bookmarkId: string,
+  newTagNames: string[]
+) => {
+  const existingBookmarkTags = await trx.query.bookmarkTags.findMany({
+    where: eq(bookmarkTags.bookmarkId, bookmarkId),
+    with: { tag: true },
   });
 
-  return { id: bookmarkId };
+  const existingTagNames = new Set(existingBookmarkTags.map((bt) => bt.tag.name));
+  const tagsToAdd = newTagNames.filter((tag) => !existingTagNames.has(tag));
+
+  for (const tagName of tagsToAdd) {
+    let tag = await trx.query.tags.findFirst({
+      where: eq(tags.name, tagName),
+    });
+
+    if (!tag) {
+      const tagId = generateId(15);
+      await trx.insert(tags).values({
+        id: tagId,
+        name: tagName,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      tag = { id: tagId, name: tagName, createdAt: new Date(), updatedAt: new Date() };
+    }
+
+    await trx.insert(bookmarkTags).values({
+      id: generateId(15),
+      bookmarkId: bookmarkId,
+      tagId: tag.id,
+    });
+  }
 };
 
 export const updateBookmark = async (ctx: ProtectedTRPCContext, input: UpdateBookmarkInput) => {

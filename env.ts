@@ -11,6 +11,8 @@ export const env = createEnv({
 
     SQLITE_URL: z.string().trim().min(1),
     SQLITE_AUTH_TOKEN: z.string().trim().min(1),
+
+    REDIS_URL: z.string().trim().min(1),
   },
 
   client: {
@@ -26,6 +28,8 @@ export const env = createEnv({
 
     SQLITE_URL: process.env.SQLITE_URL,
     SQLITE_AUTH_TOKEN: process.env.SQLITE_AUTH_TOKEN,
+
+    REDIS_URL: process.env.REDIS_URL,
 
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   },
