@@ -68,6 +68,59 @@ export function Dialog({
   );
 }
 
+export function DialogBlur({
+  open,
+  onClose,
+  size = "md",
+  className,
+  children,
+  ...props
+}: { size?: keyof typeof sizes; className?: string; children: React.ReactNode } & Omit<
+  Headless.DialogProps,
+  "className"
+>) {
+  return (
+    <Headless.Transition appear show={open} {...props}>
+      <Headless.Dialog onClose={onClose} className="relative z-50">
+        <Headless.TransitionChild
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-md" aria-hidden="true" />
+        </Headless.TransitionChild>
+
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Headless.TransitionChild
+            enter="ease-out duration-300"
+            enterFrom="opacity-0 scale-95"
+            enterTo="opacity-100 scale-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-95"
+          >
+            <Headless.DialogPanel
+              className={clsx(
+                className,
+                sizes[size],
+                "w-full max-h-[80vh] overflow-y-auto",
+                "rounded-2xl bg-white p-6 shadow-xl",
+                "dark:bg-stone-900 dark:ring-white/10",
+                "space-y-4"
+              )}
+            >
+              {children}
+            </Headless.DialogPanel>
+          </Headless.TransitionChild>
+        </div>
+      </Headless.Dialog>
+    </Headless.Transition>
+  );
+}
+
 export function DialogTitle({
   className,
   ...props

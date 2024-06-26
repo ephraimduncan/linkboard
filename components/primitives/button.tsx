@@ -60,7 +60,7 @@ const styles = {
   ],
   colors: {
     "dark/stone": [
-      "text-white [--btn-bg:theme(colors.stone.900)] [--btn-border:theme(colors.stone.950/90%)] [--btn-hover-overlay:theme(colors.white/10%)]",
+      "text-white [--btn-bg:theme(colors.stone.800)] [--btn-border:theme(colors.stone.950/90%)] [--btn-hover-overlay:theme(colors.white/10%)]",
       "dark:text-white dark:[--btn-bg:theme(colors.stone.600)] dark:[--btn-hover-overlay:theme(colors.white/5%)]",
       "[--btn-icon:theme(colors.stone.400)] data-[active]:[--btn-icon:theme(colors.stone.300)] data-[hover]:[--btn-icon:theme(colors.stone.300)]",
     ],

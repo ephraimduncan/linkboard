@@ -5,6 +5,7 @@ import AppDemoImage from "~/public/app-demo.png";
 import Image from "next/image";
 import { Link } from "~/components/primitives/link";
 import { auth } from "~/lib/auth/validate-request";
+import { LoginDialog } from "./login-dialog";
 
 export const Hero = async () => {
   const { user } = await auth();
@@ -13,7 +14,7 @@ export const Hero = async () => {
     <Section className="font-sans mt-20">
       <Container>
         <div className="flex gap-5 text-lg items-end justify-end">
-          {user ? <Link href="/dashboard">Dasboard</Link> : <Link href="/login">Login</Link>}
+          {user ? <Link href="/dashboard">Dasboard</Link> : <LoginDialog />}
         </div>
         <div>
           <Link
