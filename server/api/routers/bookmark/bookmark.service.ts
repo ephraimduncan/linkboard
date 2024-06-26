@@ -18,6 +18,7 @@ import { TRPCError } from "@trpc/server";
 import { redis } from "~/lib/redis";
 import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
 import { ResultSet } from "@libsql/client";
+import * as schema from "~/server/db/schema";
 
 export const listBookmarks = async (ctx: ProtectedTRPCContext, input: ListBookmarksInput) => {
   return ctx.db.query.bookmarks.findMany({
@@ -117,12 +118,7 @@ export const createBookmark = async (ctx: ProtectedTRPCContext, input: CreateBoo
 };
 
 const updateBookmarkTags = async (
-  trx: SQLiteTransaction<
-    "async",
-    ResultSet,
-    typeof import("/Users/duncan/dev/linkboard/server/db/schema"),
-    ExtractTablesWithRelations<typeof import("/Users/duncan/dev/linkboard/server/db/schema")>
-  >,
+  trx: SQLiteTransaction<"async", ResultSet, typeof schema, ExtractTablesWithRelations<typeof schema>>,
   bookmarkId: string,
   newTagNames: string[]
 ) => {
