@@ -287,11 +287,18 @@ export const refetchBookmark = async (ctx: ProtectedTRPCContext, input: RefetchB
     const newTitle = dom.window.document.title || dom.window.document.querySelector("title")?.textContent || "";
     const newDescription = dom.window.document.querySelector("meta[name='description']")?.getAttribute("content") || "";
 
+    const newCacheData: CachedBookmarkInput = {
+      title: newTitle,
+      description: newDescription,
+    };
+    await redis.set(bookmark.url, JSON.stringify(newCacheData));
+
     const [updatedBookmark] = await ctx.db
       .update(bookmarks)
       .set({
         title: newTitle,
         description: newDescription,
+        updatedAt: new Date(),
       })
       .where(eq(bookmarks.id, input.id))
       .returning();
