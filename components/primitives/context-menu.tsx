@@ -28,8 +28,8 @@ const ContextMenuContent = React.forwardRef<
         "isolate w-max rounded-xl p-1",
         "outline outline-1 outline-transparent focus:outline-none",
         "overflow-y-auto",
-        "bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75",
-        "shadow-lg ring-1 ring-zinc-950/10 dark:ring-inset dark:ring-white/10",
+        "bg-white/75 backdrop-blur-xl dark:bg-stone-800/75",
+        "shadow-lg ring-1 ring-stone-950/10 dark:ring-inset dark:ring-white/10",
         "supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]",
         "z-50 min-w-[8rem] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         className
@@ -50,13 +50,13 @@ const ContextMenuItem = React.forwardRef<
     ref={ref}
     className={cn(
       "group cursor-default rounded-lg px-3.5 py-2.5 focus:outline-none sm:px-3 sm:py-1.5",
-      "text-left text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
+      "text-left text-base/6 text-stone-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
       "data-[highlighted]:bg-blue-500 data-[highlighted]:text-white",
       "data-[disabled]:opacity-50",
       "forced-color-adjust-none forced-colors:data-[highlighted]:bg-[Highlight] forced-colors:data-[highlighted]:text-[HighlightText] forced-colors:[&>[data-slot=icon]]:data-[highlighted]:text-[HighlightText]",
       "col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] items-center supports-[grid-template-columns:subgrid]:grid-cols-subgrid",
       "[&>[data-slot=icon]]:col-start-1 [&>[data-slot=icon]]:row-start-1 [&>[data-slot=icon]]:-ml-0.5 [&>[data-slot=icon]]:mr-2.5 [&>[data-slot=icon]]:size-5 sm:[&>[data-slot=icon]]:mr-2 [&>[data-slot=icon]]:sm:size-4",
-      "[&>[data-slot=icon]]:text-zinc-500 [&>[data-slot=icon]]:data-[highlighted]:text-white [&>[data-slot=icon]]:dark:text-zinc-400 [&>[data-slot=icon]]:data-[highlighted]:dark:text-white",
+      "[&>[data-slot=icon]]:text-stone-500 [&>[data-slot=icon]]:data-[highlighted]:text-white [&>[data-slot=icon]]:dark:text-stone-400 [&>[data-slot=icon]]:data-[highlighted]:dark:text-white",
       inset && "pl-8",
       className
     )}
@@ -73,7 +73,7 @@ const ContextMenuCheckboxItem = React.forwardRef<
     ref={ref}
     className={cn(
       "group cursor-default rounded-lg px-3.5 py-2.5 focus:outline-none sm:px-3 sm:py-1.5",
-      "text-left text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
+      "text-left text-base/6 text-stone-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
       "data-[highlighted]:bg-blue-500 data-[highlighted]:text-white",
       "data-[disabled]:opacity-50",
       "forced-color-adjust-none forced-colors:data-[highlighted]:bg-[Highlight] forced-colors:data-[highlighted]:text-[HighlightText]",
@@ -101,7 +101,7 @@ const ContextMenuRadioItem = React.forwardRef<
     ref={ref}
     className={cn(
       "group cursor-default rounded-lg px-3.5 py-2.5 focus:outline-none sm:px-3 sm:py-1.5",
-      "text-left text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
+      "text-left text-base/6 text-stone-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
       "data-[highlighted]:bg-blue-500 data-[highlighted]:text-white",
       "data-[disabled]:opacity-50",
       "forced-color-adjust-none forced-colors:data-[highlighted]:bg-[Highlight] forced-colors:data-[highlighted]:text-[HighlightText]",
@@ -129,7 +129,7 @@ const ContextMenuLabel = React.forwardRef<
   <ContextMenuPrimitive.Label
     ref={ref}
     className={cn(
-      "col-span-full grid grid-cols-[1fr,auto] gap-x-12 px-3.5 pb-1 pt-2 text-sm/5 font-medium text-zinc-500 sm:px-3 sm:text-xs/5 dark:text-zinc-400",
+      "col-span-full grid grid-cols-[1fr,auto] gap-x-12 px-3.5 pb-1 pt-2 text-sm/5 font-medium text-stone-500 sm:px-3 sm:text-xs/5 dark:text-stone-400",
       inset && "pl-8",
       className
     )}
@@ -145,7 +145,7 @@ const ContextMenuSeparator = React.forwardRef<
   <ContextMenuPrimitive.Separator
     ref={ref}
     className={cn(
-      "col-span-full mx-3.5 my-1 h-px border-0 bg-zinc-950/5 sm:mx-3 dark:bg-white/10 forced-colors:bg-[CanvasText]",
+      "col-span-full mx-3.5 my-1 h-px border-0 bg-stone-950/5 sm:mx-3 dark:bg-white/10 forced-colors:bg-[CanvasText]",
       className
     )}
     {...props}
@@ -158,7 +158,7 @@ const ContextMenuShortcut = ({ className, ...props }: React.HTMLAttributes<HTMLS
     <span
       className={cn(
         "col-start-5 row-start-1 flex justify-self-end",
-        "ml-auto text-xs tracking-widest text-zinc-500 group-data-[highlighted]:text-white",
+        "ml-auto text-xs tracking-widest text-stone-500 group-data-[highlighted]:text-white",
         className
       )}
       {...props}
