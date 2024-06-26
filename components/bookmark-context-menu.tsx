@@ -16,10 +16,12 @@ import { BookmarkWithTags } from "~/server/db/schema";
 import { Alert, AlertActions, AlertDescription, AlertTitle } from "./primitives/alert";
 import { Button } from "./primitives/button";
 import { Loader } from "lucide-react";
+import { EditBookmarkDialog } from "./edit-bookmark-dialog";
 
 export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isToggleBookmarkDialogOpen, setIsToggleBookmarkDialogOpen] = useState(false);
+  const [isEditBookmarkDialogOpen, setIsEditBookmarkDialogOpen] = useState(false);
 
   const { mutateAsync: refetchBookmark, isLoading: isRefreshingBookmark } = api.bookmark.refetch.useMutation({
     onSuccess: () => {
@@ -50,7 +52,7 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }
         toast.success("Copied to clipboard");
       },
     },
-    { icon: Pencil, label: "Edit", onClick: (bookmark: BookmarkWithTags) => console.log("Edit", bookmark) },
+    { icon: Pencil, label: "Edit", onClick: () => setIsEditBookmarkDialogOpen(true) },
     {
       icon: Trash,
       label: "Delete",
@@ -127,6 +129,12 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }
           </Button>
         </AlertActions>
       </Alert>
+
+      <EditBookmarkDialog
+        bookmark={bookmark}
+        isOpen={isEditBookmarkDialogOpen}
+        setIsOpen={setIsEditBookmarkDialogOpen}
+      />
     </>
   );
 }
