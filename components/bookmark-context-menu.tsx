@@ -19,6 +19,7 @@ import { Loader } from "lucide-react";
 
 export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isToggleBookmarkDialogOpen, setIsToggleBookmarkDialogOpen] = useState(false);
 
   const { mutateAsync: refetchBookmark, isLoading: isRefreshingBookmark } = api.bookmark.refetch.useMutation({
     onSuccess: () => {
@@ -53,7 +54,7 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }
     {
       icon: Trash,
       label: "Delete",
-      onClick: (bookmark: BookmarkWithTags) => setIsDeleteDialogOpen(true),
+      onClick: () => setIsDeleteDialogOpen(true),
     },
     {
       icon: Refresh,
@@ -63,7 +64,9 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }
     {
       icon: bookmark.isPublic ? LockClose : LockOpen,
       label: bookmark.isPublic ? "Make private" : "Make public",
-      onClick: async (bookmark: BookmarkWithTags) => toggleBookmarkVisibility({ id: bookmark.id }),
+      onClick: bookmark.isPublic
+        ? async (bookmark: BookmarkWithTags) => toggleBookmarkVisibility({ id: bookmark.id })
+        : () => setIsToggleBookmarkDialogOpen(true),
     },
   ];
 
@@ -101,6 +104,26 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }
           >
             {isDeletingBookmark && <Loader className="animate-spin size-4" />}
             Delete
+          </Button>
+        </AlertActions>
+      </Alert>
+
+      <Alert open={isToggleBookmarkDialogOpen} onClose={setIsToggleBookmarkDialogOpen}>
+        <AlertTitle>Are you sure you want to make this bookmark public?</AlertTitle>
+        <AlertDescription>It will be visible to others on the discover page.</AlertDescription>
+        <AlertActions>
+          <Button plain onClick={() => setIsToggleBookmarkDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            disabled={isDeletingBookmark}
+            onClick={async () => {
+              await toggleBookmarkVisibility({ id: bookmark.id });
+              setIsToggleBookmarkDialogOpen(false);
+            }}
+          >
+            {isDeletingBookmark && <Loader className="animate-spin size-4" />}
+            make public
           </Button>
         </AlertActions>
       </Alert>
