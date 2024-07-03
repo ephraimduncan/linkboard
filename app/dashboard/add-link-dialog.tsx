@@ -1,11 +1,19 @@
 "use client";
 
+import { PlusIcon } from "@heroicons/react/16/solid";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "~/components/primitives/button";
-import { Dialog, DialogActions, DialogBody, DialogTitle } from "~/components/primitives/dialog";
-import { Input } from "~/components/primitives/input";
-import { useState } from "react";
-import { PlusIcon } from "@heroicons/react/16/solid";
+import {
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogTitle,
+} from "~/components/primitives/dialog";
 import {
   Form,
   FormControl,
@@ -15,13 +23,10 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/primitives/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { api } from "~/trpc/react";
-import { Loader } from "lucide-react";
-import { revalidateFromClient } from "../revalidate-on-client";
+import { Input } from "~/components/primitives/input";
 import { MultiInput } from "~/components/primitives/multi-input";
-import { toast } from "sonner";
+import { api } from "~/trpc/react";
+import { revalidateFromClient } from "../revalidate-on-client";
 
 const CreateBookmarkSchema = z.object({
   url: z.string().url("Invalid URL"),
@@ -31,7 +36,8 @@ const CreateBookmarkSchema = z.object({
 type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>;
 
 export const AddLinkDialog = () => {
-  const { mutateAsync: addBookmark, isLoading } = api.bookmark.create.useMutation();
+  const { mutateAsync: addBookmark, isLoading } =
+    api.bookmark.create.useMutation();
 
   const form = useForm<CreateBookmarkInput>({
     resolver: zodResolver(CreateBookmarkSchema),
@@ -58,7 +64,7 @@ export const AddLinkDialog = () => {
           console.log(error);
           toast.error("Failed to add bookmark");
         },
-      }
+      },
     );
 
     form.reset();
@@ -86,7 +92,12 @@ export const AddLinkDialog = () => {
                   <FormItem>
                     <FormLabel>URL</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://duncan.land" {...field} name="url" value={field.value || ""} />
+                      <Input
+                        placeholder="https://duncan.land"
+                        {...field}
+                        name="url"
+                        value={field.value || ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -102,7 +113,9 @@ export const AddLinkDialog = () => {
                     <FormControl>
                       <MultiInput {...field} />
                     </FormControl>
-                    <FormDescription>Enter tags related to your bookmark</FormDescription>
+                    <FormDescription>
+                      Enter tags related to your bookmark
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

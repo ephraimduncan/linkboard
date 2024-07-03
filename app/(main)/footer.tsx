@@ -1,4 +1,4 @@
-import { Section, Container } from "~/components/blocks";
+import { Container, Section } from "~/components/blocks";
 import { Github } from "~/components/icons/github";
 import { Twitter } from "~/components/icons/twitter";
 
@@ -16,7 +16,8 @@ export const Footer = () => {
             </a>
           </div>
           <p className="text-muted-foreground">
-            © <a href="https://duncan.land">Ephraim Duncan</a>. All rights reserved. 2024-present.
+            © <a href="https://duncan.land">Ephraim Duncan</a>. All rights
+            reserved. 2024-present.
           </p>
         </Container>
       </Section>

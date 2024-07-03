@@ -1,6 +1,13 @@
+import { ChevronUpIcon } from "@heroicons/react/16/solid";
+import { redirect } from "next/navigation";
 import { Avatar } from "~/components/primitives/avatar";
 import { Dropdown, DropdownButton } from "~/components/primitives/dropdown";
-import { Navbar, NavbarItem, NavbarSection, NavbarSpacer } from "~/components/primitives/navbar";
+import {
+  Navbar,
+  NavbarItem,
+  NavbarSection,
+  NavbarSpacer,
+} from "~/components/primitives/navbar";
 import {
   Sidebar,
   SidebarBody,
@@ -10,13 +17,13 @@ import {
   SidebarSpacer,
 } from "~/components/primitives/sidebar";
 import { SidebarLayout } from "~/components/primitives/sidebar-layout";
-import { ChevronUpIcon } from "@heroicons/react/16/solid";
-import { SidebarNavigation } from "./sidebar-nav";
 import { auth } from "~/lib/auth/validate-request";
-import { redirect } from "next/navigation";
 import { AccountDropdownMenu } from "./accout-dropdown";
+import { SidebarNavigation } from "./sidebar-nav";
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: { children: React.ReactNode }) {
   const { user } = await auth();
 
   if (!user) {
@@ -43,7 +50,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Sidebar>
             <SidebarBody>
               <SidebarSection className="mt-4">
-                <SidebarLabel className="text-xl px-2 font-sans cursor-pointer">linkboard</SidebarLabel>
+                <SidebarLabel className="text-xl px-2 font-sans cursor-pointer">
+                  linkboard
+                </SidebarLabel>
               </SidebarSection>
 
               <SidebarNavigation />

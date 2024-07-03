@@ -1,6 +1,6 @@
-import { Container, Section } from "~/components/blocks";
+import { Ban, LockKeyhole, Tag, Zap } from "lucide-react";
 import Balancer from "react-wrap-balancer";
-import { Zap, LockKeyhole, Tag, Ban } from "lucide-react";
+import { Container, Section } from "~/components/blocks";
 
 type FeatureText = {
   icon: JSX.Element;
@@ -12,12 +12,14 @@ const featureText: FeatureText[] = [
   {
     icon: <Zap className="h-6 w-6" />,
     title: "Fast",
-    description: "No hassle, no clutter, seamlessly save bookmarks with our browser extension.",
+    description:
+      "No hassle, no clutter, seamlessly save bookmarks with our browser extension.",
   },
   {
     icon: <LockKeyhole className="h-6 w-6" />,
     title: "Privacy on Point",
-    description: "Keep your secrets safe. Share what you want, keep the rest private.",
+    description:
+      "Keep your secrets safe. Share what you want, keep the rest private.",
   },
   {
     icon: <Tag className="h-6 w-6" />,

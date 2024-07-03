@@ -1,10 +1,10 @@
-import { Section, Container } from "~/components/blocks";
-import Balancer from "react-wrap-balancer";
 import { ArrowRight } from "lucide-react";
-import AppDemoImage from "~/public/app-demo.png";
 import Image from "next/image";
+import Balancer from "react-wrap-balancer";
+import { Container, Section } from "~/components/blocks";
 import { Link } from "~/components/primitives/link";
 import { auth } from "~/lib/auth/validate-request";
+import AppDemoImage from "~/public/app-demo.png";
 import { LoginDialog } from "./login-dialog";
 
 export const Hero = async () => {

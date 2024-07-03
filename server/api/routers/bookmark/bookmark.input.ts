@@ -53,5 +53,7 @@ export type UpdateBookmarkInput = z.infer<typeof UpdateBookmarkSchema>;
 export type DeleteBookmarkInput = z.infer<typeof DeleteBookmarkSchema>;
 export type MyBookmarksInput = z.infer<typeof MyBookmarksSchema>;
 export type RefetchBookmarkInput = z.infer<typeof RefetchBookmarkSchema>;
-export type ToggleBookmarkVisibilityInput = z.infer<typeof RefetchBookmarkSchema>;
+export type ToggleBookmarkVisibilityInput = z.infer<
+  typeof RefetchBookmarkSchema
+>;
 export type CachedBookmarkInput = z.infer<typeof CachedBookmarkSchema>;

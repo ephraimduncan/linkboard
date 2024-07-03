@@ -30,7 +30,9 @@ export const LoginDialog = () => {
               <Discord className="size-5" />
               Continue with Discord
             </Button>
-            <p className="text-sm text-muted-foreground mt-4">No account? We&apos;ll create one for you</p>
+            <p className="text-sm text-muted-foreground mt-4">
+              No account? We&apos;ll create one for you
+            </p>
           </div>
         </div>
       </DialogBlur>

@@ -1,11 +1,11 @@
-import { cookies } from "next/headers";
-import { generateId } from "lucia";
 import { OAuth2RequestError } from "arctic";
 import { eq } from "drizzle-orm";
+import { generateId } from "lucia";
+import { cookies } from "next/headers";
 import { discord, lucia } from "~/lib/auth";
-import { db } from "~/server/db";
 import { Paths } from "~/lib/constants";
-import { users, oauthAccounts } from "~/server/db/schema";
+import { db } from "~/server/db";
+import { oauthAccounts, users } from "~/server/db/schema";
 
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -37,7 +37,7 @@ export async function GET(request: Request): Promise<Response> {
         JSON.stringify({
           error: "Your Discord account must have a verified email address.",
         }),
-        { status: 400, headers: { Location: Paths.Login } }
+        { status: 400, headers: { Location: Paths.Login } },
       );
     }
 
@@ -47,7 +47,11 @@ export async function GET(request: Request): Promise<Response> {
 
     // Check if the OAuth account already exists
     const existingOAuthAccount = await db.query.oauthAccounts.findFirst({
-      where: (table, { eq, and }) => and(eq(table.provider, "discord"), eq(table.providerAccountId, discordUser.id)),
+      where: (table, { eq, and }) =>
+        and(
+          eq(table.provider, "discord"),
+          eq(table.providerAccountId, discordUser.id),
+        ),
       with: {
         user: true,
       },
@@ -69,12 +73,22 @@ export async function GET(request: Request): Promise<Response> {
       }
 
       if (Object.keys(updateData).length > 0) {
-        await db.update(users).set(updateData).where(eq(users.id, existingOAuthAccount.userId));
+        await db
+          .update(users)
+          .set(updateData)
+          .where(eq(users.id, existingOAuthAccount.userId));
       }
 
-      const session = await lucia.createSession(existingOAuthAccount.userId, {});
+      const session = await lucia.createSession(
+        existingOAuthAccount.userId,
+        {},
+      );
       const sessionCookie = lucia.createSessionCookie(session.id);
-      cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+      cookies().set(
+        sessionCookie.name,
+        sessionCookie.value,
+        sessionCookie.attributes,
+      );
       return new Response(null, {
         status: 302,
         headers: { Location: Paths.Dashboard },
@@ -110,12 +124,19 @@ export async function GET(request: Request): Promise<Response> {
       }
 
       if (Object.keys(updateData).length > 0) {
-        await db.update(users).set(updateData).where(eq(users.id, existingUser.id));
+        await db
+          .update(users)
+          .set(updateData)
+          .where(eq(users.id, existingUser.id));
       }
 
       const session = await lucia.createSession(existingUser.id, {});
       const sessionCookie = lucia.createSessionCookie(session.id);
-      cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+      cookies().set(
+        sessionCookie.name,
+        sessionCookie.value,
+        sessionCookie.attributes,
+      );
       return new Response(null, {
         status: 302,
         headers: { Location: Paths.Dashboard },
@@ -142,7 +163,11 @@ export async function GET(request: Request): Promise<Response> {
 
     const session = await lucia.createSession(userId, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
-    cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+    cookies().set(
+      sessionCookie.name,
+      sessionCookie.value,
+      sessionCookie.attributes,
+    );
     return new Response(null, {
       status: 302,
       headers: { Location: Paths.Dashboard },

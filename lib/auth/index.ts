@@ -1,12 +1,19 @@
-import { Lucia, TimeSpan } from "lucia";
+import {
+  DrizzleSQLiteAdapter,
+  SQLiteSessionTable,
+} from "@lucia-auth/adapter-drizzle";
 import { Discord, GitHub } from "arctic";
-import { DrizzleSQLiteAdapter, SQLiteSessionTable } from "@lucia-auth/adapter-drizzle";
+import { Lucia, TimeSpan } from "lucia";
 import { env } from "~/env";
-import { db } from "~/server/db";
-import { sessions, users, type User as DbUser } from "~/server/db/schema";
 import { absoluteUrl } from "~/lib/utils";
+import { db } from "~/server/db";
+import { type User as DbUser, sessions, users } from "~/server/db/schema";
 
-const adapter = new DrizzleSQLiteAdapter(db, sessions as unknown as SQLiteSessionTable, users);
+const adapter = new DrizzleSQLiteAdapter(
+  db,
+  sessions as unknown as SQLiteSessionTable,
+  users,
+);
 
 export const lucia = new Lucia(adapter, {
   getSessionAttributes: (/* attributes */) => {
@@ -38,10 +45,13 @@ export const lucia = new Lucia(adapter, {
 export const discord = new Discord(
   env.DISCORD_CLIENT_ID,
   env.DISCORD_CLIENT_SECRET,
-  absoluteUrl("/login/discord/callback")
+  absoluteUrl("/login/discord/callback"),
 );
 
-export const github = new GitHub(env.GITHUB_CLIENT_ID, env.GITHUB_CLIENT_SECRET);
+export const github = new GitHub(
+  env.GITHUB_CLIENT_ID,
+  env.GITHUB_CLIENT_SECRET,
+);
 
 declare module "lucia" {
   interface Register {
