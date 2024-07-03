@@ -1,9 +1,13 @@
 "use client";
-import React from "react";
 import { BookmarkIcon, SearchIcon, TagIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
+import React from "react";
 import { Sparkle } from "~/components/icons/sparkle";
-import { SidebarItem, SidebarLabel, SidebarSection } from "~/components/primitives/sidebar";
+import {
+  SidebarItem,
+  SidebarLabel,
+  SidebarSection,
+} from "~/components/primitives/sidebar";
 
 export function SidebarNavigation() {
   let pathname = usePathname();
@@ -19,7 +23,10 @@ export function SidebarNavigation() {
           <SearchIcon width={20} height={20} />
           <SidebarLabel>Search</SidebarLabel>
         </SidebarItem>
-        <SidebarItem href="/dashboard" current={pathname.startsWith("/dashboard")}>
+        <SidebarItem
+          href="/dashboard"
+          current={pathname.startsWith("/dashboard")}
+        >
           <BookmarkIcon width={20} height={20} />
           <SidebarLabel>Bookmarks</SidebarLabel>
         </SidebarItem>

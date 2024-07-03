@@ -2,7 +2,10 @@ import * as Headless from "@headlessui/react";
 import { clsx } from "clsx";
 import { forwardRef } from "react";
 
-export function InputGroup({ children, className }: React.ComponentPropsWithoutRef<"span">) {
+export function InputGroup({
+  children,
+  className,
+}: React.ComponentPropsWithoutRef<"span">) {
   return (
     <span
       data-slot="control"
@@ -12,7 +15,7 @@ export function InputGroup({ children, className }: React.ComponentPropsWithoutR
         "[&>[data-slot=icon]]:pointer-events-none [&>[data-slot=icon]]:absolute [&>[data-slot=icon]]:top-3 [&>[data-slot=icon]]:z-10 [&>[data-slot=icon]]:size-5 sm:[&>[data-slot=icon]]:top-2.5 sm:[&>[data-slot=icon]]:size-4",
         "[&>[data-slot=icon]:first-child]:left-3 sm:[&>[data-slot=icon]:first-child]:left-2.5 [&>[data-slot=icon]:last-child]:right-3 sm:[&>[data-slot=icon]:last-child]:right-2.5",
         "[&>[data-slot=icon]]:text-stone-500 dark:[&>[data-slot=icon]]:text-stone-400",
-        className
+        className,
       )}
     >
       {children}
@@ -29,9 +32,17 @@ export const Input = forwardRef(function Input(
     ...props
   }: {
     className?: string;
-    type?: "email" | "number" | "password" | "search" | "tel" | "text" | "url" | DateType;
+    type?:
+      | "email"
+      | "number"
+      | "password"
+      | "search"
+      | "tel"
+      | "text"
+      | "url"
+      | DateType;
   } & Omit<Headless.InputProps, "className">,
-  ref: React.ForwardedRef<HTMLInputElement>
+  ref: React.ForwardedRef<HTMLInputElement>,
 ) {
   return (
     <span

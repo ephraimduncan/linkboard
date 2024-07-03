@@ -1,8 +1,8 @@
+import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
+import { Logger } from "drizzle-orm/logger";
 import { env } from "~/env";
 import * as schema from "./schema";
-import { createClient } from "@libsql/client";
-import { Logger } from "drizzle-orm/logger";
 
 class QueryLogger implements Logger {
   private readonly reset = "\x1b[0m";

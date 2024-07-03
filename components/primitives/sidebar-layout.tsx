@@ -20,7 +20,11 @@ function CloseMenuIcon() {
   );
 }
 
-function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open: boolean; close: () => void }>) {
+function MobileSidebar({
+  open,
+  close,
+  children,
+}: React.PropsWithChildren<{ open: boolean; close: () => void }>) {
   return (
     <Headless.Transition show={open}>
       <Headless.Dialog onClose={close} className="lg:hidden">
@@ -45,7 +49,10 @@ function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open
           <Headless.DialogPanel className="fixed inset-y-0 w-full max-w-80 p-2 transition">
             <div className="flex h-full flex-col rounded-lg bg-white shadow-sm ring-1 ring-stone-950/5 dark:bg-stone-900 dark:ring-white/10">
               <div className="-mb-3 px-4 pt-3">
-                <Headless.CloseButton as={NavbarItem} aria-label="Close navigation">
+                <Headless.CloseButton
+                  as={NavbarItem}
+                  aria-label="Close navigation"
+                >
                   <CloseMenuIcon />
                 </Headless.CloseButton>
               </div>
@@ -62,7 +69,10 @@ export function SidebarLayout({
   navbar,
   sidebar,
   children,
-}: React.PropsWithChildren<{ navbar: React.ReactNode; sidebar: React.ReactNode }>) {
+}: React.PropsWithChildren<{
+  navbar: React.ReactNode;
+  sidebar: React.ReactNode;
+}>) {
   let [showSidebar, setShowSidebar] = useState(false);
 
   return (
@@ -83,7 +93,10 @@ export function SidebarLayout({
         {/* Navbar on mobile */}
         <header className="flex items-center px-4 lg:hidden">
           <div className="py-2.5">
-            <NavbarItem onClick={() => setShowSidebar(true)} aria-label="Open navigation">
+            <NavbarItem
+              onClick={() => setShowSidebar(true)}
+              aria-label="Open navigation"
+            >
               <OpenMenuIcon />
             </NavbarItem>
           </div>

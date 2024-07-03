@@ -1,8 +1,17 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { revalidateFromClient } from "~/app/revalidate-on-client";
 import { Button } from "~/components/primitives/button";
-import { Dialog, DialogActions, DialogBody, DialogTitle } from "~/components/primitives/dialog";
-import { Input } from "~/components/primitives/input";
+import {
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogTitle,
+} from "~/components/primitives/dialog";
 import {
   Form,
   FormControl,
@@ -12,17 +21,16 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/primitives/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { api } from "~/trpc/react";
-import { Loader } from "lucide-react";
+import { Input } from "~/components/primitives/input";
 import { MultiInput } from "~/components/primitives/multi-input";
-import { toast } from "sonner";
-import { revalidateFromClient } from "~/app/revalidate-on-client";
+import {
+  UpdateBookmarkInput,
+  UpdateBookmarkSchema,
+} from "~/server/api/routers/bookmark/bookmark.input";
 import { BookmarkWithTags } from "~/server/db/schema";
-import { UpdateBookmarkInput, UpdateBookmarkSchema } from "~/server/api/routers/bookmark/bookmark.input";
-import { Label } from "./primitives/fieldset";
+import { api } from "~/trpc/react";
 import { Checkbox, CheckboxField } from "./primitives/checkbox";
+import { Label } from "./primitives/fieldset";
 
 type EditBookmarkDialogProps = {
   bookmark: BookmarkWithTags;
@@ -30,8 +38,13 @@ type EditBookmarkDialogProps = {
   setIsOpen: (isOpen: boolean) => void;
 };
 
-export const EditBookmarkDialog = ({ bookmark, isOpen, setIsOpen }: EditBookmarkDialogProps) => {
-  const { mutateAsync: updateBookmark, isLoading } = api.bookmark.update.useMutation();
+export const EditBookmarkDialog = ({
+  bookmark,
+  isOpen,
+  setIsOpen,
+}: EditBookmarkDialogProps) => {
+  const { mutateAsync: updateBookmark, isLoading } =
+    api.bookmark.update.useMutation();
 
   const form = useForm<UpdateBookmarkInput>({
     resolver: zodResolver(UpdateBookmarkSchema),
@@ -102,7 +115,11 @@ export const EditBookmarkDialog = ({ bookmark, isOpen, setIsOpen }: EditBookmark
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input {...field} name="description" value={field.value || ""} />
+                    <Input
+                      {...field}
+                      name="description"
+                      value={field.value || ""}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -116,11 +133,17 @@ export const EditBookmarkDialog = ({ bookmark, isOpen, setIsOpen }: EditBookmark
                 <FormItem className="space-y-0">
                   <FormControl>
                     <CheckboxField>
-                      <Checkbox checked={field.value} onChange={field.onChange} name="isPublic" />
+                      <Checkbox
+                        checked={field.value}
+                        onChange={field.onChange}
+                        name="isPublic"
+                      />
                       <Label>Make bookmark public</Label>
                     </CheckboxField>
                   </FormControl>
-                  <FormDescription>Public bookmarks are visible to others</FormDescription>
+                  <FormDescription>
+                    Public bookmarks are visible to others
+                  </FormDescription>
                 </FormItem>
               )}
             />
@@ -134,7 +157,9 @@ export const EditBookmarkDialog = ({ bookmark, isOpen, setIsOpen }: EditBookmark
                   <FormControl>
                     <MultiInput {...field} />
                   </FormControl>
-                  <FormDescription>Enter tags related to your bookmark</FormDescription>
+                  <FormDescription>
+                    Enter tags related to your bookmark
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

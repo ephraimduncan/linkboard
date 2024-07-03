@@ -1,5 +1,11 @@
 import { relations } from "drizzle-orm";
-import { sqliteTableCreator, index, text, integer, customType } from "drizzle-orm/sqlite-core";
+import {
+  customType,
+  index,
+  integer,
+  sqliteTableCreator,
+  text,
+} from "drizzle-orm/sqlite-core";
 
 export const sqliteTable = sqliteTableCreator((name) => `linkboard_${name}`);
 
@@ -19,7 +25,9 @@ export const users = sqliteTable(
     ...timestamp,
     id: text("id", { length: 21 }).primaryKey(),
     email: text("email", { length: 255 }).unique().notNull(),
-    emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
+    emailVerified: integer("email_verified", { mode: "boolean" })
+      .default(false)
+      .notNull(),
     avatar: text("avatar", { length: 255 }),
     username: text("username", { length: 255 }),
     name: text("name", { length: 255 }),
@@ -27,7 +35,7 @@ export const users = sqliteTable(
   (table) => ({
     emailIdx: index("user_email_idx").on(table.email),
     usernameIdx: index("user_username_idx").on(table.username),
-  })
+  }),
 );
 
 export const oauthAccounts = sqliteTable(
@@ -40,9 +48,15 @@ export const oauthAccounts = sqliteTable(
     providerAccountId: text("provider_account_id", { length: 255 }).notNull(),
   },
   (table) => ({
-    userProviderIdx: index("user_provider_idx").on(table.userId, table.provider),
-    providerAccountIdx: index("provider_account_idx").on(table.provider, table.providerAccountId),
-  })
+    userProviderIdx: index("user_provider_idx").on(
+      table.userId,
+      table.provider,
+    ),
+    providerAccountIdx: index("provider_account_idx").on(
+      table.provider,
+      table.providerAccountId,
+    ),
+  }),
 );
 
 export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
@@ -70,7 +84,7 @@ export const sessions = sqliteTable(
   },
   (table) => ({
     userIdx: index("session_user_idx").on(table.userId),
-  })
+  }),
 );
 
 export const bookmarks = sqliteTable(
@@ -82,13 +96,15 @@ export const bookmarks = sqliteTable(
     url: text("url").notNull(),
     title: text("title", { length: 255 }).notNull(),
     description: text("description", { length: 1000 }),
-    isPublic: integer("is_public", { mode: "boolean" }).default(false).notNull(),
+    isPublic: integer("is_public", { mode: "boolean" })
+      .default(false)
+      .notNull(),
   },
   (table) => ({
     userIdx: index("bookmark_user_idx").on(table.userId),
     createdAtIdx: index("bookmark_created_at_idx").on(table.createdAt),
     urlIdx: index("bookmark_url_idx").on(table.url),
-  })
+  }),
 );
 
 export const bookmarkRelations = relations(bookmarks, ({ one, many }) => ({
@@ -115,7 +131,7 @@ export const tags = sqliteTable(
   },
   (table) => ({
     nameIdx: index("tag_name_idx").on(table.name),
-  })
+  }),
 );
 
 export const tagRelations = relations(tags, ({ many }) => ({
@@ -134,7 +150,7 @@ export const bookmarkTags = sqliteTable(
   },
   (table) => ({
     bookmarkTagIdx: index("bookmark_tag_idx").on(table.bookmarkId, table.tagId),
-  })
+  }),
 );
 
 export const bookmarkTagRelations = relations(bookmarkTags, ({ one }) => ({
@@ -156,12 +172,14 @@ export const collections = sqliteTable(
     userId: text("user_id", { length: 21 }).notNull(),
     name: text("name", { length: 255 }).notNull(),
     description: text("description", { length: 1000 }),
-    isPublic: integer("is_public", { mode: "boolean" }).default(false).notNull(),
+    isPublic: integer("is_public", { mode: "boolean" })
+      .default(false)
+      .notNull(),
   },
   (table) => ({
     userIdx: index("collection_user_idx").on(table.userId),
     nameIdx: index("collection_name_idx").on(table.name),
-  })
+  }),
 );
 
 export const collectionRelations = relations(collections, ({ one, many }) => ({
@@ -183,17 +201,23 @@ export const bookmarkCollections = sqliteTable(
     collectionId: text("collection_id", { length: 15 }).notNull(),
   },
   (table) => ({
-    bookmarkCollectionIdx: index("bookmark_collection_idx").on(table.bookmarkId, table.collectionId),
-  })
+    bookmarkCollectionIdx: index("bookmark_collection_idx").on(
+      table.bookmarkId,
+      table.collectionId,
+    ),
+  }),
 );
 
-export const bookmarkCollectionRelations = relations(bookmarkCollections, ({ one }) => ({
-  bookmark: one(bookmarks, {
-    fields: [bookmarkCollections.bookmarkId],
-    references: [bookmarks.id],
+export const bookmarkCollectionRelations = relations(
+  bookmarkCollections,
+  ({ one }) => ({
+    bookmark: one(bookmarks, {
+      fields: [bookmarkCollections.bookmarkId],
+      references: [bookmarks.id],
+    }),
+    collection: one(collections, {
+      fields: [bookmarkCollections.collectionId],
+      references: [collections.id],
+    }),
   }),
-  collection: one(collections, {
-    fields: [bookmarkCollections.collectionId],
-    references: [collections.id],
-  }),
-}));
+);

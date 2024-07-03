@@ -1,4 +1,12 @@
+import { ResultSet } from "@libsql/client";
+import { TRPCError } from "@trpc/server";
+import { ExtractTablesWithRelations, and, eq, inArray, sql } from "drizzle-orm";
+import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
+import { JSDOM } from "jsdom";
 import { generateId } from "lucia";
+import { redis } from "~/lib/redis";
+import { bookmarkTags, bookmarks, tags } from "~/server/db/schema";
+import * as schema from "~/server/db/schema";
 import type { ProtectedTRPCContext } from "../../trpc";
 import type {
   CachedBookmarkInput,
@@ -11,16 +19,11 @@ import type {
   ToggleBookmarkVisibilityInput,
   UpdateBookmarkInput,
 } from "./bookmark.input";
-import { bookmarks, bookmarkTags, tags } from "~/server/db/schema";
-import { and, eq, ExtractTablesWithRelations, inArray, sql } from "drizzle-orm";
-import { JSDOM } from "jsdom";
-import { TRPCError } from "@trpc/server";
-import { redis } from "~/lib/redis";
-import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
-import { ResultSet } from "@libsql/client";
-import * as schema from "~/server/db/schema";
 
-export const listBookmarks = async (ctx: ProtectedTRPCContext, input: ListBookmarksInput) => {
+export const listBookmarks = async (
+  ctx: ProtectedTRPCContext,
+  input: ListBookmarksInput,
+) => {
   return ctx.db.query.bookmarks.findMany({
     where: (table, { eq }) => eq(table.isPublic, true),
     offset: (input.page - 1) * input.perPage,
@@ -46,7 +49,10 @@ export const listBookmarks = async (ctx: ProtectedTRPCContext, input: ListBookma
   });
 };
 
-export const getBookmark = async (ctx: ProtectedTRPCContext, { id }: GetBookmarkInput) => {
+export const getBookmark = async (
+  ctx: ProtectedTRPCContext,
+  { id }: GetBookmarkInput,
+) => {
   return ctx.db.query.bookmarks.findFirst({
     where: (table, { eq }) => eq(table.id, id),
     with: {
@@ -61,7 +67,9 @@ export const getBookmark = async (ctx: ProtectedTRPCContext, { id }: GetBookmark
   });
 };
 
-export const getOrFetchBookmarkData = async (url: string): Promise<CachedBookmarkInput> => {
+export const getOrFetchBookmarkData = async (
+  url: string,
+): Promise<CachedBookmarkInput> => {
   const cachedData = await redis.get(url);
   if (cachedData) {
     return JSON.parse(cachedData);
@@ -74,8 +82,14 @@ export const getOrFetchBookmarkData = async (url: string): Promise<CachedBookmar
 
   const html = await response.text();
   const dom = new JSDOM(html);
-  const title = dom.window.document.title || dom.window.document.querySelector("title")?.textContent || "";
-  const description = dom.window.document.querySelector("meta[name='description']")?.getAttribute("content") || "";
+  const title =
+    dom.window.document.title ||
+    dom.window.document.querySelector("title")?.textContent ||
+    "";
+  const description =
+    dom.window.document
+      .querySelector("meta[name='description']")
+      ?.getAttribute("content") || "";
 
   const bookmarkData: CachedBookmarkInput = { title, description };
   await redis.set(url, JSON.stringify(bookmarkData));
@@ -83,14 +97,23 @@ export const getOrFetchBookmarkData = async (url: string): Promise<CachedBookmar
   return bookmarkData;
 };
 
-export const createBookmark = async (ctx: ProtectedTRPCContext, input: CreateBookmarkInput) => {
+export const createBookmark = async (
+  ctx: ProtectedTRPCContext,
+  input: CreateBookmarkInput,
+) => {
   return await ctx.db.transaction(async (trx) => {
     const existingBookmark = await trx.query.bookmarks.findFirst({
-      where: and(eq(bookmarks.userId, ctx.user.id), eq(bookmarks.url, input.url)),
+      where: and(
+        eq(bookmarks.userId, ctx.user.id),
+        eq(bookmarks.url, input.url),
+      ),
     });
 
     if (existingBookmark) {
-      await trx.update(bookmarks).set({ updatedAt: new Date() }).where(eq(bookmarks.id, existingBookmark.id));
+      await trx
+        .update(bookmarks)
+        .set({ updatedAt: new Date() })
+        .where(eq(bookmarks.id, existingBookmark.id));
 
       await updateBookmarkTags(trx, existingBookmark.id, input.tags);
 
@@ -118,16 +141,23 @@ export const createBookmark = async (ctx: ProtectedTRPCContext, input: CreateBoo
 };
 
 const updateBookmarkTags = async (
-  trx: SQLiteTransaction<"async", ResultSet, typeof schema, ExtractTablesWithRelations<typeof schema>>,
+  trx: SQLiteTransaction<
+    "async",
+    ResultSet,
+    typeof schema,
+    ExtractTablesWithRelations<typeof schema>
+  >,
   bookmarkId: string,
-  newTagNames: string[]
+  newTagNames: string[],
 ) => {
   const existingBookmarkTags = await trx.query.bookmarkTags.findMany({
     where: eq(bookmarkTags.bookmarkId, bookmarkId),
     with: { tag: true },
   });
 
-  const existingTagNames = new Set(existingBookmarkTags.map((bt) => bt.tag.name));
+  const existingTagNames = new Set(
+    existingBookmarkTags.map((bt) => bt.tag.name),
+  );
   const tagsToAdd = newTagNames.filter((tag) => !existingTagNames.has(tag));
 
   for (const tagName of tagsToAdd) {
@@ -143,7 +173,12 @@ const updateBookmarkTags = async (
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      tag = { id: tagId, name: tagName, createdAt: new Date(), updatedAt: new Date() };
+      tag = {
+        id: tagId,
+        name: tagName,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
     }
 
     await trx.insert(bookmarkTags).values({
@@ -154,7 +189,10 @@ const updateBookmarkTags = async (
   }
 };
 
-export const updateBookmark = async (ctx: ProtectedTRPCContext, input: UpdateBookmarkInput) => {
+export const updateBookmark = async (
+  ctx: ProtectedTRPCContext,
+  input: UpdateBookmarkInput,
+) => {
   await ctx.db.transaction(async (trx) => {
     await trx
       .update(bookmarks)
@@ -179,7 +217,12 @@ export const updateBookmark = async (ctx: ProtectedTRPCContext, input: UpdateBoo
           id: tagId,
           name: tagName,
         });
-        tag = { id: tagId, name: tagName, createdAt: new Date(), updatedAt: new Date() };
+        tag = {
+          id: tagId,
+          name: tagName,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
       }
 
       await trx.insert(bookmarkTags).values({
@@ -205,22 +248,34 @@ export const updateBookmark = async (ctx: ProtectedTRPCContext, input: UpdateBoo
   return updatedBookmark;
 };
 
-export const deleteBookmark = async (ctx: ProtectedTRPCContext, input: DeleteBookmarkInput) => {
+export const deleteBookmark = async (
+  ctx: ProtectedTRPCContext,
+  input: DeleteBookmarkInput,
+) => {
   try {
     return await ctx.db.transaction(async (trx) => {
       const bookmark = await trx.query.bookmarks.findFirst({
-        where: and(eq(bookmarks.id, input.id), eq(bookmarks.userId, ctx.user.id)),
+        where: and(
+          eq(bookmarks.id, input.id),
+          eq(bookmarks.userId, ctx.user.id),
+        ),
       });
 
       if (!bookmark) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Bookmark not found or you do not have permission to delete it",
+          message:
+            "Bookmark not found or you do not have permission to delete it",
         });
       }
 
-      await trx.delete(bookmarkTags).where(eq(bookmarkTags.bookmarkId, input.id));
-      const [deletedBookmark] = await trx.delete(bookmarks).where(eq(bookmarks.id, input.id)).returning();
+      await trx
+        .delete(bookmarkTags)
+        .where(eq(bookmarkTags.bookmarkId, input.id));
+      const [deletedBookmark] = await trx
+        .delete(bookmarks)
+        .where(eq(bookmarks.id, input.id))
+        .returning();
 
       return {
         success: true,
@@ -241,7 +296,10 @@ export const deleteBookmark = async (ctx: ProtectedTRPCContext, input: DeleteBoo
   }
 };
 
-export const myBookmarks = async (ctx: ProtectedTRPCContext, input: MyBookmarksInput) => {
+export const myBookmarks = async (
+  ctx: ProtectedTRPCContext,
+  input: MyBookmarksInput,
+) => {
   return ctx.db.query.bookmarks.findMany({
     where: (table, { eq }) => eq(table.userId, ctx.user.id),
     offset: (input.page - 1) * input.perPage,
@@ -266,7 +324,10 @@ export const myBookmarks = async (ctx: ProtectedTRPCContext, input: MyBookmarksI
   });
 };
 
-export const refetchBookmark = async (ctx: ProtectedTRPCContext, input: RefetchBookmarkInput) => {
+export const refetchBookmark = async (
+  ctx: ProtectedTRPCContext,
+  input: RefetchBookmarkInput,
+) => {
   const bookmark = await ctx.db.query.bookmarks.findFirst({
     where: (table, { eq }) => eq(table.id, input.id),
   });
@@ -280,8 +341,14 @@ export const refetchBookmark = async (ctx: ProtectedTRPCContext, input: RefetchB
     const html = await response.text();
 
     const dom = new JSDOM(html);
-    const newTitle = dom.window.document.title || dom.window.document.querySelector("title")?.textContent || "";
-    const newDescription = dom.window.document.querySelector("meta[name='description']")?.getAttribute("content") || "";
+    const newTitle =
+      dom.window.document.title ||
+      dom.window.document.querySelector("title")?.textContent ||
+      "";
+    const newDescription =
+      dom.window.document
+        .querySelector("meta[name='description']")
+        ?.getAttribute("content") || "";
 
     const newCacheData: CachedBookmarkInput = {
       title: newTitle,
@@ -306,7 +373,10 @@ export const refetchBookmark = async (ctx: ProtectedTRPCContext, input: RefetchB
   }
 };
 
-export const toggleBookmarkVisibility = async (ctx: ProtectedTRPCContext, input: ToggleBookmarkVisibilityInput) => {
+export const toggleBookmarkVisibility = async (
+  ctx: ProtectedTRPCContext,
+  input: ToggleBookmarkVisibilityInput,
+) => {
   const bookmark = await ctx.db.query.bookmarks.findFirst({
     where: (table, { eq }) => eq(table.id, input.id),
   });

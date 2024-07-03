@@ -1,24 +1,45 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { TRPCClientError } from "@trpc/client";
+import { User } from "lucia";
+import { Loader } from "lucide-react";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { z } from "zod";
-import { User } from "lucia";
+import { Logout } from "~/components/icons/logout";
+import { User as UserIcon } from "~/components/icons/user";
+import {
+  Alert,
+  AlertActions,
+  AlertDescription,
+  AlertTitle,
+} from "~/components/primitives/alert";
 import { Button } from "~/components/primitives/button";
-import { Dialog, DialogActions, DialogBody, DialogTitle } from "~/components/primitives/dialog";
-import { DropdownItem, DropdownLabel, DropdownMenu } from "~/components/primitives/dropdown";
+import {
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogTitle,
+} from "~/components/primitives/dialog";
+import {
+  DropdownItem,
+  DropdownLabel,
+  DropdownMenu,
+} from "~/components/primitives/dropdown";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "~/components/primitives/form";
 import { Input } from "~/components/primitives/input";
 import { logout } from "~/lib/auth/actions";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/primitives/form";
-import { toast } from "sonner";
 import { api } from "~/trpc/react";
-import { Loader } from "lucide-react";
 import { revalidateFromClient } from "../revalidate-on-client";
-import { TRPCClientError } from "@trpc/client";
-import { User as UserIcon } from "~/components/icons/user";
-import { Logout } from "~/components/icons/logout";
-import { Alert, AlertActions, AlertDescription, AlertTitle } from "~/components/primitives/alert";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -26,11 +47,15 @@ const formSchema = z.object({
   email: z.string().email("Invalid email address.").optional(),
 });
 
-export function AccountDropdownMenu({ anchor, user }: { anchor: "top start" | "bottom end"; user: User }) {
+export function AccountDropdownMenu({
+  anchor,
+  user,
+}: { anchor: "top start" | "bottom end"; user: User }) {
   const [isAccountSettingOpen, setIsAccountSettingOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
-  const { mutateAsync: updateUser, isLoading: isUpdatingAccount } = api.user.updateProfile.useMutation();
+  const { mutateAsync: updateUser, isLoading: isUpdatingAccount } =
+    api.user.updateProfile.useMutation();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -73,7 +98,9 @@ export function AccountDropdownMenu({ anchor, user }: { anchor: "top start" | "b
       <DropdownMenu className="min-w-56 p-1 mx-auto" anchor={anchor}>
         <DropdownItem href="#">
           <UserIcon className="size-4 mr-2" />
-          <DropdownLabel onClick={() => setIsAccountSettingOpen(true)}>My account</DropdownLabel>
+          <DropdownLabel onClick={() => setIsAccountSettingOpen(true)}>
+            My account
+          </DropdownLabel>
         </DropdownItem>
         <DropdownItem onClick={() => setIsLogoutDialogOpen(true)}>
           <Logout className="size-4 mr-2" />
@@ -81,7 +108,10 @@ export function AccountDropdownMenu({ anchor, user }: { anchor: "top start" | "b
         </DropdownItem>
       </DropdownMenu>
 
-      <Dialog open={isAccountSettingOpen} onClose={() => setIsAccountSettingOpen(false)}>
+      <Dialog
+        open={isAccountSettingOpen}
+        onClose={() => setIsAccountSettingOpen(false)}
+      >
         <DialogTitle>Account Details</DialogTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -130,8 +160,13 @@ export function AccountDropdownMenu({ anchor, user }: { anchor: "top start" | "b
               <Button plain onClick={() => setIsAccountSettingOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={!form.formState.isDirty || isUpdatingAccount}>
-                {isUpdatingAccount && <Loader className="animate-spin size-4" />}
+              <Button
+                type="submit"
+                disabled={!form.formState.isDirty || isUpdatingAccount}
+              >
+                {isUpdatingAccount && (
+                  <Loader className="animate-spin size-4" />
+                )}
                 Update
               </Button>
             </DialogActions>
@@ -142,7 +177,8 @@ export function AccountDropdownMenu({ anchor, user }: { anchor: "top start" | "b
       <Alert open={isLogoutDialogOpen} onClose={setIsLogoutDialogOpen}>
         <AlertTitle>Are you sure you want to logout?</AlertTitle>
         <AlertDescription>
-          This will end your session, and you will need to log in again to add bookmarks with the extension.
+          This will end your session, and you will need to log in again to add
+          bookmarks with the extension.
         </AlertDescription>
         <AlertActions>
           <Button plain onClick={() => setIsLogoutDialogOpen(false)}>

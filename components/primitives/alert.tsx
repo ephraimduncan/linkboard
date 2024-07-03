@@ -22,10 +22,11 @@ export function Alert({
   className,
   children,
   ...props
-}: { size?: keyof typeof sizes; className?: string; children: React.ReactNode } & Omit<
-  Headless.DialogProps,
-  "className"
->) {
+}: {
+  size?: keyof typeof sizes;
+  className?: string;
+  children: React.ReactNode;
+} & Omit<Headless.DialogProps, "className">) {
   return (
     <Headless.Transition appear show={open} {...props}>
       <Headless.Dialog onClose={onClose}>
@@ -54,7 +55,7 @@ export function Alert({
                 className={clsx(
                   className,
                   sizes[size],
-                  "row-start-2 w-full rounded-2xl bg-white p-8 shadow-lg ring-1 ring-stone-950/10 sm:rounded-2xl sm:p-6 dark:bg-stone-900 dark:ring-white/10 forced-colors:outline"
+                  "row-start-2 w-full rounded-2xl bg-white p-8 shadow-lg ring-1 ring-stone-950/10 sm:rounded-2xl sm:p-6 dark:bg-stone-900 dark:ring-white/10 forced-colors:outline",
                 )}
               >
                 {children}
@@ -76,7 +77,7 @@ export function AlertTitle({
       {...props}
       className={clsx(
         className,
-        "text-balance text-center text-base/6 font-semibold text-stone-950 sm:text-wrap sm:text-left sm:text-sm/6 dark:text-white"
+        "text-balance text-center text-base/6 font-semibold text-stone-950 sm:text-wrap sm:text-left sm:text-sm/6 dark:text-white",
       )}
     />
   );
@@ -85,7 +86,10 @@ export function AlertTitle({
 export function AlertDescription({
   className,
   ...props
-}: { className?: string } & Omit<Headless.DescriptionProps<typeof Text>, "className">) {
+}: { className?: string } & Omit<
+  Headless.DescriptionProps<typeof Text>,
+  "className"
+>) {
   return (
     <Headless.Description
       as={Text}
@@ -95,17 +99,23 @@ export function AlertDescription({
   );
 }
 
-export function AlertBody({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+export function AlertBody({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<"div">) {
   return <div {...props} className={clsx(className, "mt-4")} />;
 }
 
-export function AlertActions({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+export function AlertActions({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<"div">) {
   return (
     <div
       {...props}
       className={clsx(
         className,
-        "mt-6 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:mt-4 sm:flex-row sm:*:w-auto"
+        "mt-6 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:mt-4 sm:flex-row sm:*:w-auto",
       )}
     />
   );
