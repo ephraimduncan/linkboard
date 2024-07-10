@@ -2,10 +2,8 @@ import {
   ContextMenu,
   ContextMenuTrigger,
 } from "~/components/primitives/context-menu";
-import { auth } from "~/lib/auth/validate-request";
 import { truncateText } from "~/lib/utils";
 import { BookmarkWithTags } from "~/server/db/schema";
-import { BookmarkContextMenu } from "./bookmark-context-menu";
 
 const addReferral = (url: string) => {
   const parsedUrl = new URL(url);
@@ -16,11 +14,7 @@ const addReferral = (url: string) => {
 type BookmarkListProps = { bookmarks: BookmarkWithTags[] };
 
 export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
-  const { user } = await auth();
-
   // TODO: add an open lock to show public bookmarks
-  // TODO: updated at date
-  // TODO: seperate list for /discover and /dashboard
 
   return (
     <div>
@@ -61,8 +55,7 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
                   </>
                 )}
                 <span>
-                  {/* TODO: use updatedAt on discover page */}
-                  {new Date(bookmark.createdAt).toLocaleString("en-US", {
+                  {new Date(bookmark.updatedAt).toLocaleString("en-US", {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
@@ -74,9 +67,8 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
               </div>
             </div>
           </ContextMenuTrigger>
-          {/* TODO: Disable trigger for /discover */}
-          {/* TODO: disable context menu for only bookmarks I can edit */}
-          {user && <BookmarkContextMenu bookmark={bookmark} />}
+          {/* TODO: enable context menu for only bookmarks I can edit */}
+          {/* {user && <BookmarkContextMenu bookmark={bookmark} />} */}
         </ContextMenu>
       ))}
     </div>
