@@ -20,6 +20,7 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
 
   // TODO: add an open lock to show public bookmarks
   // TODO: updated at date
+  // TODO: seperate list for /discover and /dashboard
 
   return (
     <div>
@@ -60,6 +61,7 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
                   </>
                 )}
                 <span>
+                  {/* TODO: use updatedAt on discover page */}
                   {new Date(bookmark.createdAt).toLocaleString("en-US", {
                     year: "numeric",
                     month: "short",
@@ -73,7 +75,8 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
             </div>
           </ContextMenuTrigger>
           {/* TODO: Disable trigger for /discover */}
-          {user && <BookmarkContextMenu bookmark={bookmark} />}{" "}
+          {/* TODO: disable context menu for only bookmarks I can edit */}
+          {user && <BookmarkContextMenu bookmark={bookmark} />}
         </ContextMenu>
       ))}
     </div>

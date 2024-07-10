@@ -18,7 +18,7 @@ import {
 import { SidebarLayout } from "~/components/primitives/sidebar-layout";
 import { auth } from "~/lib/auth/validate-request";
 import { AccountDropdownMenu } from "./dashboard/accout-dropdown";
-import { SidebarNavigation } from "./dashboard/sidebar-nav";
+import { SidebarNavigation } from "./sidebar-nav";
 
 export default async function RootLayout({
   children,

@@ -26,7 +26,7 @@ export const getPublicBookmarks = async (input: GetPublicBookmarksInput) => {
     where: (table, { eq }) => eq(table.isPublic, true),
     offset: (input.page - 1) * input.perPage,
     limit: input.perPage,
-    orderBy: (table, { desc }) => desc(table.createdAt),
+    orderBy: (table, { desc }) => desc(table.updatedAt),
     columns: {
       id: true,
       url: true,
@@ -34,6 +34,7 @@ export const getPublicBookmarks = async (input: GetPublicBookmarksInput) => {
       description: true,
       isPublic: true,
       createdAt: true,
+      updatedAt: true,
     },
     with: {
       user: {

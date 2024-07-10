@@ -4,7 +4,7 @@ import { Input, InputGroup } from "~/components/primitives/input";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
 
-export default async function DashboardPage() {
+export default async function DiscoverPage() {
   const bookmarks = await api.bookmark.getPublicBookmarks.query({});
 
   return (
