@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const ListBookmarksSchema = z.object({
+export const GetPublicBookmarksSchema = z.object({
   page: z.number().int().default(1),
   perPage: z.number().int().default(12),
 });
@@ -46,7 +46,7 @@ export const CachedBookmarkSchema = z.object({
   description: z.string(),
 });
 
-export type ListBookmarksInput = z.infer<typeof ListBookmarksSchema>;
+export type GetPublicBookmarksInput = z.infer<typeof GetPublicBookmarksSchema>;
 export type GetBookmarkInput = z.infer<typeof GetBookmarkSchema>;
 export type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>;
 export type UpdateBookmarkInput = z.infer<typeof UpdateBookmarkSchema>;

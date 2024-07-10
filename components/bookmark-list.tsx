@@ -19,6 +19,7 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
   const { user } = await auth();
 
   // TODO: add an open lock to show public bookmarks
+  // TODO: updated at date
 
   return (
     <div>

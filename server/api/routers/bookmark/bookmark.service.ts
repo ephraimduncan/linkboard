@@ -14,14 +14,14 @@ import type {
   CreateBookmarkInput,
   DeleteBookmarkInput,
   GetBookmarkInput,
-  ListBookmarksInput,
+  GetPublicBookmarksInput,
   MyBookmarksInput,
   RefetchBookmarkInput,
   ToggleBookmarkVisibilityInput,
   UpdateBookmarkInput,
 } from "./bookmark.input";
 
-export const listBookmarks = async (input: ListBookmarksInput) => {
+export const getPublicBookmarks = async (input: GetPublicBookmarksInput) => {
   return db.query.bookmarks.findMany({
     where: (table, { eq }) => eq(table.isPublic, true),
     offset: (input.page - 1) * input.perPage,
@@ -206,6 +206,7 @@ export const updateBookmark = async (
         title: input.title,
         description: input.description,
         isPublic: input.isPublic,
+        updatedAt: new Date(),
       })
       .where(eq(bookmarks.id, input.id));
 
@@ -399,6 +400,7 @@ export const toggleBookmarkVisibility = async (
     .update(bookmarks)
     .set({
       isPublic: !bookmark.isPublic,
+      updatedAt: new Date(),
     })
     .where(eq(bookmarks.id, input.id))
     .returning();

@@ -8,8 +8,8 @@ import * as services from "./bookmark.service";
 
 export const bookmarkRouter = createTRPCRouter({
   getPublicBookmarks: publicProcedure
-    .input(inputs.ListBookmarksSchema)
-    .query(({ input }) => services.listBookmarks(input)),
+    .input(inputs.GetPublicBookmarksSchema)
+    .query(({ input }) => services.getPublicBookmarks(input)),
 
   get: protectedProcedure
     .input(inputs.GetBookmarkSchema)
