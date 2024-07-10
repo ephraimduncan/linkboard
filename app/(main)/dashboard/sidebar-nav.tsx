@@ -7,8 +7,13 @@ import {
   SidebarLabel,
   SidebarSection,
 } from "~/components/primitives/sidebar";
+import { User } from "~/server/db/schema";
 
-export function SidebarNavigation() {
+type SideNavigationProps = {
+  user: User | null;
+};
+
+export function SidebarNavigation({ user }: SideNavigationProps) {
   let pathname = usePathname();
 
   return (
@@ -25,18 +30,21 @@ export function SidebarNavigation() {
           <SearchIcon width={20} height={20} />
           <SidebarLabel>Search</SidebarLabel>
         </SidebarItem>
-        {/* TODO: Hide on discover when on public */}
-        <SidebarItem
-          href="/dashboard"
-          current={pathname.startsWith("/dashboard")}
-        >
-          <BookmarkIcon width={20} height={20} />
-          <SidebarLabel>Bookmarks</SidebarLabel>
-        </SidebarItem>
-        <SidebarItem href="/tags" current={pathname.startsWith("/tags")}>
-          <TagIcon width={20} height={20} />
-          <SidebarLabel>Tags</SidebarLabel>
-        </SidebarItem>
+        {user && (
+          <>
+            <SidebarItem
+              href="/dashboard"
+              current={pathname.startsWith("/dashboard")}
+            >
+              <BookmarkIcon width={20} height={20} />
+              <SidebarLabel>Bookmarks</SidebarLabel>
+            </SidebarItem>
+            <SidebarItem href="/tags" current={pathname.startsWith("/tags")}>
+              <TagIcon width={20} height={20} />
+              <SidebarLabel>Tags</SidebarLabel>
+            </SidebarItem>
+          </>
+        )}
       </SidebarSection>
     </>
   );

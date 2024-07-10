@@ -53,7 +53,7 @@ export default async function RootLayout({
                 </SidebarLabel>
               </SidebarSection>
 
-              <SidebarNavigation />
+              <SidebarNavigation user={user} />
 
               <SidebarSpacer />
 
