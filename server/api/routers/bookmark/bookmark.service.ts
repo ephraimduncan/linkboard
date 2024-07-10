@@ -1,12 +1,13 @@
 import { ResultSet } from "@libsql/client";
 import { TRPCError } from "@trpc/server";
-import { ExtractTablesWithRelations, and, eq, inArray, sql } from "drizzle-orm";
+import { ExtractTablesWithRelations, and, eq } from "drizzle-orm";
 import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
 import { JSDOM } from "jsdom";
 import { generateId } from "lucia";
 import { redis } from "~/lib/redis";
-import { bookmarkTags, bookmarks, tags } from "~/server/db/schema";
+import { db } from "~/server/db";
 import * as schema from "~/server/db/schema";
+import { bookmarkTags, bookmarks, tags } from "~/server/db/schema";
 import type { ProtectedTRPCContext } from "../../trpc";
 import type {
   CachedBookmarkInput,
@@ -20,11 +21,8 @@ import type {
   UpdateBookmarkInput,
 } from "./bookmark.input";
 
-export const listBookmarks = async (
-  ctx: ProtectedTRPCContext,
-  input: ListBookmarksInput,
-) => {
-  return ctx.db.query.bookmarks.findMany({
+export const listBookmarks = async (input: ListBookmarksInput) => {
+  return db.query.bookmarks.findMany({
     where: (table, { eq }) => eq(table.isPublic, true),
     offset: (input.page - 1) * input.perPage,
     limit: input.perPage,
@@ -38,7 +36,14 @@ export const listBookmarks = async (
       createdAt: true,
     },
     with: {
-      user: { columns: { email: true } },
+      user: {
+        columns: {
+          email: true,
+          username: true,
+          id: true,
+          name: true,
+        },
+      },
       tags: {
         columns: {},
         with: {
