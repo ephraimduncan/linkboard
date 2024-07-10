@@ -7,8 +7,6 @@ import { api } from "~/trpc/server";
 export default async function DashboardPage() {
   const bookmarks = await api.bookmark.getPublicBookmarks.query({});
 
-  console.log(bookmarks);
-
   return (
     <div>
       <div className="flex gap-4 mx-auto">

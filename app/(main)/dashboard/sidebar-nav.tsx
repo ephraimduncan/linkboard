@@ -25,6 +25,7 @@ export function SidebarNavigation() {
           <SearchIcon width={20} height={20} />
           <SidebarLabel>Search</SidebarLabel>
         </SidebarItem>
+        {/* TODO: Hide on discover when on public */}
         <SidebarItem
           href="/dashboard"
           current={pathname.startsWith("/dashboard")}

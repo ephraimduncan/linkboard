@@ -15,6 +15,7 @@ export const Hero = async () => {
       <Container>
         <div className="flex gap-5 text-lg items-end justify-end">
           {user ? <Link href="/dashboard">Dashboard</Link> : <LoginDialog />}
+          <Link href="/discover">discover</Link>
         </div>
         <div>
           <Link

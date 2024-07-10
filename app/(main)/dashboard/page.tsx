@@ -1,11 +1,19 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/16/solid";
+import { redirect } from "next/navigation";
 import { BookmarkList } from "~/components/bookmark-list";
 import { Input, InputGroup } from "~/components/primitives/input";
+import { auth } from "~/lib/auth/validate-request";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
 import { AddLinkDialog } from "./add-link-dialog";
 
 export default async function DashboardPage() {
+  const { user } = await auth();
+
+  if (!user) {
+    redirect("/?unauthorized=true");
+  }
+
   const bookmarks = await api.bookmark.myBookmarks.query({});
 
   return (
