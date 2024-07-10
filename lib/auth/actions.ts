@@ -1,13 +1,13 @@
 "use server";
 
+import { and, eq } from "drizzle-orm";
+import { Scrypt, generateId } from "lucia";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { generateId, Scrypt } from "lucia";
-import { and, eq } from "drizzle-orm";
 import { lucia } from "~/lib/auth";
+import { validateRequest } from "~/lib/auth/validate-request";
 import { db } from "~/server/db";
 import { oauthAccounts } from "~/server/db/schema";
-import { validateRequest } from "~/lib/auth/validate-request";
 
 export interface ActionResponse<T> {
   fieldError?: Partial<Record<keyof T, string | undefined>>;
@@ -24,13 +24,17 @@ export async function logout(): Promise<{ error: string } | void> {
   }
   await lucia.invalidateSession(session.id);
   const sessionCookie = lucia.createBlankSessionCookie();
-  cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+  cookies().set(
+    sessionCookie.name,
+    sessionCookie.value,
+    sessionCookie.attributes,
+  );
   return redirect("/");
 }
 
 export async function linkOAuthAccount(
   provider: string,
-  providerAccountId: string
+  providerAccountId: string,
 ): Promise<{ error?: string; success?: boolean }> {
   const { user } = await validateRequest();
   if (!user) {
@@ -39,12 +43,18 @@ export async function linkOAuthAccount(
 
   try {
     const existingAccount = await db.query.oauthAccounts.findFirst({
-      where: (table, { eq, and }) => and(eq(table.provider, provider), eq(table.providerAccountId, providerAccountId)),
+      where: (table, { eq, and }) =>
+        and(
+          eq(table.provider, provider),
+          eq(table.providerAccountId, providerAccountId),
+        ),
     });
 
     if (existingAccount) {
       if (existingAccount.userId !== user.id) {
-        return { error: "This OAuth account is already linked to another user" };
+        return {
+          error: "This OAuth account is already linked to another user",
+        };
       }
       return { error: "This OAuth account is already linked to your account" };
     }
@@ -63,7 +73,9 @@ export async function linkOAuthAccount(
   }
 }
 
-export async function unlinkOAuthAccount(provider: string): Promise<{ error?: string; success?: boolean }> {
+export async function unlinkOAuthAccount(
+  provider: string,
+): Promise<{ error?: string; success?: boolean }> {
   const { user } = await validateRequest();
   if (!user) {
     return { error: "User not authenticated" };
@@ -72,7 +84,12 @@ export async function unlinkOAuthAccount(provider: string): Promise<{ error?: st
   try {
     const result = await db
       .delete(oauthAccounts)
-      .where(and(eq(oauthAccounts.userId, user.id), eq(oauthAccounts.provider, provider)));
+      .where(
+        and(
+          eq(oauthAccounts.userId, user.id),
+          eq(oauthAccounts.provider, provider),
+        ),
+      );
 
     if (result.rowsAffected === 0) {
       return { error: "OAuth account not found or already unlinked" };
@@ -85,7 +102,10 @@ export async function unlinkOAuthAccount(provider: string): Promise<{ error?: st
   }
 }
 
-export async function getLinkedAccounts(): Promise<{ accounts: Array<{ provider: string }>; error?: string }> {
+export async function getLinkedAccounts(): Promise<{
+  accounts: Array<{ provider: string }>;
+  error?: string;
+}> {
   const { user } = await validateRequest();
   if (!user) {
     return { accounts: [], error: "User not authenticated" };

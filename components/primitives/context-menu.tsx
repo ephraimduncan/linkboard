@@ -1,8 +1,8 @@
 "use client";
 
-import * as React from "react";
 import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
 import { CheckIcon } from "@radix-ui/react-icons";
+import * as React from "react";
 import { cn } from "~/lib/utils";
 
 const ContextMenu = ContextMenuPrimitive.Root;
@@ -32,7 +32,7 @@ const ContextMenuContent = React.forwardRef<
         "shadow-lg ring-1 ring-stone-950/10 dark:ring-inset dark:ring-white/10",
         "supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]",
         "z-50 min-w-[8rem] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-        className
+        className,
       )}
       {...props}
     />
@@ -58,7 +58,7 @@ const ContextMenuItem = React.forwardRef<
       "[&>[data-slot=icon]]:col-start-1 [&>[data-slot=icon]]:row-start-1 [&>[data-slot=icon]]:-ml-0.5 [&>[data-slot=icon]]:mr-2.5 [&>[data-slot=icon]]:size-5 sm:[&>[data-slot=icon]]:mr-2 [&>[data-slot=icon]]:sm:size-4",
       "[&>[data-slot=icon]]:text-stone-500 [&>[data-slot=icon]]:data-[highlighted]:text-white [&>[data-slot=icon]]:dark:text-stone-400 [&>[data-slot=icon]]:data-[highlighted]:dark:text-white",
       inset && "pl-8",
-      className
+      className,
     )}
     {...props}
   />
@@ -78,7 +78,7 @@ const ContextMenuCheckboxItem = React.forwardRef<
       "data-[disabled]:opacity-50",
       "forced-color-adjust-none forced-colors:data-[highlighted]:bg-[Highlight] forced-colors:data-[highlighted]:text-[HighlightText]",
       "relative pl-8",
-      className
+      className,
     )}
     checked={checked}
     {...props}
@@ -91,7 +91,8 @@ const ContextMenuCheckboxItem = React.forwardRef<
     {children}
   </ContextMenuPrimitive.CheckboxItem>
 ));
-ContextMenuCheckboxItem.displayName = ContextMenuPrimitive.CheckboxItem.displayName;
+ContextMenuCheckboxItem.displayName =
+  ContextMenuPrimitive.CheckboxItem.displayName;
 
 const ContextMenuRadioItem = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.RadioItem>,
@@ -106,7 +107,7 @@ const ContextMenuRadioItem = React.forwardRef<
       "data-[disabled]:opacity-50",
       "forced-color-adjust-none forced-colors:data-[highlighted]:bg-[Highlight] forced-colors:data-[highlighted]:text-[HighlightText]",
       "relative pl-8",
-      className
+      className,
     )}
     {...props}
   >
@@ -131,7 +132,7 @@ const ContextMenuLabel = React.forwardRef<
     className={cn(
       "col-span-full grid grid-cols-[1fr,auto] gap-x-12 px-3.5 pb-1 pt-2 text-sm/5 font-medium text-stone-500 sm:px-3 sm:text-xs/5 dark:text-stone-400",
       inset && "pl-8",
-      className
+      className,
     )}
     {...props}
   />
@@ -146,20 +147,23 @@ const ContextMenuSeparator = React.forwardRef<
     ref={ref}
     className={cn(
       "col-span-full mx-3.5 my-1 h-px border-0 bg-stone-950/5 sm:mx-3 dark:bg-white/10 forced-colors:bg-[CanvasText]",
-      className
+      className,
     )}
     {...props}
   />
 ));
 ContextMenuSeparator.displayName = ContextMenuPrimitive.Separator.displayName;
 
-const ContextMenuShortcut = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => {
+const ContextMenuShortcut = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
     <span
       className={cn(
         "col-start-5 row-start-1 flex justify-self-end",
         "ml-auto text-xs tracking-widest text-stone-500 group-data-[highlighted]:text-white",
-        className
+        className,
       )}
       {...props}
     />

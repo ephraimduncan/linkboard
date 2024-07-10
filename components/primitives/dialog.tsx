@@ -22,10 +22,11 @@ export function Dialog({
   className,
   children,
   ...props
-}: { size?: keyof typeof sizes; className?: string; children: React.ReactNode } & Omit<
-  Headless.DialogProps,
-  "className"
->) {
+}: {
+  size?: keyof typeof sizes;
+  className?: string;
+  children: React.ReactNode;
+} & Omit<Headless.DialogProps, "className">) {
   return (
     <Headless.Transition appear show={open} {...props}>
       <Headless.Dialog onClose={onClose}>
@@ -55,7 +56,7 @@ export function Dialog({
                   className,
                   sizes[size],
                   "space-y-4",
-                  "row-start-2 w-full min-w-0 rounded-t-3xl bg-white p-[--gutter] shadow-lg ring-1 ring-stone-950/10 [--gutter:theme(spacing.8)] sm:mb-auto sm:rounded-2xl dark:bg-stone-900 dark:ring-white/10 forced-colors:outline"
+                  "row-start-2 w-full min-w-0 rounded-t-3xl bg-white p-[--gutter] shadow-lg ring-1 ring-stone-950/10 [--gutter:theme(spacing.8)] sm:mb-auto sm:rounded-2xl dark:bg-stone-900 dark:ring-white/10 forced-colors:outline",
                 )}
               >
                 {children}
@@ -75,10 +76,11 @@ export function DialogBlur({
   className,
   children,
   ...props
-}: { size?: keyof typeof sizes; className?: string; children: React.ReactNode } & Omit<
-  Headless.DialogProps,
-  "className"
->) {
+}: {
+  size?: keyof typeof sizes;
+  className?: string;
+  children: React.ReactNode;
+} & Omit<Headless.DialogProps, "className">) {
   return (
     <Headless.Transition appear show={open} {...props}>
       <Headless.Dialog onClose={onClose} className="relative z-50">
@@ -90,7 +92,10 @@ export function DialogBlur({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-md" aria-hidden="true" />
+          <div
+            className="fixed inset-0 bg-black/30 backdrop-blur-md"
+            aria-hidden="true"
+          />
         </Headless.TransitionChild>
 
         <div className="fixed inset-0 flex items-center justify-center p-4">
@@ -109,7 +114,7 @@ export function DialogBlur({
                 "w-full max-h-[80vh] overflow-y-auto",
                 "rounded-2xl bg-white p-6 shadow-xl",
                 "dark:bg-stone-900 dark:ring-white/10",
-                "space-y-4"
+                "space-y-4",
               )}
             >
               {children}
@@ -128,7 +133,10 @@ export function DialogTitle({
   return (
     <Headless.DialogTitle
       {...props}
-      className={clsx(className, "text-balance text-lg/6 font-semibold text-stone-950 sm:text-base/6 dark:text-white")}
+      className={clsx(
+        className,
+        "text-balance text-lg/6 font-semibold text-stone-950 sm:text-base/6 dark:text-white",
+      )}
     />
   );
 }
@@ -136,21 +144,36 @@ export function DialogTitle({
 export function DialogDescription({
   className,
   ...props
-}: { className?: string } & Omit<Headless.DescriptionProps<typeof Text>, "className">) {
-  return <Headless.Description as={Text} {...props} className={clsx(className, "mt-2 text-pretty")} />;
+}: { className?: string } & Omit<
+  Headless.DescriptionProps<typeof Text>,
+  "className"
+>) {
+  return (
+    <Headless.Description
+      as={Text}
+      {...props}
+      className={clsx(className, "mt-2 text-pretty")}
+    />
+  );
 }
 
-export function DialogBody({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+export function DialogBody({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<"div">) {
   return <div {...props} className={clsx(className, "mt-6")} />;
 }
 
-export function DialogActions({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+export function DialogActions({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<"div">) {
   return (
     <div
       {...props}
       className={clsx(
         className,
-        "mt-8 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:flex-row sm:*:w-auto"
+        "mt-8 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:flex-row sm:*:w-auto",
       )}
     />
   );

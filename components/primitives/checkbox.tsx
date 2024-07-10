@@ -2,7 +2,10 @@ import * as Headless from "@headlessui/react";
 import { clsx } from "clsx";
 import type React from "react";
 
-export function CheckboxGroup({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+export function CheckboxGroup({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<"div">) {
   return (
     <div
       data-slot="control"
@@ -12,7 +15,7 @@ export function CheckboxGroup({ className, ...props }: React.ComponentPropsWitho
         // Basic groups
         "space-y-3",
         // With descriptions
-        "has-[[data-slot=description]]:space-y-6 [&_[data-slot=label]]:has-[[data-slot=description]]:font-medium"
+        "has-[[data-slot=description]]:space-y-6 [&_[data-slot=label]]:has-[[data-slot=description]]:font-medium",
       )}
     />
   );
@@ -37,7 +40,7 @@ export function CheckboxField({
         // Description layout
         "[&>[data-slot=description]]:col-start-2 [&>[data-slot=description]]:row-start-2",
         // With description
-        "[&_[data-slot=label]]:has-[[data-slot=description]]:font-medium"
+        "[&_[data-slot=label]]:has-[[data-slot=description]]:font-medium",
       )}
     />
   );

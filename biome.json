@@ -5,16 +5,17 @@
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
-    "ignore": [],
     "attributePosition": "auto",
     "indentStyle": "space",
     "indentWidth": 2,
-    "lineWidth": 80,
-    "lineEnding": "lf"
+    "lineWidth": 80
   },
   "json": {
     "formatter": {
       "trailingCommas": "none"
     }
+  },
+  "files": {
+    "ignore": ["node_modules", ".vscode", ".idea", ".DS_Store", ".next"]
   }
 }

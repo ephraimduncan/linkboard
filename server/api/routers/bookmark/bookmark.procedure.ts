@@ -7,7 +7,9 @@ export const bookmarkRouter = createTRPCRouter({
     .input(inputs.ListBookmarksSchema)
     .query(({ ctx, input }) => services.listBookmarks(ctx, input)),
 
-  get: protectedProcedure.input(inputs.GetBookmarkSchema).query(({ ctx, input }) => services.getBookmark(ctx, input)),
+  get: protectedProcedure
+    .input(inputs.GetBookmarkSchema)
+    .query(({ ctx, input }) => services.getBookmark(ctx, input)),
 
   create: protectedProcedure
     .input(inputs.CreateBookmarkSchema)
@@ -31,5 +33,7 @@ export const bookmarkRouter = createTRPCRouter({
 
   toggleVisibility: protectedProcedure
     .input(inputs.ToggleBookmarkVisibilitySchema)
-    .mutation(({ ctx, input }) => services.toggleBookmarkVisibility(ctx, input)),
+    .mutation(({ ctx, input }) =>
+      services.toggleBookmarkVisibility(ctx, input),
+    ),
 });

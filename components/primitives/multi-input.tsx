@@ -1,6 +1,6 @@
-import * as React from "react";
 import * as Headless from "@headlessui/react";
 import { clsx } from "clsx";
+import * as React from "react";
 import { X } from "../icons/x";
 
 export const MultiInput = React.forwardRef(function MultiInput(
@@ -13,8 +13,11 @@ export const MultiInput = React.forwardRef(function MultiInput(
     className?: string;
     onChange: (value: string[]) => void;
     value?: string[];
-  } & Omit<React.ComponentPropsWithoutRef<typeof Headless.Input>, "className" | "onChange" | "value">,
-  ref: React.ForwardedRef<HTMLInputElement>
+  } & Omit<
+    React.ComponentPropsWithoutRef<typeof Headless.Input>,
+    "className" | "onChange" | "value"
+  >,
+  ref: React.ForwardedRef<HTMLInputElement>,
 ) {
   const [inputValue, setInputValue] = React.useState("");
   const wrapperRef = React.useRef<HTMLDivElement>(null);
@@ -71,7 +74,7 @@ export const MultiInput = React.forwardRef(function MultiInput(
             className={clsx(
               "inline-flex items-center gap-x-1.5 rounded-md px-1.5 py-0.5 text-sm/5 font-medium sm:text-xs/5 forced-colors:outline",
               "bg-stone-50 text-stone-700 ring-1 ring-inset ring-stone-900/10",
-              "dark:bg-stone-500/10 dark:text-stone-400 dark:ring-stone-400/20"
+              "dark:bg-stone-500/10 dark:text-stone-400 dark:ring-stone-400/20",
             )}
           >
             {tag}

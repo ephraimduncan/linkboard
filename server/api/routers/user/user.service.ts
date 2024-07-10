@@ -1,14 +1,20 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq, not } from "drizzle-orm";
 import { users } from "~/server/db/schema";
-import type { UpdateUserInput, GetUserProfileInput } from "./user.input";
 import { ProtectedTRPCContext } from "../../trpc";
+import type { GetUserProfileInput, UpdateUserInput } from "./user.input";
 
-export const updateUser = async (ctx: ProtectedTRPCContext, input: UpdateUserInput) => {
+export const updateUser = async (
+  ctx: ProtectedTRPCContext,
+  input: UpdateUserInput,
+) => {
   return await ctx.db.transaction(async (trx) => {
     if (input.username) {
       const existingUsername = await trx.query.users.findFirst({
-        where: and(eq(users.username, input.username), not(eq(users.id, ctx.user.id))),
+        where: and(
+          eq(users.username, input.username),
+          not(eq(users.id, ctx.user.id)),
+        ),
       });
 
       if (existingUsername) {
@@ -39,7 +45,10 @@ export const updateUser = async (ctx: ProtectedTRPCContext, input: UpdateUserInp
   });
 };
 
-export const getUserProfile = async (ctx: ProtectedTRPCContext, input: GetUserProfileInput) => {
+export const getUserProfile = async (
+  ctx: ProtectedTRPCContext,
+  input: GetUserProfileInput,
+) => {
   try {
     const user = await ctx.db.query.users.findFirst({
       where: eq(users.id, input.userId),

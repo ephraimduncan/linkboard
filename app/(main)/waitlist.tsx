@@ -4,9 +4,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FieldErrors, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-import { Section, Container } from "~/components/blocks";
+import { Container, Section } from "~/components/blocks";
 import { Button } from "~/components/primitives/button";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "~/components/primitives/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "~/components/primitives/form";
 import { Input } from "~/components/primitives/input";
 
 const formSchema = z.object({
@@ -43,7 +49,9 @@ export function CTA() {
   return (
     <Section className="sm:my-12 sm:mb-20">
       <Container className="flex flex-col items-center text-center">
-        <h2 className="!my-0 text-3xl">Ready to get started? Join the waitlist now!</h2>
+        <h2 className="!my-0 text-3xl">
+          Ready to get started? Join the waitlist now!
+        </h2>
 
         <Form {...form}>
           <form
@@ -57,7 +65,11 @@ export function CTA() {
                 <FormItem className="space-y-0">
                   <FormLabel className="sr-only">Email</FormLabel>
                   <FormControl>
-                    <Input className="md:w-64" placeholder="duncan@linkboard.dev" {...field} />
+                    <Input
+                      className="md:w-64"
+                      placeholder="duncan@linkboard.dev"
+                      {...field}
+                    />
                   </FormControl>
                 </FormItem>
               )}

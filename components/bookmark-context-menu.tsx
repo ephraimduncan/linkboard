@@ -1,47 +1,64 @@
 "use client";
 
+import { Loader } from "lucide-react";
 import React, { useState } from "react";
-import { Copy } from "./icons/copy";
-import { Pencil } from "./icons/pencil";
-import { Trash } from "./icons/trash";
-import { Refresh } from "./icons/refresh";
-import { ContextMenuContent, ContextMenuItem } from "./primitives/context-menu";
 import { toast } from "sonner";
-import { api } from "~/trpc/react";
-import { cn } from "~/lib/utils";
 import { revalidateFromClient } from "~/app/revalidate-on-client";
+import { cn } from "~/lib/utils";
+import { BookmarkWithTags } from "~/server/db/schema";
+import { api } from "~/trpc/react";
+import { EditBookmarkDialog } from "./edit-bookmark-dialog";
+import { Copy } from "./icons/copy";
 import { LockClose } from "./icons/lock-close";
 import { LockOpen } from "./icons/lock-open";
-import { BookmarkWithTags } from "~/server/db/schema";
-import { Alert, AlertActions, AlertDescription, AlertTitle } from "./primitives/alert";
+import { Pencil } from "./icons/pencil";
+import { Refresh } from "./icons/refresh";
+import { Trash } from "./icons/trash";
+import {
+  Alert,
+  AlertActions,
+  AlertDescription,
+  AlertTitle,
+} from "./primitives/alert";
 import { Button } from "./primitives/button";
-import { Loader } from "lucide-react";
-import { EditBookmarkDialog } from "./edit-bookmark-dialog";
+import { ContextMenuContent, ContextMenuItem } from "./primitives/context-menu";
 
-export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }) {
+export function BookmarkContextMenu({
+  bookmark,
+}: { bookmark: BookmarkWithTags }) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isToggleBookmarkDialogOpen, setIsToggleBookmarkDialogOpen] = useState(false);
-  const [isEditBookmarkDialogOpen, setIsEditBookmarkDialogOpen] = useState(false);
+  const [isToggleBookmarkDialogOpen, setIsToggleBookmarkDialogOpen] =
+    useState(false);
+  const [isEditBookmarkDialogOpen, setIsEditBookmarkDialogOpen] =
+    useState(false);
 
-  const { mutateAsync: refetchBookmark, isLoading: isRefreshingBookmark } = api.bookmark.refetch.useMutation({
-    onSuccess: () => {
-      revalidateFromClient("/dashboard");
-      toast.success("Bookmark refreshed");
-    },
-  });
-  const { mutateAsync: deleteBookmark, isLoading: isDeletingBookmark } = api.bookmark.delete.useMutation({
-    onSuccess: () => {
-      revalidateFromClient("/dashboard");
-      toast.success("Bookmark deleted");
-    },
-  });
-  const { mutateAsync: toggleBookmarkVisibility, isLoading: isTogglingVisibility } =
-    api.bookmark.toggleVisibility.useMutation({
+  const { mutateAsync: refetchBookmark, isLoading: isRefreshingBookmark } =
+    api.bookmark.refetch.useMutation({
       onSuccess: () => {
         revalidateFromClient("/dashboard");
-        toast.success(bookmark.isPublic ? "Bookmark is now private" : "Bookmark is now public");
+        toast.success("Bookmark refreshed");
       },
     });
+  const { mutateAsync: deleteBookmark, isLoading: isDeletingBookmark } =
+    api.bookmark.delete.useMutation({
+      onSuccess: () => {
+        revalidateFromClient("/dashboard");
+        toast.success("Bookmark deleted");
+      },
+    });
+  const {
+    mutateAsync: toggleBookmarkVisibility,
+    isLoading: isTogglingVisibility,
+  } = api.bookmark.toggleVisibility.useMutation({
+    onSuccess: () => {
+      revalidateFromClient("/dashboard");
+      toast.success(
+        bookmark.isPublic
+          ? "Bookmark is now private"
+          : "Bookmark is now public",
+      );
+    },
+  });
 
   const ContextMenuItems = [
     {
@@ -52,7 +69,11 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }
         toast.success("Copied to clipboard");
       },
     },
-    { icon: Pencil, label: "Edit", onClick: () => setIsEditBookmarkDialogOpen(true) },
+    {
+      icon: Pencil,
+      label: "Edit",
+      onClick: () => setIsEditBookmarkDialogOpen(true),
+    },
     {
       icon: Trash,
       label: "Delete",
@@ -61,13 +82,15 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }
     {
       icon: Refresh,
       label: "Refresh",
-      onClick: async (bookmark: BookmarkWithTags) => refetchBookmark({ id: bookmark.id }),
+      onClick: async (bookmark: BookmarkWithTags) =>
+        refetchBookmark({ id: bookmark.id }),
     },
     {
       icon: bookmark.isPublic ? LockClose : LockOpen,
       label: bookmark.isPublic ? "Make private" : "Make public",
       onClick: bookmark.isPublic
-        ? async (bookmark: BookmarkWithTags) => toggleBookmarkVisibility({ id: bookmark.id })
+        ? async (bookmark: BookmarkWithTags) =>
+            toggleBookmarkVisibility({ id: bookmark.id })
         : () => setIsToggleBookmarkDialogOpen(true),
     },
   ];
@@ -76,12 +99,18 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }
     <>
       <ContextMenuContent>
         {ContextMenuItems.map((item, index) => (
-          <ContextMenuItem disabled={isRefreshingBookmark} key={index} onClick={() => item.onClick(bookmark)}>
+          <ContextMenuItem
+            disabled={isRefreshingBookmark}
+            key={index}
+            onClick={() => item.onClick(bookmark)}
+          >
             <div className="flex items-center gap-1.5">
               <item.icon
                 className={cn("size-4", {
-                  "animate-spin": isRefreshingBookmark && item.label === "Refresh",
-                  "animate-pulse": isDeletingBookmark && item.label === "Delete",
+                  "animate-spin":
+                    isRefreshingBookmark && item.label === "Refresh",
+                  "animate-pulse":
+                    isDeletingBookmark && item.label === "Delete",
                 })}
               />
               {item.label}
@@ -110,9 +139,16 @@ export function BookmarkContextMenu({ bookmark }: { bookmark: BookmarkWithTags }
         </AlertActions>
       </Alert>
 
-      <Alert open={isToggleBookmarkDialogOpen} onClose={setIsToggleBookmarkDialogOpen}>
-        <AlertTitle>Are you sure you want to make this bookmark public?</AlertTitle>
-        <AlertDescription>It will be visible to others on the discover page.</AlertDescription>
+      <Alert
+        open={isToggleBookmarkDialogOpen}
+        onClose={setIsToggleBookmarkDialogOpen}
+      >
+        <AlertTitle>
+          Are you sure you want to make this bookmark public?
+        </AlertTitle>
+        <AlertDescription>
+          It will be visible to others on the discover page.
+        </AlertDescription>
         <AlertActions>
           <Button plain onClick={() => setIsToggleBookmarkDialogOpen(false)}>
             Cancel

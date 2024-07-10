@@ -9,7 +9,11 @@ type LayoutProps = {
 
 const Layout = ({ children, className }: LayoutProps) => {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("scroll-smooth antialiased focus:scroll-auto", className)}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn("scroll-smooth antialiased focus:scroll-auto", className)}
+    >
       {children}
     </html>
   );
@@ -42,7 +46,7 @@ const Main = ({ children, className, id }: MainProps) => {
         "prose-blockquote:not-italic",
         // Pre and Code Blocks
         "prose-pre:border prose-pre:bg-muted/25 prose-pre:text-foreground",
-        className
+        className,
       )}
       id={id}
     >
@@ -108,7 +112,7 @@ const Article = ({ children, className, id }: ArticleProps) => {
         "prose-blockquote:not-italic",
         // Pre and Code Blocks
         "prose-pre:border prose-pre:bg-muted/25",
-        className
+        className,
       )}
       id={id}
     >

@@ -3,7 +3,9 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .default("development"),
     DISCORD_CLIENT_ID: z.string().trim().min(1),
     DISCORD_CLIENT_SECRET: z.string().trim().min(1),
     GITHUB_CLIENT_ID: z.string().trim().min(1),
