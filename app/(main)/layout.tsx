@@ -18,8 +18,8 @@ import {
 } from "~/components/primitives/sidebar";
 import { SidebarLayout } from "~/components/primitives/sidebar-layout";
 import { auth } from "~/lib/auth/validate-request";
-import { AccountDropdownMenu } from "./accout-dropdown";
-import { SidebarNavigation } from "./sidebar-nav";
+import { AccountDropdownMenu } from "./dashboard/accout-dropdown";
+import { SidebarNavigation } from "./dashboard/sidebar-nav";
 
 export default async function RootLayout({
   children,

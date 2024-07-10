@@ -26,7 +26,7 @@ import {
 import { Input } from "~/components/primitives/input";
 import { MultiInput } from "~/components/primitives/multi-input";
 import { api } from "~/trpc/react";
-import { revalidateFromClient } from "../revalidate-on-client";
+import { revalidateFromClient } from "../../revalidate-on-client";
 
 const CreateBookmarkSchema = z.object({
   url: z.string().url("Invalid URL"),

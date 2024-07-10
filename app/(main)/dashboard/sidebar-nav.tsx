@@ -1,7 +1,6 @@
 "use client";
 import { BookmarkIcon, SearchIcon, TagIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
-import React from "react";
 import { Sparkle } from "~/components/icons/sparkle";
 import {
   SidebarItem,
@@ -15,7 +14,10 @@ export function SidebarNavigation() {
   return (
     <>
       <SidebarSection>
-        <SidebarItem href="/discover" current={pathname.startsWith("/explore")}>
+        <SidebarItem
+          href="/discover"
+          current={pathname.startsWith("/discover")}
+        >
           <Sparkle className="size-5" />
           <SidebarLabel>Discover</SidebarLabel>
         </SidebarItem>
