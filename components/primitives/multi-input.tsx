@@ -8,14 +8,16 @@ export const MultiInput = React.forwardRef(function MultiInput(
     className,
     onChange,
     value = [],
+    onBlur,
     ...props
   }: {
     className?: string;
     onChange: (value: string[]) => void;
     value?: string[];
+    onBlur?: (currentInputValue: string) => void;
   } & Omit<
     React.ComponentPropsWithoutRef<typeof Headless.Input>,
-    "className" | "onChange" | "value"
+    "className" | "onChange" | "value" | "onBlur"
   >,
   ref: React.ForwardedRef<HTMLInputElement>,
 ) {
@@ -29,15 +31,21 @@ export const MultiInput = React.forwardRef(function MultiInput(
     setInputValue(e.target.value);
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((e.key === " " || e.key === "Enter") && inputValue.trim() !== "") {
-      e.preventDefault();
-      const newTags = [...value, inputValue.trim()];
+  const addTag = (tag: string) => {
+    if (tag.trim() !== "") {
+      const newTags = [...value, tag.trim()];
       onChange(newTags);
       setInputValue("");
       if (inputRef.current) {
         inputRef.current.value = "";
       }
+    }
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      addTag(inputValue);
     } else if (e.key === "Backspace" && inputValue === "" && value.length > 0) {
       const newTags = value.slice(0, -1);
       onChange(newTags);
@@ -52,6 +60,13 @@ export const MultiInput = React.forwardRef(function MultiInput(
   const handleWrapperClick = (e: React.MouseEvent) => {
     if (wrapperRef.current && e.target === wrapperRef.current) {
       inputRef.current?.focus();
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    addTag(inputValue);
+    if (onBlur) {
+      onBlur(inputValue);
     }
   };
 
@@ -93,9 +108,9 @@ export const MultiInput = React.forwardRef(function MultiInput(
         <Headless.Input
           ref={inputRef}
           {...props}
-          //   value={inputValue}
           onChange={handleInputChange}
           onKeyDown={handleInputKeyDown}
+          onBlur={handleBlur}
           className={clsx([
             "flex-grow min-w-[80px]",
             "text-base/6 text-stone-950 placeholder:text-stone-500 sm:text-xs/5 dark:text-white",
