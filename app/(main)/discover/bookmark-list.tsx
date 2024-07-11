@@ -1,11 +1,9 @@
-import React from "react";
 import {
   ContextMenu,
   ContextMenuTrigger,
 } from "~/components/primitives/context-menu";
 import { truncateText } from "~/lib/utils";
 import { BookmarkWithTags } from "~/server/db/schema";
-import { BookmarkContextMenu } from "./bookmark-context-menu";
 
 const addReferral = (url: string) => {
   const parsedUrl = new URL(url);
@@ -15,7 +13,9 @@ const addReferral = (url: string) => {
 
 type BookmarkListProps = { bookmarks: BookmarkWithTags[] };
 
-export const BookmarkList = ({ bookmarks }: BookmarkListProps) => {
+export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
+  // TODO: add an open lock to show public bookmarks
+
   return (
     <div>
       {bookmarks.map((bookmark) => (
@@ -45,14 +45,20 @@ export const BookmarkList = ({ bookmarks }: BookmarkListProps) => {
                   </>
                 )}
 
-                {/* {bookmark.username && (
-              <>
-                <span className="mr-2">{bookmark.username}</span>
-                <span className="mr-2">•</span>
-              </>
-            )} */}
+                {bookmark.user?.username && (
+                  <>
+                    {/* TODO: redirect to users profile */}
+                    <span className="mr-2 hover:underline cursor-pointer">
+                      {bookmark.user.username}
+                    </span>
+                    <span className="mr-2">•</span>
+                  </>
+                )}
                 <span>
-                  {new Date(bookmark.createdAt).toLocaleString("en-US", {
+                  {new Date(bookmark.updatedAt).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
                     hour: "numeric",
                     minute: "numeric",
                     hour12: true,
@@ -61,7 +67,8 @@ export const BookmarkList = ({ bookmarks }: BookmarkListProps) => {
               </div>
             </div>
           </ContextMenuTrigger>
-          <BookmarkContextMenu bookmark={bookmark} />
+          {/* TODO: enable context menu for only bookmarks I can edit */}
+          {/* {user && <BookmarkContextMenu bookmark={bookmark} />} */}
         </ContextMenu>
       ))}
     </div>

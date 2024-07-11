@@ -1,11 +1,15 @@
-import { createTRPCRouter, protectedProcedure } from "../../trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "../../trpc";
 import * as inputs from "./bookmark.input";
 import * as services from "./bookmark.service";
 
 export const bookmarkRouter = createTRPCRouter({
-  list: protectedProcedure
-    .input(inputs.ListBookmarksSchema)
-    .query(({ ctx, input }) => services.listBookmarks(ctx, input)),
+  getPublicBookmarks: publicProcedure
+    .input(inputs.GetPublicBookmarksSchema)
+    .query(({ input }) => services.getPublicBookmarks(input)),
 
   get: protectedProcedure
     .input(inputs.GetBookmarkSchema)

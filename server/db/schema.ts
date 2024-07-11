@@ -1,6 +1,5 @@
 import { relations } from "drizzle-orm";
 import {
-  customType,
   index,
   integer,
   sqliteTableCreator,
@@ -120,6 +119,7 @@ export type Bookmark = typeof bookmarks.$inferSelect;
 export type NewBookmark = typeof bookmarks.$inferInsert;
 export type BookmarkWithTags = Bookmark & {
   tags: { tag: Tag }[];
+  user: Pick<User, "username" | "name" | "email" | "id">;
 };
 
 export const tags = sqliteTable(

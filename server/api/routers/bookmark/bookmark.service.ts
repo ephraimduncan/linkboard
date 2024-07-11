@@ -1,34 +1,32 @@
 import { ResultSet } from "@libsql/client";
 import { TRPCError } from "@trpc/server";
-import { ExtractTablesWithRelations, and, eq, inArray, sql } from "drizzle-orm";
+import { ExtractTablesWithRelations, and, eq } from "drizzle-orm";
 import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
 import { JSDOM } from "jsdom";
 import { generateId } from "lucia";
 import { redis } from "~/lib/redis";
-import { bookmarkTags, bookmarks, tags } from "~/server/db/schema";
+import { db } from "~/server/db";
 import * as schema from "~/server/db/schema";
+import { bookmarkTags, bookmarks, tags } from "~/server/db/schema";
 import type { ProtectedTRPCContext } from "../../trpc";
 import type {
   CachedBookmarkInput,
   CreateBookmarkInput,
   DeleteBookmarkInput,
   GetBookmarkInput,
-  ListBookmarksInput,
+  GetPublicBookmarksInput,
   MyBookmarksInput,
   RefetchBookmarkInput,
   ToggleBookmarkVisibilityInput,
   UpdateBookmarkInput,
 } from "./bookmark.input";
 
-export const listBookmarks = async (
-  ctx: ProtectedTRPCContext,
-  input: ListBookmarksInput,
-) => {
-  return ctx.db.query.bookmarks.findMany({
+export const getPublicBookmarks = async (input: GetPublicBookmarksInput) => {
+  return db.query.bookmarks.findMany({
     where: (table, { eq }) => eq(table.isPublic, true),
     offset: (input.page - 1) * input.perPage,
     limit: input.perPage,
-    orderBy: (table, { desc }) => desc(table.createdAt),
+    orderBy: (table, { desc }) => desc(table.updatedAt),
     columns: {
       id: true,
       url: true,
@@ -36,9 +34,17 @@ export const listBookmarks = async (
       description: true,
       isPublic: true,
       createdAt: true,
+      updatedAt: true,
     },
     with: {
-      user: { columns: { email: true } },
+      user: {
+        columns: {
+          email: true,
+          username: true,
+          id: true,
+          name: true,
+        },
+      },
       tags: {
         columns: {},
         with: {
@@ -201,6 +207,7 @@ export const updateBookmark = async (
         title: input.title,
         description: input.description,
         isPublic: input.isPublic,
+        updatedAt: new Date(),
       })
       .where(eq(bookmarks.id, input.id));
 
@@ -394,6 +401,7 @@ export const toggleBookmarkVisibility = async (
     .update(bookmarks)
     .set({
       isPublic: !bookmark.isPublic,
+      updatedAt: new Date(),
     })
     .where(eq(bookmarks.id, input.id))
     .returning();

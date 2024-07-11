@@ -65,8 +65,6 @@ export async function POST(req: NextRequest) {
       })
       .returning();
 
-    console.log("Bookmark added:", bookmark.id);
-
     return NextResponse.json(
       { message: "Bookmark added successfully", id: bookmark.id },
       { status: 200, headers },

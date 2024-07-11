@@ -1,6 +1,6 @@
-import { FeatureSection } from "./(main)/features";
-import { Footer } from "./(main)/footer";
-import { Hero } from "./(main)/hero";
+import { FeatureSection } from "./(landing)/features";
+import { Footer } from "./(landing)/footer";
+import { Hero } from "./(landing)/hero";
 
 export default function Home() {
   return (
