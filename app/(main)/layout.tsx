@@ -18,6 +18,7 @@ import {
 import { SidebarLayout } from "~/components/primitives/sidebar-layout";
 import { auth } from "~/lib/auth/validate-request";
 import { AccountDropdownMenu } from "./dashboard/accout-dropdown";
+import { Login } from "./login-dialog";
 import { SidebarNavigation } from "./sidebar-nav";
 
 export default async function RootLayout({
@@ -58,8 +59,7 @@ export default async function RootLayout({
               <SidebarSpacer />
 
               <SidebarSection className="max-lg:hidden">
-                {/* TODO: replace with a login modal when user is not logged in */}
-                {user && (
+                {user ? (
                   <Dropdown>
                     <DropdownButton as={SidebarItem}>
                       <span className="flex min-w-0 items-center gap-3">
@@ -78,6 +78,8 @@ export default async function RootLayout({
                     </DropdownButton>
                     <AccountDropdownMenu user={user} anchor="top start" />
                   </Dropdown>
+                ) : (
+                  <Login />
                 )}
               </SidebarSection>
             </SidebarBody>
