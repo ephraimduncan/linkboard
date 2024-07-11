@@ -8,10 +8,12 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "~/components/primitives/button";
+import { Checkbox, CheckboxField } from "~/components/primitives/checkbox";
 import {
   Dialog,
   DialogActions,
   DialogBody,
+  DialogDescription,
   DialogTitle,
 } from "~/components/primitives/dialog";
 import {
@@ -31,6 +33,7 @@ import { revalidateFromClient } from "../../revalidate-on-client";
 const CreateBookmarkSchema = z.object({
   url: z.string().url("Invalid URL"),
   tags: z.array(z.string().trim()),
+  isPublic: z.boolean(),
 });
 
 type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>;
@@ -51,7 +54,7 @@ export const AddLinkDialog = () => {
     await addBookmark(
       {
         url: data.url,
-        isPublic: false,
+        isPublic: data.isPublic || false,
         tags: data.tags,
       },
       {
@@ -77,14 +80,19 @@ export const AddLinkDialog = () => {
     <>
       <Button type="button" onClick={() => setIsOpen(true)}>
         <PlusIcon />
-        Add link
+        save link
       </Button>
       <Dialog open={isOpen} onClose={setIsOpen}>
-        <DialogTitle>add link</DialogTitle>
+        <div>
+          <DialogTitle>save link</DialogTitle>
+          <DialogDescription className="mt-0">
+            new bookmarks are private on default
+          </DialogDescription>
+        </div>
 
         <DialogBody>
           <Form {...form}>
-            <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+            <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
               <FormField
                 control={form.control}
                 name="url"
@@ -127,6 +135,29 @@ export const AddLinkDialog = () => {
                       Enter tags related to your bookmark
                     </FormDescription>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="isPublic"
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormControl>
+                      <CheckboxField>
+                        <Checkbox
+                          checked={field.value}
+                          onChange={field.onChange}
+                          name="isPublic"
+                          className="mr-0"
+                        />
+                        <FormLabel>Make bookmark public</FormLabel>
+                      </CheckboxField>
+                    </FormControl>
+                    <FormDescription>
+                      Public bookmarks are visible to others
+                    </FormDescription>
                   </FormItem>
                 )}
               />

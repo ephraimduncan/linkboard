@@ -14,6 +14,6 @@
 - redis
 - sqlite
 
-# license
+## license
 inspired by [documenso](https://documenso.com), linkboard is open-source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. you can [find it here](./license).
 

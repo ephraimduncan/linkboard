@@ -1,6 +1,7 @@
 import { ChevronUpIcon } from "@heroicons/react/16/solid";
 import { Avatar } from "~/components/primitives/avatar";
 import { Dropdown, DropdownButton } from "~/components/primitives/dropdown";
+import { Link } from "~/components/primitives/link";
 import {
   Navbar,
   NavbarItem,
@@ -33,14 +34,15 @@ export default async function RootLayout({
           <Navbar>
             <NavbarSpacer />
             <NavbarSection>
-              {/* TODO: replace with a login modal when user is not logged in */}
-              {user && (
+              {user ? (
                 <Dropdown>
                   <DropdownButton as={NavbarItem}>
                     <Avatar src={user.avatar} />
                   </DropdownButton>
                   <AccountDropdownMenu user={user} anchor="bottom end" />
                 </Dropdown>
+              ) : (
+                <Login />
               )}
             </NavbarSection>
           </Navbar>
@@ -49,9 +51,11 @@ export default async function RootLayout({
           <Sidebar>
             <SidebarBody>
               <SidebarSection className="mt-4">
-                <SidebarLabel className="text-xl px-2 font-sans cursor-pointer">
-                  linkboard
-                </SidebarLabel>
+                <Link href="/">
+                  <SidebarLabel className="text-xl px-2 font-sans cursor-pointer">
+                    linkboard
+                  </SidebarLabel>
+                </Link>
               </SidebarSection>
 
               <SidebarNavigation user={user} />
