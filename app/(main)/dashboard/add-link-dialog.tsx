@@ -111,7 +111,17 @@ export const AddLinkDialog = () => {
                   <FormItem>
                     <FormLabel>Tags</FormLabel>
                     <FormControl>
-                      <MultiInput {...field} />
+                      <MultiInput
+                        {...field}
+                        onBlur={(currentInputValue) => {
+                          if (currentInputValue.trim()) {
+                            field.onChange([
+                              ...field.value,
+                              currentInputValue.trim(),
+                            ]);
+                          }
+                        }}
+                      />
                     </FormControl>
                     <FormDescription>
                       Enter tags related to your bookmark
