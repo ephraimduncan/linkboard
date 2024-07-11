@@ -38,7 +38,17 @@ const CreateBookmarkSchema = z.object({
 
 type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>;
 
-export const AddLinkDialog = () => {
+type AddLinkDialogProps = {
+  className?: string;
+  children?: React.ReactNode;
+  icon?: boolean;
+};
+
+export const AddLinkDialog = ({
+  children,
+  className,
+  icon = true,
+}: AddLinkDialogProps) => {
   const { mutateAsync: addBookmark, isLoading } =
     api.bookmark.create.useMutation();
 
@@ -77,10 +87,10 @@ export const AddLinkDialog = () => {
   let [isOpen, setIsOpen] = useState(false);
 
   return (
-    <>
+    <div className={className}>
       <Button type="button" onClick={() => setIsOpen(true)}>
-        <PlusIcon />
-        save link
+        {icon && <PlusIcon />}
+        {children || "save link"}
       </Button>
       <Dialog open={isOpen} onClose={setIsOpen}>
         <div>
@@ -170,10 +180,10 @@ export const AddLinkDialog = () => {
           </Button>
           <Button disabled={isLoading} onClick={form.handleSubmit(onSubmit)}>
             {isLoading && <Loader className="animate-spin size-4" />}
-            {isLoading ? "Adding..." : "Add link"}
+            {isLoading ? "Saving..." : "Save link"}
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </div>
   );
 };

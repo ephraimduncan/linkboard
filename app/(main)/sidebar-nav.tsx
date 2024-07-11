@@ -1,6 +1,7 @@
 "use client";
-import { BookmarkIcon, SearchIcon, TagIcon } from "lucide-react";
+import { SearchIcon, TagIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { BookmarkIcon } from "~/components/icons/bookmark";
 import { Sparkle } from "~/components/icons/sparkle";
 import {
   SidebarItem,

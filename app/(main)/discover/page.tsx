@@ -3,6 +3,7 @@ import { Input, InputGroup } from "~/components/primitives/input";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
 import { BookmarkList } from "./bookmark-list";
+import { EmptyDiscover } from "./empty-discover";
 
 export default async function DiscoverPage() {
   const bookmarks = await api.bookmark.getPublicBookmarks.query({});
@@ -20,9 +21,15 @@ export default async function DiscoverPage() {
         </InputGroup>
       </div>
 
-      <div className="mt-8">
-        <BookmarkList bookmarks={bookmarks as unknown as BookmarkWithTags[]} />
-      </div>
+      {bookmarks.length > 0 ? (
+        <div className="mt-8">
+          <BookmarkList
+            bookmarks={bookmarks as unknown as BookmarkWithTags[]}
+          />
+        </div>
+      ) : (
+        <EmptyDiscover />
+      )}
     </div>
   );
 }

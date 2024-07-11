@@ -6,6 +6,7 @@ import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
 import { AddLinkDialog } from "./add-link-dialog";
 import { BookmarkList } from "./bookmark-list";
+import { EmptyBookmark } from "./empty-bookmark";
 
 export default async function DashboardPage() {
   const { user } = await auth();
@@ -30,9 +31,15 @@ export default async function DashboardPage() {
         <AddLinkDialog />
       </div>
 
-      <div className="mt-8">
-        <BookmarkList bookmarks={bookmarks as unknown as BookmarkWithTags[]} />
-      </div>
+      {bookmarks.length > 0 ? (
+        <div className="mt-8">
+          <BookmarkList
+            bookmarks={bookmarks as unknown as BookmarkWithTags[]}
+          />
+        </div>
+      ) : (
+        <EmptyBookmark />
+      )}
     </div>
   );
 }
