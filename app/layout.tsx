@@ -2,6 +2,7 @@ import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
+import Script from "next/script";
 import { Toaster } from "~/components/primitives/sonner";
 import { cn } from "~/lib/utils";
 import { TRPCReactProvider } from "~/trpc/react";
@@ -28,6 +29,15 @@ export default function RootLayout({
         </TRPCReactProvider>
       </body>
       <Toaster />
+      {process.env.NODE_ENV === "production" && (
+        <>
+          <Script
+            async
+            src="https://analytics.duncan.land/script.js"
+            data-website-id="f4bda0b5-ae4d-4ff1-91a2-a74c9f03967c"
+          />
+        </>
+      )}
     </html>
   );
 }
