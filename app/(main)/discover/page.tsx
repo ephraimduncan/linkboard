@@ -1,24 +1,28 @@
-import { MagnifyingGlassIcon } from "@heroicons/react/16/solid";
-import { Input, InputGroup } from "~/components/primitives/input";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
+import { NoSearchResults } from "../dashboard/empty-bookmark";
+import { Search } from "../search";
 import { BookmarkList } from "./bookmark-list";
 import { EmptyDiscover } from "./empty-discover";
 
-export default async function DiscoverPage() {
-  const bookmarks = await api.bookmark.getPublicBookmarks.query({});
+type DiscoverPageProps = {
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+export default async function DiscoverPage({
+  searchParams,
+}: DiscoverPageProps) {
+  const search =
+    typeof searchParams.search === "string" ? searchParams.search : undefined;
+
+  const bookmarks = await api.bookmark.getPublicBookmarks.query({
+    search,
+  });
 
   return (
     <div>
       <div className="flex gap-4 mx-auto">
-        <InputGroup className="w-full">
-          <MagnifyingGlassIcon />
-          <Input
-            name="search"
-            placeholder="Search in Public Bookmarks&hellip;"
-            aria-label="Search"
-          />
-        </InputGroup>
+        <Search route="discover" search={search} className="w-10/12" />
       </div>
 
       {bookmarks.length > 0 ? (
@@ -27,6 +31,8 @@ export default async function DiscoverPage() {
             bookmarks={bookmarks as unknown as BookmarkWithTags[]}
           />
         </div>
+      ) : search ? (
+        <NoSearchResults />
       ) : (
         <EmptyDiscover />
       )}

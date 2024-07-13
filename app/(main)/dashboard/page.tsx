@@ -2,10 +2,10 @@ import { redirect } from "next/navigation";
 import { auth } from "~/lib/auth/validate-request";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
+import { Search } from "../search";
 import { AddLinkDialog } from "./add-link-dialog";
 import { BookmarkList } from "./bookmark-list";
 import { EmptyBookmark, NoSearchResults } from "./empty-bookmark";
-import { Search } from "./search";
 
 type DashboardPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -29,7 +29,7 @@ export default async function DashboardPage({
   return (
     <div>
       <div className="flex gap-4 mx-auto">
-        <Search search={search} />
+        <Search route="dashboard" search={search} />
 
         <AddLinkDialog />
       </div>

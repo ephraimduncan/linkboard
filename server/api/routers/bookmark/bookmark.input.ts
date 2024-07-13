@@ -3,6 +3,7 @@ import { z } from "zod";
 export const GetPublicBookmarksSchema = z.object({
   page: z.number().int().default(1),
   perPage: z.number().int().default(12),
+  search: z.string().optional(),
 });
 
 export const GetBookmarkSchema = z.object({

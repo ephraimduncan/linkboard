@@ -23,7 +23,16 @@ import type {
 
 export const getPublicBookmarks = async (input: GetPublicBookmarksInput) => {
   return db.query.bookmarks.findMany({
-    where: (table, { eq }) => eq(table.isPublic, true),
+    where: (table, { eq, or, like }) =>
+      and(
+        eq(table.isPublic, true),
+        input.search
+          ? or(
+              like(table.url, `%${input.search}%`),
+              like(table.title, `%${input.search}%`),
+            )
+          : undefined,
+      ),
     offset: (input.page - 1) * input.perPage,
     limit: input.perPage,
     orderBy: (table, { desc }) => desc(table.updatedAt),

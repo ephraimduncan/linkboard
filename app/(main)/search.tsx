@@ -4,13 +4,13 @@ import { MagnifyingGlassIcon } from "@heroicons/react/16/solid";
 import { useRouter } from "next/navigation";
 import { Input, InputGroup } from "~/components/primitives/input";
 
-type SearchProps = { search?: string };
+type SearchProps = { search?: string; route: string; className?: string };
 
-export function Search({ search }: SearchProps) {
+export function Search({ search, route, className }: SearchProps) {
   const router = useRouter();
 
   return (
-    <InputGroup className="w-10/12">
+    <InputGroup className={className}>
       <MagnifyingGlassIcon />
       <Input
         name="search"
@@ -18,7 +18,7 @@ export function Search({ search }: SearchProps) {
         aria-label="Search"
         defaultValue={search}
         onChange={(event) => {
-          router.push(`/dashboard/?search=${event.target.value}`);
+          router.push(`/${route}/?search=${event.target.value}`);
         }}
       />
     </InputGroup>
