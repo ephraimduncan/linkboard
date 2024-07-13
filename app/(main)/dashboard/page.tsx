@@ -4,7 +4,7 @@ import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
 import { AddLinkDialog } from "./add-link-dialog";
 import { BookmarkList } from "./bookmark-list";
-import { EmptyBookmark } from "./empty-bookmark";
+import { EmptyBookmark, NoSearchResults } from "./empty-bookmark";
 import { Search } from "./search";
 
 type DashboardPageProps = {
@@ -40,6 +40,8 @@ export default async function DashboardPage({
             bookmarks={bookmarks as unknown as BookmarkWithTags[]}
           />
         </div>
+      ) : search ? (
+        <NoSearchResults />
       ) : (
         <EmptyBookmark />
       )}
