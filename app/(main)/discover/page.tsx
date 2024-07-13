@@ -22,7 +22,7 @@ export default async function DiscoverPage({
   return (
     <div>
       <div className="flex gap-4 mx-auto">
-        <Search route="discover" search={search} className="w-10/12" />
+        <Search route="discover" search={search} className="w-full" />
       </div>
 
       {bookmarks.length > 0 ? (
