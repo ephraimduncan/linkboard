@@ -1,33 +1,36 @@
-import { MagnifyingGlassIcon } from "@heroicons/react/16/solid";
 import { redirect } from "next/navigation";
-import { Input, InputGroup } from "~/components/primitives/input";
 import { auth } from "~/lib/auth/validate-request";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
 import { AddLinkDialog } from "./add-link-dialog";
 import { BookmarkList } from "./bookmark-list";
 import { EmptyBookmark } from "./empty-bookmark";
+import { Search } from "./search";
 
-export default async function DashboardPage() {
+type DashboardPageProps = {
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+export default async function DashboardPage({
+  searchParams,
+}: DashboardPageProps) {
   const { user } = await auth();
+  const search =
+    typeof searchParams.search === "string" ? searchParams.search : undefined;
 
   if (!user) {
     redirect("/?unauthorized=true");
   }
 
-  const bookmarks = await api.bookmark.myBookmarks.query({});
+  const bookmarks = await api.bookmark.myBookmarks.query({
+    search,
+  });
 
   return (
     <div>
       <div className="flex gap-4 mx-auto">
-        <InputGroup className="w-10/12">
-          <MagnifyingGlassIcon />
-          <Input
-            name="search"
-            placeholder="Search&hellip;"
-            aria-label="Search"
-          />
-        </InputGroup>
+        <Search search={search} />
+
         <AddLinkDialog />
       </div>
 

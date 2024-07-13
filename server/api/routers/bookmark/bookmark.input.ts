@@ -31,6 +31,7 @@ export const DeleteBookmarkSchema = z.object({
 export const MyBookmarksSchema = z.object({
   page: z.number().int().default(1),
   perPage: z.number().int().default(12),
+  search: z.string().optional(),
 });
 
 export const RefetchBookmarkSchema = z.object({

@@ -308,7 +308,16 @@ export const myBookmarks = async (
   input: MyBookmarksInput,
 ) => {
   return ctx.db.query.bookmarks.findMany({
-    where: (table, { eq }) => eq(table.userId, ctx.user.id),
+    where: (table, { eq, or, like }) =>
+      and(
+        eq(table.userId, ctx.user.id),
+        input.search
+          ? or(
+              like(table.url, `%${input.search}%`),
+              like(table.title, `%${input.search}%`),
+            )
+          : undefined,
+      ),
     offset: (input.page - 1) * input.perPage,
     limit: input.perPage,
     orderBy: (table, { desc }) => desc(table.createdAt),
