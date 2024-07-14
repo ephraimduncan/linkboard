@@ -2,7 +2,7 @@ import {
   DrizzleSQLiteAdapter,
   SQLiteSessionTable,
 } from "@lucia-auth/adapter-drizzle";
-import { Discord, GitHub } from "arctic";
+import { Discord, GitHub, Google } from "arctic";
 import { Lucia, TimeSpan } from "lucia";
 import { env } from "~/env";
 import { absoluteUrl } from "~/lib/utils";
@@ -34,8 +34,7 @@ export const lucia = new Lucia(adapter, {
   sessionExpiresIn: new TimeSpan(30, "d"),
   sessionCookie: {
     name: "session",
-
-    expires: false, // session cookies have very long lifespan (2 years)
+    expires: false,
     attributes: {
       secure: env.NODE_ENV === "production",
     },
@@ -51,6 +50,12 @@ export const discord = new Discord(
 export const github = new GitHub(
   env.GITHUB_CLIENT_ID,
   env.GITHUB_CLIENT_SECRET,
+);
+
+export const google = new Google(
+  env.GOOGLE_CLIENT_ID,
+  env.GOOGLE_CLIENT_SECRET,
+  absoluteUrl("/login/google/callback"),
 );
 
 declare module "lucia" {

@@ -10,6 +10,9 @@ export const env = createEnv({
     DISCORD_CLIENT_SECRET: z.string().trim().min(1),
     GITHUB_CLIENT_ID: z.string().trim().min(1),
     GITHUB_CLIENT_SECRET: z.string().trim().min(1),
+    GOOGLE_CLIENT_ID: z.string().trim().min(1),
+    GOOGLE_CLIENT_SECRET: z.string().trim().min(1),
+    GOOGLE_REDIRECT_URI: z.string().trim().min(1),
 
     SQLITE_URL: z.string().trim().min(1),
     SQLITE_AUTH_TOKEN: z.string().trim().min(1),
@@ -27,6 +30,9 @@ export const env = createEnv({
     DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
 
     SQLITE_URL: process.env.SQLITE_URL,
     SQLITE_AUTH_TOKEN: process.env.SQLITE_AUTH_TOKEN,
