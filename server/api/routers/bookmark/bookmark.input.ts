@@ -52,6 +52,7 @@ export const GetBookmarksByTagSchema = z.object({
   tagName: z.string().min(1).max(50),
   page: z.number().int().min(1).default(1),
   perPage: z.number().int().min(1).max(100).default(20),
+  search: z.string().optional(),
 });
 
 export type GetPublicBookmarksInput = z.infer<typeof GetPublicBookmarksSchema>;

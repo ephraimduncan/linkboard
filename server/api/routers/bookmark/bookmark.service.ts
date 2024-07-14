@@ -1,6 +1,6 @@
 import { ResultSet } from "@libsql/client";
 import { TRPCError } from "@trpc/server";
-import { ExtractTablesWithRelations, and, eq } from "drizzle-orm";
+import { ExtractTablesWithRelations, and, eq, like, or } from "drizzle-orm";
 import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
 import { JSDOM } from "jsdom";
 import { generateId } from "lucia";
@@ -443,33 +443,60 @@ export const getBookmarksByTag = async (
     });
   }
 
-  const bookmarksWithTag = await db.query.bookmarkTags.findMany({
-    where: eq(bookmarkTags.tagId, tag.id),
-    with: {
-      bookmark: {
+  const bookmarks = await db
+    .select({
+      id: schema.bookmarks.id,
+      url: schema.bookmarks.url,
+      title: schema.bookmarks.title,
+      description: schema.bookmarks.description,
+      isPublic: schema.bookmarks.isPublic,
+      createdAt: schema.bookmarks.createdAt,
+      updatedAt: schema.bookmarks.updatedAt,
+      userId: schema.bookmarks.userId,
+    })
+    .from(schema.bookmarks)
+    .innerJoin(bookmarkTags, eq(schema.bookmarks.id, bookmarkTags.bookmarkId))
+    .where(
+      and(
+        eq(bookmarkTags.tagId, tag.id),
+        input.search
+          ? or(
+              like(schema.bookmarks.url, `%${input.search}%`),
+              like(schema.bookmarks.title, `%${input.search}%`),
+              like(schema.bookmarks.description, `%${input.search}%`),
+            )
+          : undefined,
+      ),
+    )
+    .limit(input.perPage)
+    .offset((input.page - 1) * input.perPage);
+
+  const bookmarksWithTags = await Promise.all(
+    bookmarks.map(async (bookmark) => {
+      const tags = await db.query.bookmarkTags.findMany({
+        where: eq(bookmarkTags.bookmarkId, bookmark.id),
         with: {
-          tags: {
-            columns: {},
-            with: {
-              tag: true,
-            },
-          },
-          user: {
-            columns: {
-              id: true,
-            },
-          },
+          tag: true,
         },
-      },
-    },
-    offset: (input.page - 1) * input.perPage,
-    limit: input.perPage,
-  });
+      });
 
-  const formattedBookmarks = bookmarksWithTag.map(({ bookmark }) => ({
-    ...bookmark,
-    tags: bookmark.tags.map(({ tag }) => tag),
-  }));
+      const user = await db.query.users.findFirst({
+        where: eq(schema.users.id, bookmark.userId),
+        columns: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+        },
+      });
 
-  return formattedBookmarks;
+      return {
+        ...bookmark,
+        tags: tags.map(({ tag }) => tag),
+        user,
+      };
+    }),
+  );
+
+  return bookmarksWithTags;
 };
