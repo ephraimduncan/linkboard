@@ -3,7 +3,7 @@
 
 ## features
 - one-click bookmarking
-- browser extensions
+- browser extensions ([chrome](https://github.com/ephraimduncan/linkboard-extension))
 - privacy controls (public/private bookmarks)
 - bookmark tags
 
