@@ -14,6 +14,7 @@ import type {
   CreateBookmarkInput,
   DeleteBookmarkInput,
   GetBookmarkInput,
+  GetBookmarksByTagInput,
   GetPublicBookmarksInput,
   MyBookmarksInput,
   RefetchBookmarkInput,
@@ -425,4 +426,50 @@ export const toggleBookmarkVisibility = async (
     .returning();
 
   return updatedBookmark;
+};
+
+export const getBookmarksByTag = async (
+  ctx: ProtectedTRPCContext,
+  input: GetBookmarksByTagInput,
+) => {
+  const tag = await db.query.tags.findFirst({
+    where: eq(tags.name, input.tagName),
+  });
+
+  if (!tag) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Tag not found",
+    });
+  }
+
+  const bookmarksWithTag = await db.query.bookmarkTags.findMany({
+    where: eq(bookmarkTags.tagId, tag.id),
+    with: {
+      bookmark: {
+        with: {
+          tags: {
+            columns: {},
+            with: {
+              tag: true,
+            },
+          },
+          user: {
+            columns: {
+              id: true,
+            },
+          },
+        },
+      },
+    },
+    offset: (input.page - 1) * input.perPage,
+    limit: input.perPage,
+  });
+
+  const formattedBookmarks = bookmarksWithTag.map(({ bookmark }) => ({
+    ...bookmark,
+    tags: bookmark.tags.map(({ tag }) => tag),
+  }));
+
+  return formattedBookmarks;
 };
