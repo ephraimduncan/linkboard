@@ -5,7 +5,9 @@ import { lucia } from "~/lib/auth";
 import { db } from "~/server/db";
 import { bookmarks } from "~/server/db/schema";
 
-const ALLOWED_ORIGINS = ["chrome-extension://*"];
+function isValidChromeExtension(origin: string | null): boolean {
+  return origin !== null && origin.startsWith("chrome-extension://");
+}
 
 const bookmarkSchema = z.object({
   title: z.string().min(1).max(255),
@@ -16,7 +18,7 @@ const bookmarkSchema = z.object({
 export async function POST(req: NextRequest) {
   const origin = req.headers.get("origin");
 
-  if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
+  if (!origin || !isValidChromeExtension(origin)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -28,6 +30,7 @@ export async function POST(req: NextRequest) {
   if (req.method === "OPTIONS") {
     headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
     headers.set("Access-Control-Allow-Headers", "Content-Type");
+    headers.set("Access-Control-Allow-Credentials", "true");
     return new NextResponse(null, { status: 204, headers });
   }
 
