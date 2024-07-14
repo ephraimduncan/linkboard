@@ -5,7 +5,7 @@ import { lucia } from "~/lib/auth";
 import { db } from "~/server/db";
 import { bookmarks } from "~/server/db/schema";
 
-const ALLOWED_ORIGINS = ["chrome-extension://mginpfmbfkmbbnohngjmnidabofmcfap"];
+const ALLOWED_ORIGINS = ["chrome-extension://*"];
 
 const bookmarkSchema = z.object({
   title: z.string().min(1).max(255),
