@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { env } from "~/env";
+import { BookmarkWithTags } from "~/server/db/schema";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -31,3 +32,18 @@ export function truncateText(title: string, maxLength: number = 60): string {
 
   return title.slice(0, lastSpace) + "...";
 }
+
+export const getUrlWithPath = ({
+  bookmark,
+}: { bookmark: BookmarkWithTags }) => {
+  const url = new URL(bookmark.url);
+  const hostname = url.hostname;
+
+  const urlHasPath = url.pathname !== "/";
+
+  if (urlHasPath) {
+    return `${hostname}${url.pathname}`;
+  } else {
+    return hostname;
+  }
+};

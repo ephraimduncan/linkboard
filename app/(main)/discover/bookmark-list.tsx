@@ -2,7 +2,7 @@ import {
   ContextMenu,
   ContextMenuTrigger,
 } from "~/components/primitives/context-menu";
-import { truncateText } from "~/lib/utils";
+import { getUrlWithPath, truncateText } from "~/lib/utils";
 import { BookmarkWithTags } from "~/server/db/schema";
 
 const addReferral = (url: string) => {
@@ -23,17 +23,28 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
           <ContextMenuTrigger>
             <div className="mb-3 hover:bg-stone-100 p-2 px-3 rounded-lg">
               <div className="flex items-center">
-                <a
-                  href={addReferral(bookmark.url)}
-                  className="font-medium text-black hover:underline mr-2"
-                >
-                  {truncateText(bookmark.title)}
-                </a>
-                <a href={addReferral(bookmark.url)}>
-                  <span className="text-sm text-muted-foreground">
-                    ({new URL(bookmark.url).hostname})
-                  </span>
-                </a>
+                {bookmark.title ? (
+                  <>
+                    <a
+                      href={addReferral(bookmark.url)}
+                      className="font-medium text-black hover:underline mr-2"
+                    >
+                      {truncateText(bookmark.title)}
+                    </a>
+                    <a href={addReferral(bookmark.url)}>
+                      <span className="text-sm text-muted-foreground">
+                        ({new URL(bookmark.url).hostname})
+                      </span>
+                    </a>
+                  </>
+                ) : (
+                  <a
+                    href={addReferral(bookmark.url)}
+                    className="font-medium text-black hover:underline mr-2"
+                  >
+                    {truncateText(getUrlWithPath({ bookmark }))}
+                  </a>
+                )}
               </div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 {bookmark.tags && bookmark.tags.length > 0 && (

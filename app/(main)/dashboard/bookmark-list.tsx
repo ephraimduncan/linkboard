@@ -3,7 +3,7 @@ import {
   ContextMenu,
   ContextMenuTrigger,
 } from "~/components/primitives/context-menu";
-import { truncateText } from "~/lib/utils";
+import { getUrlWithPath, truncateText } from "~/lib/utils";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { BookmarkContextMenu } from "../../../components/bookmark-context-menu";
 
@@ -27,17 +27,28 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
                 {bookmark.isPublic && (
                   <LockOpen className="size-4 text-muted-foreground mr-1" />
                 )}
-                <a
-                  href={addReferral(bookmark.url)}
-                  className="font-medium text-black hover:underline mr-2"
-                >
-                  {truncateText(bookmark.title)}
-                </a>
-                <a href={addReferral(bookmark.url)}>
-                  <span className="text-sm text-muted-foreground">
-                    ({new URL(bookmark.url).hostname})
-                  </span>
-                </a>
+                {bookmark.title ? (
+                  <>
+                    <a
+                      href={addReferral(bookmark.url)}
+                      className="font-medium text-black hover:underline mr-2"
+                    >
+                      {truncateText(bookmark.title)}
+                    </a>
+                    <a href={addReferral(bookmark.url)}>
+                      <span className="text-sm text-muted-foreground">
+                        ({new URL(bookmark.url).hostname})
+                      </span>
+                    </a>
+                  </>
+                ) : (
+                  <a
+                    href={addReferral(bookmark.url)}
+                    className="font-medium text-black hover:underline mr-2"
+                  >
+                    {truncateText(getUrlWithPath({ bookmark }))}
+                  </a>
+                )}
               </div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 {bookmark.tags && bookmark.tags.length > 0 && (
