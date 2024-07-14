@@ -2,6 +2,7 @@ import {
   ContextMenu,
   ContextMenuTrigger,
 } from "~/components/primitives/context-menu";
+import { Link } from "~/components/primitives/link";
 import { getUrlWithPath, truncateText } from "~/lib/utils";
 import { BookmarkWithTags } from "~/server/db/schema";
 
@@ -14,8 +15,6 @@ const addReferral = (url: string) => {
 type BookmarkListProps = { bookmarks: BookmarkWithTags[] };
 
 export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
-  // TODO: add an open lock to show public bookmarks
-
   return (
     <div>
       {bookmarks.map((bookmark) => (
@@ -49,9 +48,14 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 {bookmark.tags && bookmark.tags.length > 0 && (
                   <>
-                    <span className="mr-2">
-                      {bookmark.tags.map((t) => t.tag.name).join(", ")}
-                    </span>
+                    {bookmark.tags.map((tag) => (
+                      <Link href={`/tag/${tag.tag.name}`} key={tag.tag.id}>
+                        <span className="mr-2 cursor-pointer hover:underline">
+                          {tag.tag.name}
+                        </span>
+                      </Link>
+                    ))}
+
                     <span className="mr-2">•</span>
                   </>
                 )}
