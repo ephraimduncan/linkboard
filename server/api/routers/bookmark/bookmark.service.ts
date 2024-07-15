@@ -1,6 +1,6 @@
 import { ResultSet } from "@libsql/client";
 import { TRPCError } from "@trpc/server";
-import { ExtractTablesWithRelations, and, eq } from "drizzle-orm";
+import { ExtractTablesWithRelations, and, eq, like, or } from "drizzle-orm";
 import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
 import { JSDOM } from "jsdom";
 import { generateId } from "lucia";
@@ -14,6 +14,7 @@ import type {
   CreateBookmarkInput,
   DeleteBookmarkInput,
   GetBookmarkInput,
+  GetBookmarksByTagInput,
   GetPublicBookmarksInput,
   MyBookmarksInput,
   RefetchBookmarkInput,
@@ -55,7 +56,6 @@ export const getPublicBookmarks = async (input: GetPublicBookmarksInput) => {
         },
       },
       tags: {
-        columns: {},
         with: {
           tag: true,
         },
@@ -425,4 +425,74 @@ export const toggleBookmarkVisibility = async (
     .returning();
 
   return updatedBookmark;
+};
+
+export const getBookmarksByTag = async (input: GetBookmarksByTagInput) => {
+  const tag = await db.query.tags.findFirst({
+    where: eq(tags.name, input.tagName),
+  });
+
+  if (!tag) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Tag not found",
+    });
+  }
+
+  const bookmarks = await db
+    .select({
+      id: schema.bookmarks.id,
+      url: schema.bookmarks.url,
+      title: schema.bookmarks.title,
+      description: schema.bookmarks.description,
+      isPublic: schema.bookmarks.isPublic,
+      createdAt: schema.bookmarks.createdAt,
+      updatedAt: schema.bookmarks.updatedAt,
+      userId: schema.bookmarks.userId,
+    })
+    .from(schema.bookmarks)
+    .innerJoin(bookmarkTags, eq(schema.bookmarks.id, bookmarkTags.bookmarkId))
+    .where(
+      and(
+        eq(bookmarkTags.tagId, tag.id),
+        input.search
+          ? or(
+              like(schema.bookmarks.url, `%${input.search}%`),
+              like(schema.bookmarks.title, `%${input.search}%`),
+              like(schema.bookmarks.description, `%${input.search}%`),
+            )
+          : undefined,
+      ),
+    )
+    .limit(input.perPage)
+    .offset((input.page - 1) * input.perPage);
+
+  const bookmarksWithTags = await Promise.all(
+    bookmarks.map(async (bookmark) => {
+      const tags = await db.query.bookmarkTags.findMany({
+        where: eq(bookmarkTags.bookmarkId, bookmark.id),
+        with: {
+          tag: true,
+        },
+      });
+
+      const user = await db.query.users.findFirst({
+        where: eq(schema.users.id, bookmark.userId),
+        columns: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+        },
+      });
+
+      return {
+        ...bookmark,
+        tags,
+        user,
+      };
+    }),
+  );
+
+  return bookmarksWithTags;
 };

@@ -40,4 +40,8 @@ export const bookmarkRouter = createTRPCRouter({
     .mutation(({ ctx, input }) =>
       services.toggleBookmarkVisibility(ctx, input),
     ),
+
+  getBookmarksByTag: publicProcedure
+    .input(inputs.GetBookmarksByTagSchema)
+    .query(({ input }) => services.getBookmarksByTag(input)),
 });

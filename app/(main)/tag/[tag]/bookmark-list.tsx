@@ -1,8 +1,11 @@
+import { BookmarkContextMenu } from "~/components/bookmark-context-menu";
+import { LockOpen } from "~/components/icons/lock-open";
 import {
   ContextMenu,
   ContextMenuTrigger,
 } from "~/components/primitives/context-menu";
 import { Link } from "~/components/primitives/link";
+import { auth } from "~/lib/auth/validate-request";
 import { getUrlWithPath, truncateText } from "~/lib/utils";
 import { BookmarkWithTags } from "~/server/db/schema";
 
@@ -15,6 +18,8 @@ const addReferral = (url: string) => {
 type BookmarkListProps = { bookmarks: BookmarkWithTags[] };
 
 export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
+  const { user } = await auth();
+
   return (
     <div>
       {bookmarks.map((bookmark) => (
@@ -22,6 +27,10 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
           <ContextMenuTrigger>
             <div className="mb-3 hover:bg-stone-100 p-2 px-3 rounded-lg">
               <div className="flex items-center">
+                {/* TODO: Tooltip to indicate its public */}
+                {bookmark.isPublic && (
+                  <LockOpen className="size-4 text-muted-foreground mr-1" />
+                )}
                 {bookmark.title ? (
                   <>
                     <a
@@ -45,6 +54,7 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
                   </a>
                 )}
               </div>
+
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 {bookmark.tags && bookmark.tags.length > 0 && (
                   <>
@@ -59,18 +69,8 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
                     <span className="mr-2">•</span>
                   </>
                 )}
-
-                {bookmark.user?.username && (
-                  <>
-                    {/* TODO: redirect to users profile */}
-                    <span className="mr-2 hover:underline cursor-pointer">
-                      {bookmark.user.username}
-                    </span>
-                    <span className="mr-2">•</span>
-                  </>
-                )}
                 <span>
-                  {new Date(bookmark.updatedAt).toLocaleString("en-US", {
+                  {new Date(bookmark.createdAt).toLocaleString("en-US", {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
@@ -82,8 +82,7 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
               </div>
             </div>
           </ContextMenuTrigger>
-          {/* TODO: enable context menu for only bookmarks I can edit */}
-          {/* {user && <BookmarkContextMenu bookmark={bookmark} />} */}
+          {user && <BookmarkContextMenu bookmark={bookmark} />}
         </ContextMenu>
       ))}
     </div>

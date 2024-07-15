@@ -4,7 +4,11 @@ import { MagnifyingGlassIcon } from "@heroicons/react/16/solid";
 import { useRouter } from "next/navigation";
 import { Input, InputGroup } from "~/components/primitives/input";
 
-type SearchProps = { search?: string; route: string; className?: string };
+type SearchProps = {
+  search?: string;
+  route: string;
+  className?: string;
+};
 
 export function Search({ search, route, className }: SearchProps) {
   const router = useRouter();
