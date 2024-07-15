@@ -13,7 +13,7 @@ export function Search({ search, route }: SearchProps) {
   const router = useRouter();
 
   return (
-    <InputGroup className="w-full">
+    <InputGroup className="w-full mb-2 mx-3">
       <MagnifyingGlassIcon />
       <Input
         name="search"

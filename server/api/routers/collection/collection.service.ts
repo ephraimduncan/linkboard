@@ -47,7 +47,15 @@ export const getCollection = async (
     with: {
       bookmarks: {
         with: {
-          bookmark: true,
+          bookmark: {
+            with: {
+              tags: {
+                with: {
+                  tag: true,
+                },
+              },
+            },
+          },
         },
       },
     },
