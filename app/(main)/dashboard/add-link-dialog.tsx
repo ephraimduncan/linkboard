@@ -1,8 +1,7 @@
 "use client";
 
-import { PlusIcon } from "@heroicons/react/16/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader } from "lucide-react";
+import { Loader, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -93,12 +92,12 @@ export const AddLinkDialog = ({
         type="button"
         onClick={() => setIsOpen(true)}
       >
-        {icon && <PlusIcon />}
-        {children || "save link"}
+        {icon && <PlusIcon className="size-4" />}
+        {children || "add bookmark"}
       </Button>
       <Dialog open={isOpen} onClose={setIsOpen}>
         <div>
-          <DialogTitle>save link</DialogTitle>
+          <DialogTitle>add bookmark</DialogTitle>
           <DialogDescription className="mt-0">
             new bookmarks are private on default
           </DialogDescription>
@@ -184,7 +183,7 @@ export const AddLinkDialog = ({
           </Button>
           <Button disabled={isLoading} onClick={form.handleSubmit(onSubmit)}>
             {isLoading && <Loader className="animate-spin size-4" />}
-            {isLoading ? "Saving..." : "Save link"}
+            {isLoading ? "Adding..." : "Add Bookmark"}
           </Button>
         </DialogActions>
       </Dialog>

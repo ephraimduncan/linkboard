@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "~/lib/auth/validate-request";
 import { api } from "~/trpc/server";
 import { Search } from "../search";
-import AddCollectionDialog from "./add-collection-dialog";
+import { AddCollectionDialog } from "./add-collection-dialog";
 import { Collection } from "./collection";
 
 type DashboardPageProps = {
@@ -33,9 +33,9 @@ export default async function DashboardPage({
       </div>
 
       <div className="mt-8 space-y-4">
-        <h1 className="text-xl font-semibold">Collections</h1>
+        <h1 className="text-xl font-semibold mx-3">Collections</h1>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 mx-3 md:grid-cols-2 lg:grid-cols-3">
           {collections.map((collection) => (
             <Collection key={collection.id} collection={collection} />
           ))}

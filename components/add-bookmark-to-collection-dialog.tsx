@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { TRPCClientError } from "@trpc/client";
 import { Loader } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -61,23 +62,30 @@ export const AddBookmarkToCollectionDialog = ({
   });
 
   const onSubmit = async (data: AddBookmarkToCollectionInput) => {
-    await addBookmarkToCollection(
-      {
-        bookmarkId: bookmark.id,
-        collectionId: data.collectionId,
-      },
-      {
-        onSuccess: () => {
-          revalidateFromClient("/dashboard");
-          toast.success("Bookmark added to collection");
-          setIsOpen(false);
+    try {
+      await addBookmarkToCollection(
+        {
+          bookmarkId: bookmark.id,
+          collectionId: data.collectionId,
         },
-        onError: (error) => {
-          console.log(error);
-          toast.error("Failed to add bookmark to collection");
+        {
+          onSuccess: () => {
+            revalidateFromClient("/dashboard");
+            toast.success("Bookmark added to collection");
+            setIsOpen(false);
+          },
+          onError: (error) => {
+            throw error;
+          },
         },
-      },
-    );
+      );
+    } catch (error) {
+      if (error instanceof TRPCClientError) {
+        return toast.error(error.message);
+      }
+
+      toast.error("Failed to add bookmark to collection");
+    }
   };
 
   return (

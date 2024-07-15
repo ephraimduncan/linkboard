@@ -1,4 +1,4 @@
-export function FolderAdd(props: JSX.IntrinsicElements["svg"]) {
+export function AddFolder(props: JSX.IntrinsicElements["svg"]) {
   return (
     <svg
       {...props}

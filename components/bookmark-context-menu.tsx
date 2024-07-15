@@ -9,8 +9,8 @@ import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/react";
 import { AddBookmarkToCollectionDialog } from "./add-bookmark-to-collection-dialog";
 import { EditBookmarkDialog } from "./edit-bookmark-dialog";
+import { AddFolder } from "./icons/add-folder";
 import { Copy } from "./icons/copy";
-import { FolderAdd } from "./icons/folder-add";
 import { LockClose } from "./icons/lock-close";
 import { LockOpen } from "./icons/lock-open";
 import { Pencil } from "./icons/pencil";
@@ -98,7 +98,7 @@ export function BookmarkContextMenu({
         : () => setIsToggleBookmarkDialogOpen(true),
     },
     {
-      icon: FolderAdd,
+      icon: AddFolder,
       label: "Add to collection",
       onClick: () => setIsAddCollectionDialogOpen(true),
     },

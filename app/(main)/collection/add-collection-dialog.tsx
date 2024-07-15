@@ -1,11 +1,11 @@
 "use client";
-import { PlusIcon } from "@heroicons/react/16/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader } from "lucide-react";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { AddFolder } from "~/components/icons/add-folder";
 import { Button } from "~/components/primitives/button";
 import { Checkbox, CheckboxField } from "~/components/primitives/checkbox";
 import {
@@ -92,7 +92,7 @@ export const AddCollectionDialog = ({
         type="button"
         onClick={() => setIsOpen(true)}
       >
-        {icon && <PlusIcon />}
+        {icon && <AddFolder className="size-4" />}
         {children || "New Collection"}
       </Button>
       <Dialog open={isOpen} onClose={setIsOpen}>
@@ -181,5 +181,3 @@ export const AddCollectionDialog = ({
     </div>
   );
 };
-
-export default AddCollectionDialog;
