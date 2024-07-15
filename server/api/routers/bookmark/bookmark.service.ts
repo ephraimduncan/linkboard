@@ -22,6 +22,70 @@ import type {
   UpdateBookmarkInput,
 } from "./bookmark.input";
 
+async function fetchPage({ url }: { url: string }): Promise<string> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.text();
+  } catch (error) {
+    console.error("Error fetching page:", error);
+    throw new Error("Failed to fetch page");
+  }
+}
+
+export const getOrFetchBookmarkData = async (
+  url: string,
+): Promise<CachedBookmarkInput> => {
+  const cachedData = await redis.get(url);
+  if (cachedData) {
+    return JSON.parse(cachedData);
+  }
+
+  try {
+    const response = await fetch(url);
+    const html = await response.text();
+
+    const dom = new JSDOM(html);
+    const { document } = dom.window;
+
+    const getMetaContent = (selector: string): string | null => {
+      const element = document.querySelector(selector);
+      return element ? element.getAttribute("content") : null;
+    };
+
+    const title = document.title || "";
+    const description = getMetaContent('meta[name="description"]') || "";
+    const image = getMetaContent('meta[property="og:image"]') || "";
+
+    let favicon =
+      document.querySelector('link[rel="icon"]')?.getAttribute("href") ||
+      document
+        .querySelector('link[rel="shortcut icon"]')
+        ?.getAttribute("href") ||
+      "/favicon.ico";
+
+    if (favicon && !favicon.startsWith("http")) {
+      const baseUrl = new URL(url);
+      favicon = new URL(favicon, baseUrl.origin).toString();
+    }
+
+    const bookmarkData: CachedBookmarkInput = {
+      title,
+      description,
+      image,
+      favicon,
+    };
+    await redis.set(url, JSON.stringify(bookmarkData));
+
+    return bookmarkData;
+  } catch (error) {
+    console.error("Error fetching bookmark data:", error);
+    throw new Error("Failed to fetch bookmark data");
+  }
+};
+
 export const getPublicBookmarks = async (input: GetPublicBookmarksInput) => {
   return db.query.bookmarks.findMany({
     where: (table, { eq, or, like }) =>
@@ -82,36 +146,6 @@ export const getBookmark = async (
   });
 };
 
-export const getOrFetchBookmarkData = async (
-  url: string,
-): Promise<CachedBookmarkInput> => {
-  const cachedData = await redis.get(url);
-  if (cachedData) {
-    return JSON.parse(cachedData);
-  }
-
-  const response = await fetch(url).catch((error) => {
-    console.error("Error fetching bookmark data:", error);
-    throw new Error("Failed to fetch bookmark data");
-  });
-
-  const html = await response.text();
-  const dom = new JSDOM(html);
-  const title =
-    dom.window.document.title ||
-    dom.window.document.querySelector("title")?.textContent ||
-    "";
-  const description =
-    dom.window.document
-      .querySelector("meta[name='description']")
-      ?.getAttribute("content") || "";
-
-  const bookmarkData: CachedBookmarkInput = { title, description };
-  await redis.set(url, JSON.stringify(bookmarkData));
-
-  return bookmarkData;
-};
-
 export const createBookmark = async (
   ctx: ProtectedTRPCContext,
   input: CreateBookmarkInput,
@@ -136,7 +170,10 @@ export const createBookmark = async (
     }
 
     const bookmarkId = generateId(15);
-    const { title, description } = await getOrFetchBookmarkData(input.url);
+
+    const { title, description, image, favicon } = await getOrFetchBookmarkData(
+      input.url,
+    );
 
     await trx.insert(bookmarks).values({
       id: bookmarkId,
@@ -144,6 +181,8 @@ export const createBookmark = async (
       url: input.url,
       title,
       description,
+      image,
+      favicon,
       isPublic: input.isPublic,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -362,30 +401,20 @@ export const refetchBookmark = async (
   }
 
   try {
-    const response = await fetch(bookmark.url);
-    const html = await response.text();
-
-    const dom = new JSDOM(html);
-    const newTitle =
-      dom.window.document.title ||
-      dom.window.document.querySelector("title")?.textContent ||
-      "";
-    const newDescription =
-      dom.window.document
-        .querySelector("meta[name='description']")
-        ?.getAttribute("content") || "";
-
-    const newCacheData: CachedBookmarkInput = {
+    const {
       title: newTitle,
       description: newDescription,
-    };
-    await redis.set(bookmark.url, JSON.stringify(newCacheData));
+      image: newImage,
+      favicon: newFavicon,
+    } = await getOrFetchBookmarkData(bookmark.url);
 
     const [updatedBookmark] = await ctx.db
       .update(bookmarks)
       .set({
         title: newTitle,
         description: newDescription,
+        image: newImage,
+        favicon: newFavicon,
         updatedAt: new Date(),
       })
       .where(eq(bookmarks.id, input.id))

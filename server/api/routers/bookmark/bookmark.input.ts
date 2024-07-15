@@ -14,6 +14,8 @@ export const CreateBookmarkSchema = z.object({
   url: z.string().url(),
   isPublic: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
+  favicon: z.string().url().optional(),
+  image: z.string().url().optional(),
 });
 
 export const UpdateBookmarkSchema = z.object({
@@ -23,6 +25,8 @@ export const UpdateBookmarkSchema = z.object({
   description: z.string().max(1000).optional(),
   isPublic: z.boolean(),
   tags: z.array(z.string()),
+  favicon: z.string().url().optional(),
+  image: z.string().url().optional(),
 });
 
 export const DeleteBookmarkSchema = z.object({
@@ -46,6 +50,8 @@ export const ToggleBookmarkVisibilitySchema = z.object({
 export const CachedBookmarkSchema = z.object({
   title: z.string(),
   description: z.string(),
+  favicon: z.string().url().optional(),
+  image: z.string().url().optional(),
 });
 
 export const GetBookmarksByTagSchema = z.object({

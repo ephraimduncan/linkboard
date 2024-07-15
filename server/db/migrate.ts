@@ -1,9 +1,13 @@
-import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
 
-import { connection } from ".";
+import { createClient } from "@libsql/client";
 import * as schema from "./schema";
+
+export const connection = createClient({
+  url: process.env.SQLITE_URL || "file:local.sqlite",
+  authToken: process.env.SQLITE_AUTH_TOKEN,
+});
 
 export async function runMigrate() {
   const db = drizzle(connection, { schema });

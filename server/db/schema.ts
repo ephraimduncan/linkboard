@@ -98,6 +98,8 @@ export const bookmarks = sqliteTable(
     isPublic: integer("is_public", { mode: "boolean" })
       .default(false)
       .notNull(),
+    favicon: text("favicon", { length: 255 }),
+    image: text("image", { length: 255 }),
   },
   (table) => ({
     userIdx: index("bookmark_user_idx").on(table.userId),
