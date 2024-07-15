@@ -1,7 +1,7 @@
 "use client";
-import { SearchIcon, TagIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { BookmarkIcon } from "~/components/icons/bookmark";
+import { FolderIcon } from "~/components/icons/folder";
 import { Sparkle } from "~/components/icons/sparkle";
 import {
   SidebarItem,
@@ -27,10 +27,10 @@ export function SidebarNavigation({ user }: SideNavigationProps) {
           <Sparkle className="size-5" />
           <SidebarLabel>Discover</SidebarLabel>
         </SidebarItem>
-        <SidebarItem href="/search" current={pathname.startsWith("/search")}>
+        {/* <SidebarItem href="/search" current={pathname.startsWith("/search")}>
           <SearchIcon width={20} height={20} />
           <SidebarLabel>Search</SidebarLabel>
-        </SidebarItem>
+        </SidebarItem> */}
         {user && (
           <>
             <SidebarItem
@@ -40,9 +40,12 @@ export function SidebarNavigation({ user }: SideNavigationProps) {
               <BookmarkIcon width={20} height={20} />
               <SidebarLabel>Bookmarks</SidebarLabel>
             </SidebarItem>
-            <SidebarItem href="/tags" current={pathname.startsWith("/tags")}>
-              <TagIcon width={20} height={20} />
-              <SidebarLabel>Tags</SidebarLabel>
+            <SidebarItem
+              href="/collections"
+              current={pathname.startsWith("/collections")}
+            >
+              <FolderIcon className="size-5" />
+              <SidebarLabel>Collections</SidebarLabel>
             </SidebarItem>
           </>
         )}

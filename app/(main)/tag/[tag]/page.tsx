@@ -18,7 +18,7 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
   });
 
   return (
-    <div>
+    <div className="space-y-8">
       <div className="flex gap-4 mx-auto">
         <Search
           route={"tag/" + params.tag}
@@ -26,15 +26,18 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
           className="w-full"
         />
       </div>
-      {bookmarks.length > 0 ? (
-        <div className="mt-8">
+
+      <div>
+        <h1 className="text-xl font-semibold mb-2">{params.tag}</h1>
+
+        {bookmarks.length > 0 ? (
           <BookmarkList
             bookmarks={bookmarks as unknown as BookmarkWithTags[]}
           />
-        </div>
-      ) : (
-        <EmptyBookmark />
-      )}
+        ) : (
+          <EmptyBookmark />
+        )}
+      </div>
     </div>
   );
 }

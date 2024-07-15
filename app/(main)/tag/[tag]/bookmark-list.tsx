@@ -24,7 +24,7 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
       {bookmarks.map((bookmark) => (
         <ContextMenu key={bookmark.id}>
           <ContextMenuTrigger>
-            <div className="mb-3 hover:bg-stone-100 p-2 px-3 rounded-lg">
+            <div className="mb-3 hover:bg-stone-100 py-2 rounded-lg">
               <div className="flex items-center">
                 {/* TODO: Tooltip to indicate its public */}
                 {bookmark.isPublic && (
