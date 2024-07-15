@@ -427,10 +427,7 @@ export const toggleBookmarkVisibility = async (
   return updatedBookmark;
 };
 
-export const getBookmarksByTag = async (
-  ctx: ProtectedTRPCContext,
-  input: GetBookmarksByTagInput,
-) => {
+export const getBookmarksByTag = async (input: GetBookmarksByTagInput) => {
   const tag = await db.query.tags.findFirst({
     where: eq(tags.name, input.tagName),
   });

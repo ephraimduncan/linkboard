@@ -41,7 +41,7 @@ export const bookmarkRouter = createTRPCRouter({
       services.toggleBookmarkVisibility(ctx, input),
     ),
 
-  getBookmarksByTag: protectedProcedure
+  getBookmarksByTag: publicProcedure
     .input(inputs.GetBookmarksByTagSchema)
-    .query(({ ctx, input }) => services.getBookmarksByTag(ctx, input)),
+    .query(({ input }) => services.getBookmarksByTag(input)),
 });
