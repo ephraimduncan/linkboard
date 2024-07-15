@@ -46,8 +46,6 @@ export const EditBookmarkDialog = ({
   const { mutateAsync: updateBookmark, isLoading } =
     api.bookmark.update.useMutation();
 
-  console.log(bookmark.tags);
-
   const form = useForm<UpdateBookmarkInput>({
     resolver: zodResolver(UpdateBookmarkSchema),
     defaultValues: {

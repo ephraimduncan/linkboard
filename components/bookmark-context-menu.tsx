@@ -1,13 +1,15 @@
 "use client";
 
 import { Loader } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { revalidateFromClient } from "~/app/revalidate-on-client";
 import { cn } from "~/lib/utils";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/react";
+import { AddBookmarkToCollectionDialog } from "./add-bookmark-to-collection-dialog";
 import { EditBookmarkDialog } from "./edit-bookmark-dialog";
+import { AddFolder } from "./icons/add-folder";
 import { Copy } from "./icons/copy";
 import { LockClose } from "./icons/lock-close";
 import { LockOpen } from "./icons/lock-open";
@@ -30,6 +32,8 @@ export function BookmarkContextMenu({
   const [isToggleBookmarkDialogOpen, setIsToggleBookmarkDialogOpen] =
     useState(false);
   const [isEditBookmarkDialogOpen, setIsEditBookmarkDialogOpen] =
+    useState(false);
+  const [isAddCollectionDialogOpen, setIsAddCollectionDialogOpen] =
     useState(false);
 
   const { mutateAsync: refetchBookmark, isLoading: isRefreshingBookmark } =
@@ -92,6 +96,11 @@ export function BookmarkContextMenu({
         ? async (bookmark: BookmarkWithTags) =>
             toggleBookmarkVisibility({ id: bookmark.id })
         : () => setIsToggleBookmarkDialogOpen(true),
+    },
+    {
+      icon: AddFolder,
+      label: "Add to collection",
+      onClick: () => setIsAddCollectionDialogOpen(true),
     },
   ];
 
@@ -170,6 +179,12 @@ export function BookmarkContextMenu({
         bookmark={bookmark}
         isOpen={isEditBookmarkDialogOpen}
         setIsOpen={setIsEditBookmarkDialogOpen}
+      />
+
+      <AddBookmarkToCollectionDialog
+        bookmark={bookmark}
+        isOpen={isAddCollectionDialogOpen}
+        setIsOpen={setIsAddCollectionDialogOpen}
       />
     </>
   );

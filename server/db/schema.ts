@@ -98,6 +98,8 @@ export const bookmarks = sqliteTable(
     isPublic: integer("is_public", { mode: "boolean" })
       .default(false)
       .notNull(),
+    favicon: text("favicon", { length: 255 }),
+    image: text("image", { length: 255 }),
   },
   (table) => ({
     userIdx: index("bookmark_user_idx").on(table.userId),
@@ -192,6 +194,9 @@ export const collectionRelations = relations(collections, ({ one, many }) => ({
 
 export type Collection = typeof collections.$inferSelect;
 export type NewCollection = typeof collections.$inferInsert;
+export type CollectionWithBookmark = Collection & {
+  bookmarks: { bookmark: Bookmark }[];
+};
 
 export const bookmarkCollections = sqliteTable(
   "bookmark_collections",

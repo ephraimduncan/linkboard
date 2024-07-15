@@ -22,20 +22,24 @@ export default async function DiscoverPage({
   return (
     <div>
       <div className="flex gap-4 mx-auto">
-        <Search route="discover" search={search} className="w-full" />
+        <Search route="/discover" search={search} />
       </div>
 
-      {bookmarks.length > 0 ? (
-        <div className="mt-8">
-          <BookmarkList
-            bookmarks={bookmarks as unknown as BookmarkWithTags[]}
-          />
-        </div>
-      ) : search ? (
-        <NoSearchResults />
-      ) : (
-        <EmptyDiscover />
-      )}
+      <div className="mt-8 space-y-4">
+        <h1 className="text-xl font-semibold mb-2 mx-3">discover</h1>
+
+        {bookmarks.length > 0 ? (
+          <div>
+            <BookmarkList
+              bookmarks={bookmarks as unknown as BookmarkWithTags[]}
+            />
+          </div>
+        ) : search ? (
+          <NoSearchResults />
+        ) : (
+          <EmptyDiscover />
+        )}
+      </div>
     </div>
   );
 }

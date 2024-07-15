@@ -15,6 +15,13 @@
       "when": 1719255187755,
       "tag": "0001_lying_xavin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1721062692255,
+      "tag": "0002_milky_vance_astro",
+      "breakpoints": true
     }
   ]
 }

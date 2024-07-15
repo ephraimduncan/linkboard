@@ -41,8 +41,8 @@ export function SidebarNavigation({ user }: SideNavigationProps) {
               <SidebarLabel>Bookmarks</SidebarLabel>
             </SidebarItem>
             <SidebarItem
-              href="/collections"
-              current={pathname.startsWith("/collections")}
+              href="/collection"
+              current={pathname.startsWith("/collection")}
             >
               <FolderIcon className="size-5" />
               <SidebarLabel>Collections</SidebarLabel>
