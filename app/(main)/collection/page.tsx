@@ -32,10 +32,14 @@ export default async function DashboardPage({
         <AddCollectionDialog />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {collections.map((collection) => (
-          <Collection key={collection.id} collection={collection} />
-        ))}
+      <div className="mt-8 space-y-4">
+        <h1 className="text-xl font-semibold">Collections</h1>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {collections.map((collection) => (
+            <Collection key={collection.id} collection={collection} />
+          ))}
+        </div>
       </div>
     </div>
   );

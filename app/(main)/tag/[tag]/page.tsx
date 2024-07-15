@@ -20,11 +20,7 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
   return (
     <div className="space-y-8">
       <div className="flex gap-4 mx-auto">
-        <Search
-          route={"tag/" + params.tag}
-          search={search}
-          className="w-full mx-3"
-        />
+        <Search route={"tag/" + params.tag} search={search} />
       </div>
 
       <div>

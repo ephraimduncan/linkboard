@@ -30,7 +30,7 @@ export function Collection({ collection }: { collection: CollectionType }) {
             {truncateText(collection.description ?? "")}
           </CardDescription>
         </CardHeader>
-        <CardContent className="mt-4 ">
+        <CardContent>
           <div className="flex -space-x-2">
             {avatars.map((avatarUrl) => (
               <Avatar
