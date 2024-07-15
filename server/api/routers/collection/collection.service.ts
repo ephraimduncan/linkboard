@@ -8,6 +8,7 @@ import type {
   CreateCollectionInput,
   DeleteCollectionInput,
   GetCollectionInput,
+  GetUserCollectionsInput,
   RemoveBookmarkFromCollectionInput,
   UpdateCollectionInput,
 } from "./collection.input";
@@ -60,6 +61,31 @@ export const getCollection = async (
   }
 
   return collection;
+};
+
+export const getUserCollections = async (
+  ctx: ProtectedTRPCContext,
+  input: GetUserCollectionsInput,
+) => {
+  const { page, perPage, search } = input;
+
+  return await ctx.db.query.collections.findMany({
+    where: (collections, { and, eq, like }) =>
+      and(
+        eq(collections.userId, ctx.user.id),
+        search ? like(collections.name, `%${search}%`) : undefined,
+      ),
+    offset: (page - 1) * perPage,
+    limit: perPage,
+    orderBy: (collections, { desc }) => [desc(collections.updatedAt)],
+    // with: {
+    //   bookmarks: {
+    //     with: {
+    //       bookmark: true,
+    //     },
+    //   },
+    // },
+  });
 };
 
 export const updateCollection = async (

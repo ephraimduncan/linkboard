@@ -11,6 +11,10 @@ export const collectionRouter = createTRPCRouter({
     .input(inputs.GetCollectionSchema)
     .query(({ ctx, input }) => services.getCollection(ctx, input)),
 
+  getUserCollections: protectedProcedure
+    .input(inputs.GetUserCollectionsSchema)
+    .query(({ ctx, input }) => services.getUserCollections(ctx, input)),
+
   update: protectedProcedure
     .input(inputs.UpdateCollectionSchema)
     .mutation(({ ctx, input }) => services.updateCollection(ctx, input)),

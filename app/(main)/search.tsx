@@ -7,18 +7,17 @@ import { Input, InputGroup } from "~/components/primitives/input";
 type SearchProps = {
   search?: string;
   route: string;
-  className?: string;
 };
 
-export function Search({ search, route, className }: SearchProps) {
+export function Search({ search, route }: SearchProps) {
   const router = useRouter();
 
   return (
-    <InputGroup className={className}>
+    <InputGroup className="w-full">
       <MagnifyingGlassIcon />
       <Input
         name="search"
-        placeholder="Search&hellip;"
+        placeholder="search&hellip;"
         aria-label="Search"
         defaultValue={search}
         onChange={(event) => {

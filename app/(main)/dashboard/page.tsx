@@ -29,7 +29,7 @@ export default async function DashboardPage({
   return (
     <div>
       <div className="flex gap-4 mx-auto">
-        <Search route="dashboard" search={search} className="w-10/12" />
+        <Search route="dashboard" search={search} />
 
         <AddLinkDialog />
       </div>
