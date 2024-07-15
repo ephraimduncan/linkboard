@@ -5,6 +5,7 @@ import { api } from "~/trpc/server";
 import { Search } from "../search";
 import { AddCollectionDialog } from "./add-collection-dialog";
 import { Collection } from "./collection";
+import { EmptyCollection } from "./empty-collection";
 
 type DashboardPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -36,14 +37,18 @@ export default async function DashboardPage({
       <div className="mt-8 space-y-4">
         <h1 className="text-xl font-semibold mx-3">Collections</h1>
 
-        <div className="grid grid-cols-1 gap-6 mx-3 md:grid-cols-2 lg:grid-cols-3">
-          {collections.map((collection) => (
-            <Collection
-              key={collection.id}
-              collection={collection as unknown as CollectionWithBookmark}
-            />
-          ))}
-        </div>
+        {collections.length < 0 ? (
+          <div className="grid grid-cols-1 gap-6 mx-3 md:grid-cols-2 lg:grid-cols-3">
+            {collections.map((collection) => (
+              <Collection
+                key={collection.id}
+                collection={collection as unknown as CollectionWithBookmark}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyCollection />
+        )}
       </div>
     </div>
   );
