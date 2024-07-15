@@ -37,7 +37,7 @@ export default async function DashboardPage({
       <div className="mt-8 space-y-4">
         <h1 className="text-xl font-semibold mx-3">Collections</h1>
 
-        {collections.length < 0 ? (
+        {collections.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 mx-3 md:grid-cols-2 lg:grid-cols-3">
             {collections.map((collection) => (
               <Collection
