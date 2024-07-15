@@ -29,22 +29,26 @@ export default async function DashboardPage({
   return (
     <div>
       <div className="flex gap-4 mx-auto">
-        <Search route="dashboard" search={search} />
+        <Search route="/dashboard" search={search} />
 
         <AddLinkDialog />
       </div>
 
-      {bookmarks.length > 0 ? (
-        <div className="mt-8">
-          <BookmarkList
-            bookmarks={bookmarks as unknown as BookmarkWithTags[]}
-          />
-        </div>
-      ) : search ? (
-        <NoSearchResults />
-      ) : (
-        <EmptyBookmark />
-      )}
+      <div className="mt-8 space-y-4">
+        <h1 className="text-xl font-semibold mb-2 mx-3">bookmarks</h1>
+
+        {bookmarks.length > 0 ? (
+          <div>
+            <BookmarkList
+              bookmarks={bookmarks as unknown as BookmarkWithTags[]}
+            />
+          </div>
+        ) : search ? (
+          <NoSearchResults />
+        ) : (
+          <EmptyBookmark />
+        )}
+      </div>
     </div>
   );
 }

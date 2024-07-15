@@ -21,7 +21,7 @@ export function Search({ search, route }: SearchProps) {
         aria-label="Search"
         defaultValue={search}
         onChange={(event) => {
-          router.push(`/${route}/?search=${event.target.value}`);
+          router.push(`${route}/?search=${event.target.value}`);
         }}
       />
     </InputGroup>

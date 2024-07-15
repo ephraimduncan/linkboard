@@ -27,7 +27,7 @@ export default async function DashboardPage({
   return (
     <div>
       <div className="flex gap-4 justify-between mx-auto">
-        <Search route="collection" search={search} />
+        <Search route="/collection" search={search} />
 
         <AddCollectionDialog />
       </div>
