@@ -4,6 +4,7 @@ import {
   ContextMenu,
   ContextMenuTrigger,
 } from "~/components/primitives/context-menu";
+import { Link } from "~/components/primitives/link";
 import { auth } from "~/lib/auth/validate-request";
 import { getUrlWithPath, truncateText } from "~/lib/utils";
 import { BookmarkWithTags } from "~/server/db/schema";
@@ -24,7 +25,7 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
       {bookmarks.map((bookmark) => (
         <ContextMenu key={bookmark.id}>
           <ContextMenuTrigger>
-            <div className="mb-3 hover:bg-stone-100 py-2 rounded-lg">
+            <div className="mb-3 hover:bg-stone-100 p-2 px-3 rounded-lg">
               <div className="flex items-center">
                 {/* TODO: Tooltip to indicate its public */}
                 {bookmark.isPublic && (
@@ -53,7 +54,21 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
                   </a>
                 )}
               </div>
+
               <div className="flex items-center text-xs text-muted-foreground mt-1">
+                {bookmark.tags && bookmark.tags.length > 0 && (
+                  <>
+                    {bookmark.tags.map((tag) => (
+                      <Link href={`/tag/${tag.tag.name}`} key={tag.tag.id}>
+                        <span className="mr-2 cursor-pointer hover:underline">
+                          {tag.tag.name}
+                        </span>
+                      </Link>
+                    ))}
+
+                    <span className="mr-2">•</span>
+                  </>
+                )}
                 <span>
                   {new Date(bookmark.createdAt).toLocaleString("en-US", {
                     year: "numeric",

@@ -23,12 +23,12 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
         <Search
           route={"tag/" + params.tag}
           search={search}
-          className="w-full"
+          className="w-full mx-3"
         />
       </div>
 
       <div>
-        <h1 className="text-xl font-semibold mb-2">{params.tag}</h1>
+        <h1 className="text-xl font-semibold mb-2 mx-3">{params.tag}</h1>
 
         {bookmarks.length > 0 ? (
           <BookmarkList
