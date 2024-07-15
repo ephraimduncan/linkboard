@@ -1,8 +1,10 @@
+import { BookmarkContextMenu } from "~/components/bookmark-context-menu";
 import { LockOpen } from "~/components/icons/lock-open";
 import {
   ContextMenu,
   ContextMenuTrigger,
 } from "~/components/primitives/context-menu";
+import { auth } from "~/lib/auth/validate-request";
 import { getUrlWithPath, truncateText } from "~/lib/utils";
 import { BookmarkWithTags } from "~/server/db/schema";
 
@@ -15,6 +17,8 @@ const addReferral = (url: string) => {
 type BookmarkListProps = { bookmarks: BookmarkWithTags[] };
 
 export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
+  const { user } = await auth();
+
   return (
     <div>
       {bookmarks.map((bookmark) => (
@@ -63,8 +67,7 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
               </div>
             </div>
           </ContextMenuTrigger>
-          {/* TODO: Show for logged in users only */}
-          {/* <BookmarkContextMenu bookmark={bookmark} /> */}
+          {user && <BookmarkContextMenu bookmark={bookmark} />}
         </ContextMenu>
       ))}
     </div>

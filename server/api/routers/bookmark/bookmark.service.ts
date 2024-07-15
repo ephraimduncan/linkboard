@@ -56,7 +56,6 @@ export const getPublicBookmarks = async (input: GetPublicBookmarksInput) => {
         },
       },
       tags: {
-        columns: {},
         with: {
           tag: true,
         },
@@ -492,7 +491,7 @@ export const getBookmarksByTag = async (
 
       return {
         ...bookmark,
-        tags: tags.map(({ tag }) => tag),
+        tags,
         user,
       };
     }),
