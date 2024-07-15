@@ -86,13 +86,20 @@ export const getUserCollections = async (
     offset: (page - 1) * perPage,
     limit: perPage,
     orderBy: (collections, { desc }) => [desc(collections.updatedAt)],
-    // with: {
-    //   bookmarks: {
-    //     with: {
-    //       bookmark: true,
-    //     },
-    //   },
-    // },
+    with: {
+      bookmarks: {
+        with: {
+          bookmark: {
+            columns: {
+              id: true,
+              favicon: true,
+              url: true,
+              title: true,
+            },
+          },
+        },
+      },
+    },
   });
 };
 

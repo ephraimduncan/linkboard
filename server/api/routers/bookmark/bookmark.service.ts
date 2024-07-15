@@ -39,8 +39,13 @@ export const getOrFetchBookmarkData = async (
   url: string,
 ): Promise<CachedBookmarkInput> => {
   const cachedData = await redis.get(url);
+  let bookmarkData: CachedBookmarkInput | null = null;
+
   if (cachedData) {
-    return JSON.parse(cachedData);
+    bookmarkData = JSON.parse(cachedData);
+    if (bookmarkData?.favicon && bookmarkData?.image) {
+      return bookmarkData;
+    }
   }
 
   try {
@@ -71,21 +76,33 @@ export const getOrFetchBookmarkData = async (
       favicon = new URL(favicon, baseUrl.origin).toString();
     }
 
-    const bookmarkData: CachedBookmarkInput = {
-      title,
-      description,
-      image,
-      favicon,
-    };
+    if (bookmarkData) {
+      bookmarkData = {
+        ...bookmarkData,
+        favicon: bookmarkData.favicon || favicon,
+        image: bookmarkData.image || image,
+      };
+    } else {
+      bookmarkData = {
+        title,
+        description,
+        image,
+        favicon,
+      };
+    }
+
     await redis.set(url, JSON.stringify(bookmarkData));
 
     return bookmarkData;
   } catch (error) {
     console.error("Error fetching bookmark data:", error);
+    // If we have partial cached data, return it instead of throwing an error
+    if (bookmarkData) {
+      return bookmarkData;
+    }
     throw new Error("Failed to fetch bookmark data");
   }
 };
-
 export const getPublicBookmarks = async (input: GetPublicBookmarksInput) => {
   return db.query.bookmarks.findMany({
     where: (table, { eq, or, like }) =>

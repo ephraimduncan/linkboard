@@ -194,6 +194,9 @@ export const collectionRelations = relations(collections, ({ one, many }) => ({
 
 export type Collection = typeof collections.$inferSelect;
 export type NewCollection = typeof collections.$inferInsert;
+export type CollectionWithBookmark = Collection & {
+  bookmarks: { bookmark: Bookmark }[];
+};
 
 export const bookmarkCollections = sqliteTable(
   "bookmark_collections",

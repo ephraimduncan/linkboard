@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "~/lib/auth/validate-request";
+import { CollectionWithBookmark } from "~/server/db/schema";
 import { api } from "~/trpc/server";
 import { Search } from "../search";
 import { AddCollectionDialog } from "./add-collection-dialog";
@@ -37,7 +38,10 @@ export default async function DashboardPage({
 
         <div className="grid grid-cols-1 gap-6 mx-3 md:grid-cols-2 lg:grid-cols-3">
           {collections.map((collection) => (
-            <Collection key={collection.id} collection={collection} />
+            <Collection
+              key={collection.id}
+              collection={collection as unknown as CollectionWithBookmark}
+            />
           ))}
         </div>
       </div>

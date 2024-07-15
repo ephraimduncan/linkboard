@@ -26,13 +26,7 @@ export default async function CollectionPage({
   const collection = await api.collection.get.query({
     id: params.collectionId,
   });
-
   const bookmarks = collection.bookmarks.map((bookmark) => bookmark.bookmark);
-
-  console.log(
-    bookmarks,
-    bookmarks.map((bookmark) => bookmark.tags),
-  );
 
   return (
     <div>
