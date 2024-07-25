@@ -7,7 +7,12 @@ import { generateId } from "lucia";
 import { redis } from "~/lib/redis";
 import { db } from "~/server/db";
 import * as schema from "~/server/db/schema";
-import { bookmarkTags, bookmarks, tags } from "~/server/db/schema";
+import {
+  bookmarkCollections,
+  bookmarkTags,
+  bookmarks,
+  tags,
+} from "~/server/db/schema";
 import type { ProtectedTRPCContext } from "../../trpc";
 import type {
   CachedBookmarkInput,
@@ -344,6 +349,10 @@ export const deleteBookmark = async (
       await trx
         .delete(bookmarkTags)
         .where(eq(bookmarkTags.bookmarkId, input.id));
+      await trx
+        .delete(bookmarkCollections)
+        .where(eq(bookmarkCollections.bookmarkId, input.id));
+
       const [deletedBookmark] = await trx
         .delete(bookmarks)
         .where(eq(bookmarks.id, input.id))

@@ -4,6 +4,7 @@ import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
 import { BookmarkList } from "../../dashboard/bookmark-list";
 import { Search } from "../../search";
+import { EmptyBookmark } from "./empty-bookmark";
 
 type CollectionPageProps = {
   params: { collectionId: string };
@@ -36,11 +37,16 @@ export default async function CollectionPage({
 
       <div className="mt-8 space-y-4">
         <h1 className="text-xl font-semibold mb-2 mx-3">{collection.name}</h1>
-        <div className="mt-8">
-          <BookmarkList
-            bookmarks={bookmarks as unknown as BookmarkWithTags[]}
-          />
-        </div>
+
+        {bookmarks.length > 0 ? (
+          <div className="mt-8">
+            <BookmarkList
+              bookmarks={bookmarks as unknown as BookmarkWithTags[]}
+            />
+          </div>
+        ) : (
+          <EmptyBookmark />
+        )}
       </div>
     </div>
   );
