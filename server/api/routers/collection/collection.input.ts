@@ -12,7 +12,7 @@ export const GetCollectionSchema = z.object({
 
 export const GetUserCollectionsSchema = z.object({
   page: z.number().int().default(1),
-  perPage: z.number().int().default(25),
+  perPage: z.number().int().default(20),
   search: z.string().optional(),
 });
 

@@ -1,4 +1,9 @@
 import { redirect } from "next/navigation";
+import {
+  Pagination,
+  PaginationNext,
+  PaginationPrevious,
+} from "~/components/primitives/pagination";
 import { auth } from "~/lib/auth/validate-request";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
@@ -22,11 +27,19 @@ export default async function DashboardPage({
     redirect("/?unauthorized=true");
   }
 
-  const bookmarks = await api.bookmark.myBookmarks.query({
+  const perPage = 20;
+  const page =
+    typeof searchParams.page === "string" && +searchParams.page > 0
+      ? +searchParams.page
+      : 1;
+
+  const { bookmarks, totalBookmarks } = await api.bookmark.myBookmarks.query({
     search,
+    page,
+    perPage,
   });
 
-  console.log(bookmarks.length);
+  const totalPages = Math.ceil(totalBookmarks / perPage);
 
   return (
     <div>
@@ -44,6 +57,40 @@ export default async function DashboardPage({
             <BookmarkList
               bookmarks={bookmarks as unknown as BookmarkWithTags[]}
             />
+            <div className="mt-10 mx-3 flex items-center justify-between">
+              <p className="text-sm text-gray-700">
+                Showing{" "}
+                <span className="font-semibold">
+                  {(page - 1) * perPage + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-semibold">
+                  {Math.min(page * perPage, totalBookmarks)}
+                </span>{" "}
+                of <span className="font-semibold">{totalBookmarks}</span>{" "}
+                bookmarks
+              </p>
+              <Pagination>
+                <PaginationPrevious
+                  href={
+                    page > 1
+                      ? `/dashboard?page=${page - 1}${
+                          search ? `&search=${search}` : ""
+                        }`
+                      : undefined
+                  }
+                />
+                <PaginationNext
+                  href={
+                    page < totalPages
+                      ? `/dashboard?page=${page + 1}${
+                          search ? `&search=${search}` : ""
+                        }`
+                      : undefined
+                  }
+                />
+              </Pagination>
+            </div>
           </div>
         ) : search ? (
           <NoSearchResults />

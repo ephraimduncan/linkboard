@@ -58,7 +58,7 @@ const base = [
   // Background color applied to control in dark mode
   "dark:bg-white/5 dark:group-data-[checked]:bg-[--checkbox-checked-bg]",
   // Border
-  "border border-zinc-950/15 group-data-[checked]:border-transparent group-data-[checked]:group-data-[hover]:border-transparent group-data-[hover]:border-zinc-950/30 group-data-[checked]:bg-[--checkbox-checked-border]",
+  "border border-stone-950/15 group-data-[checked]:border-transparent group-data-[checked]:group-data-[hover]:border-transparent group-data-[hover]:border-stone-950/30 group-data-[checked]:bg-[--checkbox-checked-border]",
   "dark:border-white/15 dark:group-data-[checked]:border-white/5 dark:group-data-[checked]:group-data-[hover]:border-white/5 dark:group-data-[hover]:border-white/30",
   // Inner highlight shadow
   "after:absolute after:inset-0 after:rounded-[calc(0.3125rem-1px)] after:shadow-[inset_0_1px_theme(colors.white/15%)]",
@@ -67,7 +67,7 @@ const base = [
   "group-data-[focus]:outline group-data-[focus]:outline-2 group-data-[focus]:outline-offset-2 group-data-[focus]:outline-blue-500",
   // Disabled state
   "group-data-[disabled]:opacity-50",
-  "group-data-[disabled]:border-zinc-950/25 group-data-[disabled]:bg-zinc-950/5 group-data-[disabled]:[--checkbox-check:theme(colors.zinc.950/50%)] group-data-[disabled]:before:bg-transparent",
+  "group-data-[disabled]:border-stone-950/25 group-data-[disabled]:bg-stone-950/5 group-data-[disabled]:[--checkbox-check:theme(colors.stone.950/50%)] group-data-[disabled]:before:bg-transparent",
   "dark:group-data-[disabled]:border-white/20 dark:group-data-[disabled]:bg-white/[2.5%] dark:group-data-[disabled]:[--checkbox-check:theme(colors.white/50%)] dark:group-data-[disabled]:group-data-[checked]:after:hidden",
   // Forced colors mode
   "forced-colors:[--checkbox-check:HighlightText] forced-colors:[--checkbox-checked-bg:Highlight] forced-colors:group-data-[disabled]:[--checkbox-check:Highlight]",
@@ -75,18 +75,19 @@ const base = [
 ];
 
 const colors = {
-  "dark/zinc": [
-    "[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.zinc.900)] [--checkbox-checked-border:theme(colors.zinc.950/90%)]",
-    "dark:[--checkbox-checked-bg:theme(colors.zinc.600)]",
+  "dark/stone": [
+    "[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.stone.900)] [--checkbox-checked-border:theme(colors.stone.950/90%)]",
+    "dark:[--checkbox-checked-bg:theme(colors.stone.600)]",
   ],
   "dark/white": [
-    "[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.zinc.900)] [--checkbox-checked-border:theme(colors.zinc.950/90%)]",
-    "dark:[--checkbox-check:theme(colors.zinc.900)] dark:[--checkbox-checked-bg:theme(colors.white)] dark:[--checkbox-checked-border:theme(colors.zinc.950/15%)]",
+    "[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.stone.900)] [--checkbox-checked-border:theme(colors.stone.950/90%)]",
+    "dark:[--checkbox-check:theme(colors.stone.900)] dark:[--checkbox-checked-bg:theme(colors.white)] dark:[--checkbox-checked-border:theme(colors.stone.950/15%)]",
   ],
   white:
-    "[--checkbox-check:theme(colors.zinc.900)] [--checkbox-checked-bg:theme(colors.white)] [--checkbox-checked-border:theme(colors.zinc.950/15%)]",
-  dark: "[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.zinc.900)] [--checkbox-checked-border:theme(colors.zinc.950/90%)]",
-  zinc: "[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.zinc.600)] [--checkbox-checked-border:theme(colors.zinc.700/90%)]",
+    "[--checkbox-check:theme(colors.stone.900)] [--checkbox-checked-bg:theme(colors.white)] [--checkbox-checked-border:theme(colors.stone.950/15%)]",
+  dark: "[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.stone.900)] [--checkbox-checked-border:theme(colors.stone.950/90%)]",
+  stone:
+    "[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.stone.600)] [--checkbox-checked-border:theme(colors.stone.700/90%)]",
   red: "[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.red.600)] [--checkbox-checked-border:theme(colors.red.700/90%)]",
   orange:
     "[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.orange.500)] [--checkbox-checked-border:theme(colors.orange.600/90%)]",
@@ -118,7 +119,7 @@ const colors = {
 type Color = keyof typeof colors;
 
 export function Checkbox({
-  color = "dark/zinc",
+  color = "dark/stone",
   className,
   ...props
 }: {
