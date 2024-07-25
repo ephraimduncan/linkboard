@@ -26,6 +26,8 @@ export default async function DashboardPage({
     search,
   });
 
+  console.log(bookmarks.length);
+
   return (
     <div>
       <div className="flex gap-4 mx-auto">

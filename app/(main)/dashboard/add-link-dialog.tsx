@@ -56,6 +56,7 @@ export const AddLinkDialog = ({
     defaultValues: {
       url: "",
       tags: [],
+      isPublic: false,
     },
   });
 
