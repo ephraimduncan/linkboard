@@ -39,4 +39,4 @@ export const connection = createClient({
   authToken: env.SQLITE_AUTH_TOKEN,
 });
 
-export const db = drizzle(connection, { schema, logger: new QueryLogger() });
+export const db = drizzle(connection, { schema });

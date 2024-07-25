@@ -10,9 +10,13 @@ function isValidChromeExtension(origin: string | null): boolean {
 }
 
 const bookmarkSchema = z.object({
-  title: z.string().min(1).max(255),
   url: z.string().url(),
+  title: z.string().max(255),
   description: z.string().max(1000).optional(),
+  image: z.string().url().optional(),
+  favicon: z.string().url().optional(),
+  isPublic: z.boolean().default(false),
+  tags: z.array(z.string()).default([]),
 });
 
 export async function POST(req: NextRequest) {
@@ -54,6 +58,9 @@ export async function POST(req: NextRequest) {
     }
 
     const bookmarkData = await req.json();
+
+    console.log("Bookmark data:", bookmarkData);
+
     const validatedData = bookmarkSchema.parse(bookmarkData);
 
     const [bookmark] = await db
