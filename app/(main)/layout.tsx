@@ -28,7 +28,7 @@ export default async function RootLayout({
   const { user } = await auth();
 
   return (
-    <div className="bg-white max-lg:flex-col">
+    <div className="max-lg:flex-col">
       <SidebarLayout
         navbar={
           <Navbar>
