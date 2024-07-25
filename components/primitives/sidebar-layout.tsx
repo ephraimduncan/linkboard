@@ -76,7 +76,7 @@ export function SidebarLayout({
   let [showSidebar, setShowSidebar] = useState(false);
 
   return (
-    <div>
+    <div className="min-h-screen">
       <div className="hidden md:flex fixed inset-0 z-[-1]">
         <div className="w-1/2 lg:bg-stone-100 dark:bg-stone-900 dark:lg:bg-stone-950"></div>
         <div className="w-1/2"></div>
