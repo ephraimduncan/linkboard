@@ -4,6 +4,7 @@ import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
 import { BookmarkList } from "../../dashboard/bookmark-list";
 import { Search } from "../../search";
+import { CollectionDialogGroup } from "./dialog-group";
 import { EmptyBookmark } from "./empty-bookmark";
 
 type CollectionPageProps = {
@@ -36,7 +37,13 @@ export default async function CollectionPage({
       </div>
 
       <div className="mt-8 space-y-4">
-        <h1 className="text-xl font-semibold mb-2 mx-3">{collection.name}</h1>
+        <div className="flex items-center justify-between mb-2 mx-3">
+          <h1 className="text-xl font-semibold">{collection.name}</h1>
+
+          <div className="flex gap-2 items-center">
+            <CollectionDialogGroup collection={collection} />
+          </div>
+        </div>
 
         {bookmarks.length > 0 ? (
           <div className="mt-8">

@@ -76,10 +76,10 @@ export function SidebarLayout({
   let [showSidebar, setShowSidebar] = useState(false);
 
   return (
-    <div>
-      <div className="hidden md:flex absolute inset-0">
-        <div className="w-1/2 bg-white lg:bg-stone-100 dark:bg-stone-900 dark:lg:bg-stone-950"></div>
-        <div className="w-1/2 bg-white"></div>
+    <div className="min-h-screen">
+      <div className="hidden md:flex fixed inset-0 z-[-1]">
+        <div className="w-1/2 lg:bg-stone-100 dark:bg-stone-900 dark:lg:bg-stone-950"></div>
+        <div className="w-1/2"></div>
       </div>
       <div className="relative isolate flex mx-auto max-w-6xl min-h-svh w-full bg-white max-lg:flex-col lg:bg-stone-100 dark:bg-stone-900 dark:lg:bg-stone-950">
         {/* Sidebar on desktop */}
