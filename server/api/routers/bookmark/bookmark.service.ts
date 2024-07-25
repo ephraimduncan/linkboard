@@ -115,45 +115,61 @@ export const getOrFetchBookmarkData = async (
     throw new Error("Failed to fetch bookmark data");
   }
 };
+
 export const getPublicBookmarks = async (input: GetPublicBookmarksInput) => {
-  return db.query.bookmarks.findMany({
-    where: (table, { eq, or, like }) =>
-      and(
-        eq(table.isPublic, true),
-        input.search
-          ? or(
-              like(table.url, `%${input.search}%`),
-              like(table.title, `%${input.search}%`),
-            )
-          : undefined,
-      ),
-    offset: (input.page - 1) * input.perPage,
-    limit: input.perPage,
-    orderBy: (table, { desc }) => desc(table.updatedAt),
-    columns: {
-      id: true,
-      url: true,
-      title: true,
-      description: true,
-      isPublic: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    with: {
-      user: {
-        columns: {
-          email: true,
-          username: true,
-          id: true,
-          name: true,
+  const { page, perPage, search } = input;
+
+  const whereClause = and(
+    eq(bookmarks.isPublic, true),
+    search
+      ? or(
+          like(bookmarks.url, `%${search}%`),
+          like(bookmarks.title, `%${search}%`),
+        )
+      : undefined,
+  );
+
+  return await db.transaction(async (trx) => {
+    const bookmarksForPage = await trx.query.bookmarks.findMany({
+      where: whereClause,
+      offset: (page - 1) * perPage,
+      limit: perPage,
+      orderBy: (table, { desc }) => desc(table.createdAt),
+      columns: {
+        id: true,
+        url: true,
+        title: true,
+        description: true,
+        isPublic: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      with: {
+        user: {
+          columns: {
+            email: true,
+            username: true,
+            id: true,
+            name: true,
+          },
+        },
+        tags: {
+          with: {
+            tag: true,
+          },
         },
       },
-      tags: {
-        with: {
-          tag: true,
-        },
-      },
-    },
+    });
+
+    const [{ count }] = await trx
+      .select({ count: sql<number>`count(*)` })
+      .from(bookmarks)
+      .where(whereClause);
+
+    return {
+      bookmarks: bookmarksForPage,
+      totalBookmarks: Number(count),
+    };
   });
 };
 
@@ -383,43 +399,6 @@ export const deleteBookmark = async (
     });
   }
 };
-
-// export const myBookmarks = async (
-//   ctx: ProtectedTRPCContext,
-//   input: MyBookmarksInput,
-// ) => {
-//   return ctx.db.query.bookmarks.findMany({
-//     where: (table, { eq, or, like }) =>
-//       and(
-//         eq(table.userId, ctx.user.id),
-//         input.search
-//           ? or(
-//               like(table.url, `%${input.search}%`),
-//               like(table.title, `%${input.search}%`),
-//             )
-//           : undefined,
-//       ),
-//     offset: (input.page - 1) * input.perPage,
-//     limit: input.perPage,
-//     orderBy: (table, { desc }) => desc(table.createdAt),
-//     columns: {
-//       id: true,
-//       url: true,
-//       title: true,
-//       description: true,
-//       isPublic: true,
-//       createdAt: true,
-//     },
-//     with: {
-//       tags: {
-//         columns: {},
-//         with: {
-//           tag: true,
-//         },
-//       },
-//     },
-//   });
-// };
 
 export const myBookmarks = async (
   ctx: ProtectedTRPCContext,
