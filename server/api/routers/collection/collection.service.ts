@@ -130,31 +130,63 @@ export const updateCollection = async (
   return updatedCollection;
 };
 
+// export const deleteCollection = async (
+//   ctx: ProtectedTRPCContext,
+//   input: DeleteCollectionInput,
+// ) => {
+//   // First, delete all bookmark associations
+//   await ctx.db
+//     .delete(bookmarkCollections)
+//     .where(eq(bookmarkCollections.collectionId, input.id));
+
+//   // Then, delete the collection
+//   const [deletedCollection] = await ctx.db
+//     .delete(collections)
+//     .where(
+//       and(eq(collections.id, input.id), eq(collections.userId, ctx.user.id)),
+//     )
+//     .returning();
+
+//   if (!deletedCollection) {
+//     throw new TRPCError({
+//       code: "NOT_FOUND",
+//       message: "Collection not found or you don't have permission to delete it",
+//     });
+//   }
+
+//   return { success: true, message: "Collection deleted successfully" };
+// };
+
 export const deleteCollection = async (
   ctx: ProtectedTRPCContext,
   input: DeleteCollectionInput,
 ) => {
-  // First, delete all bookmark associations
-  await ctx.db
-    .delete(bookmarkCollections)
-    .where(eq(bookmarkCollections.collectionId, input.id));
+  return await ctx.db.transaction(async (trx) => {
+    await trx
+      .delete(bookmarkCollections)
+      .where(eq(bookmarkCollections.collectionId, input.id));
 
-  // Then, delete the collection
-  const [deletedCollection] = await ctx.db
-    .delete(collections)
-    .where(
-      and(eq(collections.id, input.id), eq(collections.userId, ctx.user.id)),
-    )
-    .returning();
+    const [deletedCollection] = await trx
+      .delete(collections)
+      .where(
+        and(eq(collections.id, input.id), eq(collections.userId, ctx.user.id)),
+      )
+      .returning();
 
-  if (!deletedCollection) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Collection not found or you don't have permission to delete it",
-    });
-  }
+    if (!deletedCollection) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message:
+          "Collection not found or you don't have permission to delete it",
+      });
+    }
 
-  return { success: true, message: "Collection deleted successfully" };
+    return {
+      success: true,
+      deletedCollection,
+      message: "Collection deleted successfully",
+    };
+  });
 };
 
 export const addBookmarkToCollection = async (

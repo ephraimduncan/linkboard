@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { eq, like } from "drizzle-orm";
 import { generateId } from "lucia";
 import { db } from "~/server/db";
-import { tags } from "~/server/db/schema";
+import { bookmarkTags, tags } from "~/server/db/schema";
 import type { ProtectedTRPCContext } from "../../trpc";
 import type {
   CreateTagInput,
@@ -51,23 +51,50 @@ export const createTag = async (
   return newTag;
 };
 
+// export const deleteTag = async (
+//   ctx: ProtectedTRPCContext,
+//   input: DeleteTagInput,
+// ) => {
+//   await db.delete(bookmarkTags).where(eq(bookmarkTags.tagId, input.id));
+
+//   const [deletedTag] = await db
+//     .delete(tags)
+//     .where(eq(tags.id, input.id))
+//     .returning();
+
+//   if (!deletedTag) {
+//     throw new TRPCError({
+//       code: "NOT_FOUND",
+//       message: "Tag not found",
+//     });
+//   }
+
+//   return { success: true, deletedTag };
+// };
+
 export const deleteTag = async (
   ctx: ProtectedTRPCContext,
   input: DeleteTagInput,
 ) => {
-  const [deletedTag] = await db
-    .delete(tags)
-    .where(eq(tags.id, input.id))
-    .returning();
+  return await ctx.db.transaction(async (trx) => {
+    // Delete all bookmark-tag associations
+    await trx.delete(bookmarkTags).where(eq(bookmarkTags.tagId, input.id));
 
-  if (!deletedTag) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Tag not found",
-    });
-  }
+    // Delete the tag
+    const [deletedTag] = await trx
+      .delete(tags)
+      .where(eq(tags.id, input.id))
+      .returning();
 
-  return { success: true, deletedTag };
+    if (!deletedTag) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Tag not found",
+      });
+    }
+
+    return { success: true, deletedTag };
+  });
 };
 
 export const updateTag = async (
