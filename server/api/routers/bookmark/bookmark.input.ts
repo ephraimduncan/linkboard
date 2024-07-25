@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const GetPublicBookmarksSchema = z.object({
   page: z.number().int().default(1),
-  perPage: z.number().int().default(25),
+  perPage: z.number().int().default(20),
   search: z.string().optional(),
 });
 
@@ -35,7 +35,7 @@ export const DeleteBookmarkSchema = z.object({
 
 export const MyBookmarksSchema = z.object({
   page: z.number().int().default(1),
-  perPage: z.number().int().default(25),
+  perPage: z.number().int().default(20),
   search: z.string().optional(),
 });
 
