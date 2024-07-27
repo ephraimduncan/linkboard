@@ -5,6 +5,7 @@
 - one-click bookmarking
 - browser extensions ([chrome](https://github.com/ephraimduncan/linkboard-extension))
 - privacy controls (public/private bookmarks)
+- collections
 - bookmark tags
 
 ## tech stack
