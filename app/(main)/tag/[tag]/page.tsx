@@ -1,8 +1,8 @@
+import { BookmarkList } from "~/components/bookmark-list";
+import { EmptyState } from "~/components/empty-state";
+import { Search } from "~/components/search";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
-import { EmptyBookmark } from "../../dashboard/empty-bookmark";
-import { Search } from "../../search";
-import { BookmarkList } from "./bookmark-list";
 
 type TagPageProps = {
   params: { tag: string };
@@ -20,7 +20,7 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
   return (
     <div className="space-y-8">
       <div className="flex gap-4 mx-auto">
-        <Search route={"tag/" + params.tag} search={search} />
+        <Search route={"/tag/" + params.tag} search={search} />
       </div>
 
       <div>
@@ -28,10 +28,19 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
 
         {bookmarks.length > 0 ? (
           <BookmarkList
+            route="tag"
             bookmarks={bookmarks as unknown as BookmarkWithTags[]}
           />
         ) : (
-          <EmptyBookmark />
+          <EmptyState
+            type="collectionBookmark"
+            title="You have no bookmarks in this collection"
+            description="Add a bookmark to this collection to see it here."
+            action={{
+              label: "Add bookmark",
+              dialog: "addLink",
+            }}
+          />
         )}
       </div>
     </div>

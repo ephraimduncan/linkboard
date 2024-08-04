@@ -1,16 +1,16 @@
 import { redirect } from "next/navigation";
+import { AddLinkDialog } from "~/components/add-link-dialog";
+import { BookmarkList } from "~/components/bookmark-list";
+import { EmptyState } from "~/components/empty-state";
 import {
   Pagination,
   PaginationNext,
   PaginationPrevious,
 } from "~/components/primitives/pagination";
+import { Search } from "~/components/search";
 import { auth } from "~/lib/auth/validate-request";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
-import { Search } from "../search";
-import { AddLinkDialog } from "./add-link-dialog";
-import { BookmarkList } from "./bookmark-list";
-import { EmptyBookmark, NoSearchResults } from "./empty-bookmark";
 
 type DashboardPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -55,6 +55,7 @@ export default async function DashboardPage({
         {bookmarks.length > 0 ? (
           <div>
             <BookmarkList
+              route="dashboard"
               bookmarks={bookmarks as unknown as BookmarkWithTags[]}
             />
             <div className="mt-10 mx-3 flex items-center justify-between">
@@ -93,9 +94,21 @@ export default async function DashboardPage({
             </div>
           </div>
         ) : search ? (
-          <NoSearchResults />
+          <EmptyState
+            type="search"
+            title="No bookmarks found"
+            description="Try searching for something else."
+          />
         ) : (
-          <EmptyBookmark />
+          <EmptyState
+            type="bookmark"
+            title="You have no bookmarks"
+            description="Start saving your favorite websites and they'll appear here."
+            action={{
+              label: "Add bookmark",
+              dialog: "addLink",
+            }}
+          />
         )}
       </div>
     </div>

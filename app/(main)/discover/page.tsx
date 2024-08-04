@@ -1,14 +1,13 @@
+import { BookmarkList } from "~/components/bookmark-list";
+import { EmptyState } from "~/components/empty-state";
 import {
   Pagination,
   PaginationNext,
   PaginationPrevious,
 } from "~/components/primitives/pagination";
+import { Search } from "~/components/search";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
-import { NoSearchResults } from "../dashboard/empty-bookmark";
-import { Search } from "../search";
-import { BookmarkList } from "./bookmark-list";
-import { EmptyDiscover } from "./empty-discover";
 
 type DiscoverPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -47,6 +46,7 @@ export default async function DiscoverPage({
         {bookmarks.length > 0 ? (
           <div>
             <BookmarkList
+              route="discover"
               bookmarks={bookmarks as unknown as BookmarkWithTags[]}
             />
             <div className="mt-10 mx-3 flex items-center justify-between">
@@ -85,9 +85,17 @@ export default async function DiscoverPage({
             </div>
           </div>
         ) : search ? (
-          <NoSearchResults />
+          <EmptyState
+            type="search"
+            title="No bookmarks found"
+            description="Try searching for something else."
+          />
         ) : (
-          <EmptyDiscover />
+          <EmptyState
+            type="discover"
+            title="Discover your next favorite thing"
+            description="It's a little quiet here. Add a bookmark and make it public for others to view it."
+          />
         )}
       </div>
     </div>

@@ -1,11 +1,11 @@
 "use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader } from "lucide-react";
-import React, { useState } from "react";
+import { Loader, PlusIcon } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { AddFolder } from "~/components/icons/add-folder";
 import { Button } from "~/components/primitives/button";
 import { Checkbox, CheckboxField } from "~/components/primitives/checkbox";
 import {
@@ -25,56 +25,57 @@ import {
   FormMessage,
 } from "~/components/primitives/form";
 import { Input } from "~/components/primitives/input";
-import { Textarea } from "~/components/primitives/textarea";
+import { MultiInput } from "~/components/primitives/multi-input";
 import { api } from "~/trpc/react";
-import { revalidateFromClient } from "../../revalidate-on-client";
+import { revalidateFromClient } from "../app/revalidate-on-client";
 
-const CreateCollectionSchema = z.object({
-  name: z.string().min(1, "Name is required").max(255, "Name is too long"),
-  description: z.string().max(1000, "Description is too long").optional(),
+const CreateBookmarkSchema = z.object({
+  url: z.string().url("Invalid URL"),
+  tags: z.array(z.string().trim()),
   isPublic: z.boolean(),
 });
 
-type CreateCollectionInput = z.infer<typeof CreateCollectionSchema>;
+type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>;
 
-type AddCollectionDialogProps = {
+type AddLinkDialogProps = {
   className?: string;
   children?: React.ReactNode;
   icon?: boolean;
 };
 
-export const AddCollectionDialog = ({
+export const AddLinkDialog = ({
   children,
   className,
   icon = true,
-}: AddCollectionDialogProps) => {
-  const { mutateAsync: addCollection, isLoading } =
-    api.collection.create.useMutation();
+}: AddLinkDialogProps) => {
+  const { mutateAsync: addBookmark, isLoading } =
+    api.bookmark.create.useMutation();
 
-  const form = useForm<CreateCollectionInput>({
-    resolver: zodResolver(CreateCollectionSchema),
+  const form = useForm<CreateBookmarkInput>({
+    resolver: zodResolver(CreateBookmarkSchema),
     defaultValues: {
-      name: "",
-      description: "",
+      url: "",
+      tags: [],
       isPublic: false,
     },
   });
 
-  const onSubmit = async (data: CreateCollectionInput) => {
-    await addCollection(
+  const onSubmit = async (data: CreateBookmarkInput) => {
+    await addBookmark(
       {
-        name: data.name,
-        description: data.description,
-        isPublic: data.isPublic,
+        url: data.url,
+        isPublic: data.isPublic || false,
+        tags: data.tags,
       },
       {
         onSuccess: () => {
-          revalidateFromClient("/collection");
-          toast.success("Collection created");
+          revalidateFromClient("/dashboard");
+
+          toast.success("Bookmark added");
         },
         onError: (error) => {
           console.log(error);
-          toast.error("Failed to create collection");
+          toast.error("Failed to add bookmark");
         },
       },
     );
@@ -92,14 +93,14 @@ export const AddCollectionDialog = ({
         type="button"
         onClick={() => setIsOpen(true)}
       >
-        {icon && <AddFolder className="size-4" />}
-        {children || "New Collection"}
+        {icon && <PlusIcon className="size-4" />}
+        {children || "add bookmark"}
       </Button>
       <Dialog open={isOpen} onClose={setIsOpen}>
         <div>
-          <DialogTitle>Create New Collection</DialogTitle>
-          <DialogDescription className="-mt-[1px]">
-            Organize your bookmarks into collections
+          <DialogTitle>add bookmark</DialogTitle>
+          <DialogDescription className="mt-0">
+            new bookmarks are private on default
           </DialogDescription>
         </div>
 
@@ -108,15 +109,15 @@ export const AddCollectionDialog = ({
             <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
               <FormField
                 control={form.control}
-                name="name"
+                name="url"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>URL</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="design inspo"
+                        placeholder="https://duncan.land"
                         {...field}
-                        name="name"
+                        name="url"
                         value={field.value || ""}
                       />
                     </FormControl>
@@ -127,17 +128,26 @@ export const AddCollectionDialog = ({
 
               <FormField
                 control={form.control}
-                name="description"
+                name="tags"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Tags</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <MultiInput
                         {...field}
-                        name="description"
-                        value={field.value || ""}
+                        onBlur={(currentInputValue) => {
+                          if (currentInputValue.trim()) {
+                            field.onChange([
+                              ...field.value,
+                              currentInputValue.trim(),
+                            ]);
+                          }
+                        }}
                       />
                     </FormControl>
+                    <FormDescription>
+                      Enter tags related to your bookmark
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -156,11 +166,11 @@ export const AddCollectionDialog = ({
                           name="isPublic"
                           className="mr-0"
                         />
-                        <FormLabel>Make collection public</FormLabel>
+                        <FormLabel>Make bookmark public</FormLabel>
                       </CheckboxField>
                     </FormControl>
                     <FormDescription>
-                      Public collections are visible on your profile
+                      Public bookmarks are visible to others
                     </FormDescription>
                   </FormItem>
                 )}
@@ -174,7 +184,7 @@ export const AddCollectionDialog = ({
           </Button>
           <Button disabled={isLoading} onClick={form.handleSubmit(onSubmit)}>
             {isLoading && <Loader className="animate-spin size-4" />}
-            {isLoading ? "Creating..." : "Create Collection"}
+            {isLoading ? "Adding..." : "Add Bookmark"}
           </Button>
         </DialogActions>
       </Dialog>

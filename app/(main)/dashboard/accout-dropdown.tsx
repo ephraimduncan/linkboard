@@ -42,7 +42,7 @@ import { api } from "~/trpc/react";
 import { revalidateFromClient } from "../../revalidate-on-client";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters."),
+  name: z.string().optional(),
   username: z.string().min(4, "Username must be at least 2 characters."),
   email: z.string().email("Invalid email address.").optional(),
 });
@@ -74,6 +74,8 @@ export function AccountDropdownMenu({
       revalidateFromClient("/dashboard");
       setIsAccountSettingOpen(false);
     } catch (error) {
+      console.log(error);
+
       let errorMessage = "Failed to update account information";
 
       if (error instanceof Error && "message" in error) {
