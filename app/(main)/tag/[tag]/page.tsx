@@ -1,8 +1,8 @@
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
-import { EmptyBookmark } from "../../dashboard/empty-bookmark";
+import { BookmarkList } from "../../bookmark-list";
+import { EmptyBookmark } from "../../empty-bookmark";
 import { Search } from "../../search";
-import { BookmarkList } from "./bookmark-list";
 
 type TagPageProps = {
   params: { tag: string };
@@ -28,6 +28,7 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
 
         {bookmarks.length > 0 ? (
           <BookmarkList
+            route="tag"
             bookmarks={bookmarks as unknown as BookmarkWithTags[]}
           />
         ) : (

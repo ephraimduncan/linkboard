@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "~/lib/auth/validate-request";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
-import { BookmarkList } from "../../dashboard/bookmark-list";
+import { BookmarkList } from "../../bookmark-list";
 import { Search } from "../../search";
 import { CollectionDialogGroup } from "./dialog-group";
 import { EmptyBookmark } from "./empty-bookmark";
@@ -48,6 +48,7 @@ export default async function CollectionPage({
         {bookmarks.length > 0 ? (
           <div className="mt-8">
             <BookmarkList
+              route="collection"
               bookmarks={bookmarks as unknown as BookmarkWithTags[]}
             />
           </div>

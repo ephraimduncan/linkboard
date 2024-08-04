@@ -7,10 +7,10 @@ import {
 import { auth } from "~/lib/auth/validate-request";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
+import { BookmarkList } from "../bookmark-list";
+import { EmptyBookmark, NoSearchResults } from "../empty-bookmark";
 import { Search } from "../search";
 import { AddLinkDialog } from "./add-link-dialog";
-import { BookmarkList } from "./bookmark-list";
-import { EmptyBookmark, NoSearchResults } from "./empty-bookmark";
 
 type DashboardPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -55,6 +55,7 @@ export default async function DashboardPage({
         {bookmarks.length > 0 ? (
           <div>
             <BookmarkList
+              route="dashboard"
               bookmarks={bookmarks as unknown as BookmarkWithTags[]}
             />
             <div className="mt-10 mx-3 flex items-center justify-between">

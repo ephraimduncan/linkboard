@@ -1,6 +1,6 @@
 import { AddBookmarkIcon } from "~/components/icons/add-bookmark";
 import { ListSearch } from "~/components/icons/list-search";
-import { AddLinkDialog } from "./add-link-dialog";
+import { AddLinkDialog } from "./dashboard/add-link-dialog";
 
 export function EmptyBookmark() {
   return (

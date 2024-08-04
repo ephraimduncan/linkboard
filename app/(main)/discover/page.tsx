@@ -5,10 +5,10 @@ import {
 } from "~/components/primitives/pagination";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
-import { NoSearchResults } from "../dashboard/empty-bookmark";
+import { BookmarkList } from "../bookmark-list";
+import { NoSearchResults } from "../empty-bookmark";
+import { EmptyDiscover } from "../empty-discover";
 import { Search } from "../search";
-import { BookmarkList } from "./bookmark-list";
-import { EmptyDiscover } from "./empty-discover";
 
 type DiscoverPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -47,6 +47,7 @@ export default async function DiscoverPage({
         {bookmarks.length > 0 ? (
           <div>
             <BookmarkList
+              route="discover"
               bookmarks={bookmarks as unknown as BookmarkWithTags[]}
             />
             <div className="mt-10 mx-3 flex items-center justify-between">

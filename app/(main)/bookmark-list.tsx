@@ -1,8 +1,11 @@
+import { BookmarkContextMenu } from "~/components/bookmark-context-menu";
+import { LockOpen } from "~/components/icons/lock-open";
 import {
   ContextMenu,
   ContextMenuTrigger,
 } from "~/components/primitives/context-menu";
 import { Link } from "~/components/primitives/link";
+import { auth } from "~/lib/auth/validate-request";
 import { getUrlWithPath, truncateText } from "~/lib/utils";
 import { BookmarkWithTags } from "~/server/db/schema";
 
@@ -12,9 +15,14 @@ const addReferral = (url: string) => {
   return parsedUrl.toString();
 };
 
-type BookmarkListProps = { bookmarks: BookmarkWithTags[] };
+type BookmarkListProps = {
+  bookmarks: BookmarkWithTags[];
+  route: "dashboard" | "discover" | "collection" | "tag";
+};
 
-export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
+export const BookmarkList = async ({ bookmarks, route }: BookmarkListProps) => {
+  const { user } = await auth();
+
   return (
     <div>
       {bookmarks.map((bookmark) => (
@@ -22,15 +30,24 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
           <ContextMenuTrigger>
             <div className="mb-3 hover:bg-stone-100 p-2 px-3 rounded-lg">
               <div className="flex items-center">
+                {route !== "discover" && bookmark.isPublic && (
+                  <LockOpen className="size-4 text-muted-foreground mr-1" />
+                )}
                 {bookmark.title ? (
                   <>
                     <a
                       href={addReferral(bookmark.url)}
+                      target="_blank"
+                      rel="noreferrer noopener"
                       className="font-medium text-black hover:underline mr-2"
                     >
                       {truncateText(bookmark.title)}
                     </a>
-                    <a href={addReferral(bookmark.url)}>
+                    <a
+                      href={addReferral(bookmark.url)}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                    >
                       <span className="text-sm text-muted-foreground">
                         ({new URL(bookmark.url).hostname})
                       </span>
@@ -39,12 +56,15 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
                 ) : (
                   <a
                     href={addReferral(bookmark.url)}
+                    target="_blank"
+                    rel="noreferrer noopener"
                     className="font-medium text-black hover:underline mr-2"
                   >
                     {truncateText(getUrlWithPath({ bookmark }))}
                   </a>
                 )}
               </div>
+
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 {bookmark.tags && bookmark.tags.length > 0 && (
                   <>
@@ -59,18 +79,8 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
                     <span className="mr-2">•</span>
                   </>
                 )}
-
-                {bookmark.user?.username && (
-                  <>
-                    {/* TODO: redirect to users profile */}
-                    <span className="mr-2 hover:underline cursor-pointer">
-                      {bookmark.user.username}
-                    </span>
-                    <span className="mr-2">•</span>
-                  </>
-                )}
                 <span>
-                  {new Date(bookmark.updatedAt).toLocaleString("en-US", {
+                  {new Date(bookmark.createdAt).toLocaleString("en-US", {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
@@ -82,8 +92,9 @@ export const BookmarkList = async ({ bookmarks }: BookmarkListProps) => {
               </div>
             </div>
           </ContextMenuTrigger>
-          {/* TODO: enable context menu for only bookmarks I can edit */}
-          {/* {user && <BookmarkContextMenu bookmark={bookmark} />} */}
+          {route !== "discover" && user && (
+            <BookmarkContextMenu bookmark={bookmark} />
+          )}
         </ContextMenu>
       ))}
     </div>
