@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { DeleteCollectionDialog } from "~/components/delete-collection-dialog";
+import { EditCollectionDialog } from "~/components/edit-collection-dialog";
 import { Pencil } from "~/components/icons/pencil";
 import { Trash } from "~/components/icons/trash";
 import { Button } from "~/components/primitives/button";
 import { Collection } from "~/server/db/schema";
-import { DeleteCollectionDialog } from "./delete-collection-dialog";
-import { EditCollectionDialog } from "./edit-collection-dialog";
 
 type CollectionDialogGroupProps = {
   collection: Collection;

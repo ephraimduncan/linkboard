@@ -9,25 +9,25 @@ import { z } from "zod";
 import { Button } from "~/components/primitives/button";
 import { Checkbox, CheckboxField } from "~/components/primitives/checkbox";
 import {
-    Dialog,
-    DialogActions,
-    DialogBody,
-    DialogDescription,
-    DialogTitle,
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogDescription,
+  DialogTitle,
 } from "~/components/primitives/dialog";
 import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "~/components/primitives/form";
 import { Input } from "~/components/primitives/input";
 import { MultiInput } from "~/components/primitives/multi-input";
 import { api } from "~/trpc/react";
-import { revalidateFromClient } from "../../revalidate-on-client";
+import { revalidateFromClient } from "../app/revalidate-on-client";
 
 const CreateBookmarkSchema = z.object({
   url: z.string().url("Invalid URL"),

@@ -27,7 +27,7 @@ import {
 import { Input } from "~/components/primitives/input";
 import { Textarea } from "~/components/primitives/textarea";
 import { api } from "~/trpc/react";
-import { revalidateFromClient } from "../../revalidate-on-client";
+import { revalidateFromClient } from "../app/revalidate-on-client";
 
 const CreateCollectionSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name is too long"),

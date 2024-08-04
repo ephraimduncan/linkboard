@@ -1,14 +1,13 @@
+import { BookmarkList } from "~/components/bookmark-list";
+import { EmptyState } from "~/components/empty-state";
 import {
   Pagination,
   PaginationNext,
   PaginationPrevious,
 } from "~/components/primitives/pagination";
+import { Search } from "~/components/search";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
-import { BookmarkList } from "../bookmark-list";
-import { NoSearchResults } from "../empty-bookmark";
-import { EmptyDiscover } from "../empty-discover";
-import { Search } from "../search";
 
 type DiscoverPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -86,9 +85,17 @@ export default async function DiscoverPage({
             </div>
           </div>
         ) : search ? (
-          <NoSearchResults />
+          <EmptyState
+            type="search"
+            title="No bookmarks found"
+            description="Try searching for something else."
+          />
         ) : (
-          <EmptyDiscover />
+          <EmptyState
+            type="discover"
+            title="Discover your next favorite thing"
+            description="It's a little quiet here. Add a bookmark and make it public for others to view it."
+          />
         )}
       </div>
     </div>

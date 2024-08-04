@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
+import { AddCollectionDialog } from "~/components/add-collection-dialog";
+import { EmptyState } from "~/components/empty-state";
+import { Search } from "~/components/search";
 import { auth } from "~/lib/auth/validate-request";
 import { CollectionWithBookmark } from "~/server/db/schema";
 import { api } from "~/trpc/server";
-import { Search } from "../search";
-import { AddCollectionDialog } from "./add-collection-dialog";
 import { Collection } from "./collection";
-import { EmptyCollection } from "./empty-collection";
 
 type DashboardPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -47,7 +47,15 @@ export default async function DashboardPage({
             ))}
           </div>
         ) : (
-          <EmptyCollection />
+          <EmptyState
+            type="collection"
+            title="You have no collections"
+            description="Collections help you organize your bookmarks by category or topic."
+            action={{
+              label: "Create collection",
+              dialog: "addCollection",
+            }}
+          />
         )}
       </div>
     </div>
