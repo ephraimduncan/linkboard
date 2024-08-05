@@ -15,6 +15,7 @@ import {
   SidebarItem,
   SidebarSection,
 } from "~/components/primitives/sidebar";
+import { auth } from "~/lib/auth/validate-request";
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
 
@@ -27,6 +28,7 @@ export default async function ProfilePage({
   params,
   searchParams,
 }: ProfilePageProps) {
+  const { user: loggedInUser } = await auth();
   const { user, bookmarks, collections } =
     await api.user.getUserBookmarksAndCollections.query({
       username: params.username,
@@ -56,7 +58,7 @@ export default async function ProfilePage({
           </h1>
 
           <div className="flex gap-5 text-lg items-end justify-end">
-            {user ? (
+            {loggedInUser ? (
               <NextLink href="/dashboard">Dashboard</NextLink>
             ) : (
               <Login />

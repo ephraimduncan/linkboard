@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq, not, sql } from "drizzle-orm";
+import { db } from "~/server/db";
 import { bookmarks, collections, users } from "~/server/db/schema";
 import { ProtectedTRPCContext } from "../../trpc";
 import type {
@@ -114,11 +115,10 @@ export const getUserProfileByUsername = async (
 };
 
 export const getUserBookmarksAndCollections = async (
-  ctx: ProtectedTRPCContext,
   input: GetUserBookmarksAndCollectionsInput,
 ) => {
   try {
-    return await ctx.db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       // Find the user by username
       const user = await trx.query.users.findFirst({
         where: eq(users.username, input.username),
