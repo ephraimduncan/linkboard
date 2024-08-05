@@ -127,6 +127,7 @@ export const getUserBookmarksAndCollections = async (
           username: true,
           name: true,
           avatar: true,
+          bio: true,
         },
       });
 

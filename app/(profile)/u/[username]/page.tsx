@@ -67,22 +67,35 @@ export default async function ProfilePage({
 
         <div className="gap-x-8 flex">
           <div className="bg-stone-200 w-80 h-fit rounded-2xl p-2 space-y-4">
-            <div className="flex gap-3 p-2 pb-0">
-              <Avatar square className="size-12" src={user.avatar} />
-              <div className="flex flex-col gap-1">
-                <div className="text-stone-900">{user.name}</div>
+            {user.name ? (
+              <div className="flex gap-3 p-2">
+                <Avatar square className="size-12" src={user.avatar} />
+                <div className="flex flex-col gap-1">
+                  <div className="text-stone-900">{user.name}</div>
 
-                <NextLink href={`/u/${user.username}`}>
-                  <div className="text-xs cursor-pointer bg-white text-stone-600 w-fit px-1 py-0.5 rounded-full">
-                    @{user.username}
-                  </div>
-                </NextLink>
+                  <NextLink href={`/u/${user.username}`}>
+                    <div className="text-xs cursor-pointer bg-white text-stone-600 w-fit px-1 py-0.5 rounded-full">
+                      @{user.username}
+                    </div>
+                  </NextLink>
+                </div>
               </div>
-            </div>
-            <div className="text-sm text-stone-600 px-2">
-              Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus
-              leo.
-            </div>
+            ) : (
+              <div className="flex gap-3 p-2">
+                <Avatar square className="size-12" src={user.avatar} />
+                <div className="flex flex-col gap-1">
+                  <NextLink href={`/u/${user.username}`}>
+                    <div className="text-sm cursor-pointer bg-white text-stone-600 w-fit px-1 py-0.5 rounded-full">
+                      <div className="text-stone-900">@{user.username}</div>
+                    </div>
+                  </NextLink>
+                </div>
+              </div>
+            )}
+
+            {user.bio && (
+              <div className="text-sm text-stone-600 px-2">{user?.bio}</div>
+            )}
 
             {/* Portfolio link is disabled for now */}
             {/* <div className="text-sm px-2 cursor-pointer text-stone-900 flex gap-1 items-center hover:underline">
@@ -98,14 +111,16 @@ export default async function ProfilePage({
               </Button>
             </div> */}
 
-            <SidebarSection className="!mt-4">
-              <SidebarHeading>collections</SidebarHeading>
-              {collections.items.map((event) => (
-                <SidebarItem key={event.id} href={event.id}>
-                  {event.name}
-                </SidebarItem>
-              ))}
-            </SidebarSection>
+            {collections.items.length > 0 && (
+              <SidebarSection className="!mt-4">
+                <SidebarHeading>collections</SidebarHeading>
+                {collections.items.map((event) => (
+                  <SidebarItem key={event.id} href={event.id}>
+                    {event.name}
+                  </SidebarItem>
+                ))}
+              </SidebarSection>
+            )}
           </div>
           <div className="space-y-4 w-full">
             <h1 className="text-xl font-semibold mb-2 mx-3">bookmarks</h1>

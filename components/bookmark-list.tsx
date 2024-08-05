@@ -85,6 +85,18 @@ export const BookmarkList = async ({ bookmarks, route }: BookmarkListProps) => {
                     <span className="mr-2">•</span>
                   </>
                 )}
+
+                {route === "discover" && bookmark.user?.username && (
+                  <>
+                    <Link href={`/u/${bookmark.user?.username}`}>
+                      <span className="mr-2 hover:underline cursor-pointer">
+                        {bookmark.user.username}
+                      </span>
+                    </Link>
+                    <span className="mr-2">•</span>
+                  </>
+                )}
+
                 <span>
                   {new Date(bookmark.createdAt).toLocaleString("en-US", {
                     year: "numeric",
