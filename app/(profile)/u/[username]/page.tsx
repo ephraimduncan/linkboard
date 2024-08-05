@@ -6,6 +6,11 @@ import { BookmarkList } from "~/components/bookmark-list";
 import { EmptyState } from "~/components/empty-state";
 import { Avatar } from "~/components/primitives/avatar";
 import {
+  Pagination,
+  PaginationNext,
+  PaginationPrevious,
+} from "~/components/primitives/pagination";
+import {
   SidebarHeading,
   SidebarItem,
   SidebarSection,
@@ -30,6 +35,17 @@ export default async function ProfilePage({
   if (!user) {
     notFound();
   }
+
+  const search =
+    typeof searchParams.search === "string" ? searchParams.search : undefined;
+
+  const perPage = 20;
+  const page =
+    typeof searchParams.page === "string" && +searchParams.page > 0
+      ? +searchParams.page
+      : 1;
+
+  const totalPages = Math.ceil(bookmarks.total / perPage);
 
   return (
     <div className="bg-stone-50">
@@ -100,6 +116,41 @@ export default async function ProfilePage({
                   route="user-profile"
                   bookmarks={bookmarks.items as unknown as BookmarkWithTags[]}
                 />
+
+                <div className="mt-10 mx-3 flex items-center justify-between">
+                  <p className="text-sm text-gray-700">
+                    Showing{" "}
+                    <span className="font-semibold">
+                      {(page - 1) * perPage + 1}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-semibold">
+                      {Math.min(page * perPage, bookmarks.total)}
+                    </span>{" "}
+                    of <span className="font-semibold">{bookmarks.total}</span>{" "}
+                    bookmarks
+                  </p>
+                  <Pagination>
+                    <PaginationPrevious
+                      href={
+                        page > 1
+                          ? `/dashboard?page=${page - 1}${
+                              search ? `&search=${search}` : ""
+                            }`
+                          : undefined
+                      }
+                    />
+                    <PaginationNext
+                      href={
+                        page < totalPages
+                          ? `/dashboard?page=${page + 1}${
+                              search ? `&search=${search}` : ""
+                            }`
+                          : undefined
+                      }
+                    />
+                  </Pagination>
+                </div>
               </div>
             ) : (
               <EmptyState
