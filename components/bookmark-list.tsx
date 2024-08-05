@@ -98,7 +98,7 @@ export const BookmarkList = async ({ bookmarks, route }: BookmarkListProps) => {
               </div>
             </div>
           </ContextMenuTrigger>
-          {route !== "discover" && user && (
+          {!["user-profile", "discover"].includes(route) && user && (
             <BookmarkContextMenu bookmark={bookmark} />
           )}
         </ContextMenu>
