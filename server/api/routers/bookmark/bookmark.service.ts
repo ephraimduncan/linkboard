@@ -34,19 +34,6 @@ import type {
   UpdateBookmarkInput,
 } from "./bookmark.input";
 
-async function fetchPage({ url }: { url: string }): Promise<string> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.text();
-  } catch (error) {
-    console.error("Error fetching page:", error);
-    throw new Error("Failed to fetch page");
-  }
-}
-
 export const getOrFetchBookmarkData = async (
   url: string,
 ): Promise<CachedBookmarkInput> => {
