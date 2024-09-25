@@ -17,18 +17,17 @@ export default async function ProfilePage({
   params,
   searchParams,
 }: ProfilePageProps) {
-  const { bookmarks } = await api.user.getUserBookmarksAndCollections.query({
-    username: params.username,
-  });
-
-  const search =
-    typeof searchParams.search === "string" ? searchParams.search : undefined;
-
-  const perPage = 20;
   const page =
     typeof searchParams.page === "string" && +searchParams.page > 0
       ? +searchParams.page
       : 1;
+  const perPage = 20;
+
+  const { bookmarks } = await api.user.getUserBookmarksAndCollections.query({
+    username: params.username,
+    bookmarkPage: page,
+    bookmarkPerPage: perPage,
+  });
 
   const totalPages = Math.ceil(bookmarks.total / perPage);
 
@@ -58,18 +57,14 @@ export default async function ProfilePage({
               <PaginationPrevious
                 href={
                   page > 1
-                    ? `/dashboard?page=${page - 1}${
-                        search ? `&search=${search}` : ""
-                      }`
+                    ? `/u/${params.username}?page=${page - 1}`
                     : undefined
                 }
               />
               <PaginationNext
                 href={
                   page < totalPages
-                    ? `/dashboard?page=${page + 1}${
-                        search ? `&search=${search}` : ""
-                      }`
+                    ? `/u/${params.username}?page=${page + 1}`
                     : undefined
                 }
               />
