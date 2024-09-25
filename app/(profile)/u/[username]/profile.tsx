@@ -28,8 +28,8 @@ export default async function Profile({ username, children }: ProfileProps) {
       <div className="bg-stone-200 w-80 h-fit rounded-2xl p-2 space-y-4">
         {user.name ? (
           <div className="flex gap-3 p-2">
-            <Avatar square className="size-12" src={user.avatar} />
-            <div className="flex flex-col gap-1">
+            <Avatar square className="size-16" src={user.avatar} />
+            <div className="flex flex-col gap-1 w-full">
               <div className="text-stone-900">{user.name}</div>
 
               <NextLink href={`/u/${user.username}`}>
