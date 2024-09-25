@@ -1,13 +1,15 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { generateId } from "lucia";
-import { bookmarkCollections, collections } from "~/server/db/schema";
+import { db } from "~/server/db";
+import { bookmarkCollections, collections, users } from "~/server/db/schema";
 import type { ProtectedTRPCContext } from "../../trpc";
 import type {
   AddBookmarkToCollectionInput,
   CreateCollectionInput,
   DeleteCollectionInput,
   GetCollectionInput,
+  GetUserCollectionByUsernameInput,
   GetUserCollectionsInput,
   RemoveBookmarkFromCollectionInput,
   UpdateCollectionInput,
@@ -43,6 +45,53 @@ export const getCollection = async (
     where: and(
       eq(collections.id, input.id),
       eq(collections.userId, ctx.user.id),
+    ),
+    with: {
+      bookmarks: {
+        with: {
+          bookmark: {
+            with: {
+              tags: {
+                with: {
+                  tag: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!collection) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Collection not found",
+    });
+  }
+
+  return collection;
+};
+
+export const getUserCollectionByUsername = async (
+  input: GetUserCollectionByUsernameInput,
+) => {
+  const user = await db.query.users.findFirst({
+    where: eq(users.username, input.username),
+  });
+
+  if (!user) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "User not found",
+    });
+  }
+
+  const collection = await db.query.collections.findFirst({
+    where: and(
+      eq(collections.id, input.id),
+      eq(collections.userId, user.id),
+      eq(collections.isPublic, true),
     ),
     with: {
       bookmarks: {

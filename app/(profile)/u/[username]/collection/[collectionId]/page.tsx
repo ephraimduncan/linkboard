@@ -8,68 +8,80 @@ import {
 import { BookmarkWithTags } from "~/server/db/schema";
 import { api } from "~/trpc/server";
 
-type ProfilePageProps = {
-  params: { username: string };
+type CollectionPageProps = {
+  params: {
+    collectionId: string;
+    username: string;
+  };
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export default async function ProfilePage({
+export default async function CollectionPage({
   params,
   searchParams,
-}: ProfilePageProps) {
-  const { bookmarks } = await api.user.getUserBookmarksAndCollections.query({
+}: CollectionPageProps) {
+  const collection = await api.collection.getUserCollectionByUsername.query({
+    id: params.collectionId,
     username: params.username,
   });
 
   const search =
     typeof searchParams.search === "string" ? searchParams.search : undefined;
-
   const perPage = 20;
   const page =
     typeof searchParams.page === "string" && +searchParams.page > 0
       ? +searchParams.page
       : 1;
+  const totalPages = Math.ceil(collection.bookmarks.length / perPage);
 
-  const totalPages = Math.ceil(bookmarks.total / perPage);
+  const paginatedBookmarks = collection.bookmarks.slice(
+    (page - 1) * perPage,
+    page * perPage,
+  );
 
   return (
     <div className="space-y-4 w-full">
-      <h1 className="text-xl font-semibold mb-2 mx-3">bookmarks</h1>
-
-      {bookmarks.items.length > 0 ? (
+      <h1 className="text-xl font-semibold mb-2 mx-3">{collection.name}</h1>
+      {paginatedBookmarks.length > 0 ? (
         <div>
           <BookmarkList
-            route="user-profile"
-            bookmarks={bookmarks.items as unknown as BookmarkWithTags[]}
+            route="collection"
+            bookmarks={
+              paginatedBookmarks.map(
+                (b) => b.bookmark,
+              ) as unknown as BookmarkWithTags[]
+            }
           />
-
           <div className="mt-10 mx-3 flex items-center justify-between">
             <p className="text-sm text-gray-700">
               Showing{" "}
               <span className="font-semibold">{(page - 1) * perPage + 1}</span>{" "}
               to{" "}
               <span className="font-semibold">
-                {Math.min(page * perPage, bookmarks.total)}
+                {Math.min(page * perPage, collection.bookmarks.length)}
               </span>{" "}
-              of <span className="font-semibold">{bookmarks.total}</span>{" "}
+              of{" "}
+              <span className="font-semibold">
+                {collection.bookmarks.length}
+              </span>{" "}
               bookmarks
             </p>
             <Pagination>
               <PaginationPrevious
                 href={
                   page > 1
-                    ? `/dashboard?page=${page - 1}${
-                        search ? `&search=${search}` : ""
-                      }`
+                    ? `/collections/${params.username}/${params.collectionId}?page=${
+                        page - 1
+                      }${search ? `&search=${search}` : ""}`
                     : undefined
                 }
               />
               <PaginationNext
                 href={
                   page < totalPages
-                    ? `/dashboard?page=${page + 1}${
-                        search ? `&search=${search}` : ""
-                      }`
+                    ? `/collections/${params.username}/${params.collectionId}?page=${
+                        page + 1
+                      }${search ? `&search=${search}` : ""}`
                     : undefined
                 }
               />
@@ -79,8 +91,8 @@ export default async function ProfilePage({
       ) : (
         <EmptyState
           type="bookmark"
-          title="This user has no bookmarks"
-          description="This user has not added any bookmarks yet."
+          title="This collection has no bookmarks"
+          description="This collection does not have any bookmarks yet."
         />
       )}
     </div>
