@@ -1,4 +1,5 @@
 import { ChevronUpIcon } from "@heroicons/react/16/solid";
+import { UserIcon } from "lucide-react";
 import { Avatar } from "~/components/primitives/avatar";
 import { Dropdown, DropdownButton } from "~/components/primitives/dropdown";
 import { Link } from "~/components/primitives/link";
@@ -62,6 +63,12 @@ export default async function RootLayout({
 
               <SidebarSpacer />
 
+              {user && (
+                <SidebarItem href={`/u/${user?.username}`} className="mb-4">
+                  <UserIcon className="size-4" />
+                  <SidebarLabel>Public Profile</SidebarLabel>
+                </SidebarItem>
+              )}
               <SidebarSection className="max-lg:hidden">
                 {user ? (
                   <Dropdown>
