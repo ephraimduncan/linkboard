@@ -25,6 +25,8 @@ export default async function CollectionPage({
     username: params.username,
   });
 
+  console.log(collection.bookmarks);
+
   const search =
     typeof searchParams.search === "string" ? searchParams.search : undefined;
   const perPage = 20;
@@ -45,7 +47,7 @@ export default async function CollectionPage({
       {paginatedBookmarks.length > 0 ? (
         <div>
           <BookmarkList
-            route="collection"
+            route="user-profile"
             bookmarks={
               paginatedBookmarks.map(
                 (b) => b.bookmark,

@@ -93,10 +93,24 @@ export const getUserCollectionByUsername = async (
       eq(collections.userId, user.id),
       eq(collections.isPublic, true),
     ),
+    columns: {
+      description: true,
+      id: true,
+      isPublic: true,
+      name: true,
+    },
+    orderBy: (collections, { desc }) => [desc(collections.updatedAt)],
     with: {
       bookmarks: {
+        columns: {},
         with: {
           bookmark: {
+            columns: {
+              createdAt: true,
+              description: true,
+              title: true,
+              url: true,
+            },
             with: {
               tags: {
                 with: {

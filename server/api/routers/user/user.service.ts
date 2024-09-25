@@ -138,12 +138,17 @@ export const getUserBookmarksAndCollections = async (
         });
       }
 
-      // Fetch bookmarks
       const userBookmarks = await trx.query.bookmarks.findMany({
         where: and(eq(bookmarks.userId, user.id), eq(bookmarks.isPublic, true)),
         limit: input.bookmarkPerPage,
         offset: (input.bookmarkPage - 1) * input.bookmarkPerPage,
         orderBy: (bookmarks, { desc }) => [desc(bookmarks.createdAt)],
+        columns: {
+          createdAt: true,
+          description: true,
+          title: true,
+          url: true,
+        },
         with: {
           tags: {
             columns: {},

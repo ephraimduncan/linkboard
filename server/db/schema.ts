@@ -124,7 +124,7 @@ export type Bookmark = typeof bookmarks.$inferSelect;
 export type NewBookmark = typeof bookmarks.$inferInsert;
 export type BookmarkWithTags = Bookmark & {
   tags: { tag: Tag }[];
-  user: Pick<User, "username" | "name" | "email" | "id">;
+  user: Pick<User, "username" | "name" | "id">;
 };
 
 export const tags = sqliteTable(
