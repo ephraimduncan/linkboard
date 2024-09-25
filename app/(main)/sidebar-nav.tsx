@@ -1,4 +1,5 @@
 "use client";
+
 import { usePathname } from "next/navigation";
 import { BookmarkIcon } from "~/components/icons/bookmark";
 import { FolderIcon } from "~/components/icons/folder";
