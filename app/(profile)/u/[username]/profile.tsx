@@ -52,9 +52,9 @@ export default async function Profile({ username, children }: ProfileProps) {
           </div>
         )}
 
-        {user.bio && (
+        {/* {user.bio && (
           <div className="text-sm text-stone-600 px-2">{user?.bio}</div>
-        )}
+        )} */}
 
         {/* Portfolio link is disabled for now */}
         {/* <div className="text-sm px-2 cursor-pointer text-stone-900 flex gap-1 items-center hover:underline">
