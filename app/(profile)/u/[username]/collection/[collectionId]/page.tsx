@@ -20,36 +20,32 @@ export default async function CollectionPage({
   params,
   searchParams,
 }: CollectionPageProps) {
-  const collection = await api.collection.getUserCollectionByUsername.query({
-    id: params.collectionId,
-    username: params.username,
-  });
-
-  console.log(collection.bookmarks);
-
   const search =
     typeof searchParams.search === "string" ? searchParams.search : undefined;
-  const perPage = 20;
+  const perPage = 10;
   const page =
     typeof searchParams.page === "string" && +searchParams.page > 0
       ? +searchParams.page
       : 1;
-  const totalPages = Math.ceil(collection.bookmarks.length / perPage);
 
-  const paginatedBookmarks = collection.bookmarks.slice(
-    (page - 1) * perPage,
-    page * perPage,
-  );
+  const collection = await api.collection.getUserCollectionByUsername.query({
+    id: params.collectionId,
+    username: params.username,
+    page,
+    perPage,
+  });
+
+  const totalPages = Math.ceil(collection.bookmarks.total / perPage);
 
   return (
     <div className="space-y-4 w-full">
       <h1 className="text-xl font-semibold mb-2 mx-3">{collection.name}</h1>
-      {paginatedBookmarks.length > 0 ? (
+      {collection.bookmarks.items.length > 0 ? (
         <div>
           <BookmarkList
             route="user-profile"
             bookmarks={
-              paginatedBookmarks.map(
+              collection.bookmarks.items.map(
                 (b) => b.bookmark,
               ) as unknown as BookmarkWithTags[]
             }
@@ -60,11 +56,11 @@ export default async function CollectionPage({
               <span className="font-semibold">{(page - 1) * perPage + 1}</span>{" "}
               to{" "}
               <span className="font-semibold">
-                {Math.min(page * perPage, collection.bookmarks.length)}
+                {Math.min(page * perPage, collection.bookmarks.total)}
               </span>{" "}
               of{" "}
               <span className="font-semibold">
-                {collection.bookmarks.length}
+                {collection.bookmarks.total}
               </span>{" "}
               bookmarks
             </p>
@@ -72,7 +68,7 @@ export default async function CollectionPage({
               <PaginationPrevious
                 href={
                   page > 1
-                    ? `/collections/${params.username}/${params.collectionId}?page=${
+                    ? `/u/${params.username}/collection/${params.collectionId}?page=${
                         page - 1
                       }${search ? `&search=${search}` : ""}`
                     : undefined
@@ -81,7 +77,7 @@ export default async function CollectionPage({
               <PaginationNext
                 href={
                   page < totalPages
-                    ? `/collections/${params.username}/${params.collectionId}?page=${
+                    ? `/u/${params.username}/collection/${params.collectionId}?page=${
                         page + 1
                       }${search ? `&search=${search}` : ""}`
                     : undefined

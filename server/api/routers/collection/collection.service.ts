@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { generateId } from "lucia";
 import { db } from "~/server/db";
 import { bookmarkCollections, collections, users } from "~/server/db/schema";
@@ -99,29 +99,6 @@ export const getUserCollectionByUsername = async (
       isPublic: true,
       name: true,
     },
-    orderBy: (collections, { desc }) => [desc(collections.updatedAt)],
-    with: {
-      bookmarks: {
-        columns: {},
-        with: {
-          bookmark: {
-            columns: {
-              createdAt: true,
-              description: true,
-              title: true,
-              url: true,
-            },
-            with: {
-              tags: {
-                with: {
-                  tag: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
   });
 
   if (!collection) {
@@ -131,7 +108,42 @@ export const getUserCollectionByUsername = async (
     });
   }
 
-  return collection;
+  const bookmarks = await db.query.bookmarkCollections.findMany({
+    where: eq(bookmarkCollections.collectionId, collection.id),
+    limit: input.perPage,
+    offset: (input.page - 1) * input.perPage,
+    columns: {},
+    with: {
+      bookmark: {
+        columns: {
+          createdAt: true,
+          description: true,
+          title: true,
+          url: true,
+        },
+        with: {
+          tags: {
+            with: {
+              tag: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const [{ count: totalBookmarks }] = await db
+    .select({ count: sql<number>`cast(count(*) as integer)` })
+    .from(bookmarkCollections)
+    .where(eq(bookmarkCollections.collectionId, collection.id));
+
+  return {
+    ...collection,
+    bookmarks: {
+      items: bookmarks,
+      total: Number(totalBookmarks),
+    },
+  };
 };
 
 export const getUserCollections = async (

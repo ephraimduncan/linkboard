@@ -13,6 +13,8 @@ export const GetCollectionSchema = z.object({
 export const GetUserCollectionByUsernameSchema = z.object({
   id: z.string(),
   username: z.string(),
+  page: z.number().int().positive().default(1),
+  perPage: z.number().int().positive().default(20),
 });
 
 export const GetUserCollectionsSchema = z.object({
