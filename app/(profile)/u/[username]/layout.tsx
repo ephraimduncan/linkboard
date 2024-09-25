@@ -23,7 +23,9 @@ export default async function ProfileLayout({
       <div className="max-w-5xl mx-auto min-h-screen p-8 pt-10 gap-y-8">
         <div className="flex items-center justify-between !mb-6">
           <h1 className="text-2xl font-sans">
-            <Balancer>linkboard</Balancer>
+            <NextLink href={`/u/${params.username}`}>
+              <Balancer>linkboard</Balancer>
+            </NextLink>
           </h1>
 
           <div className="flex gap-5 text-lg items-end justify-end">
