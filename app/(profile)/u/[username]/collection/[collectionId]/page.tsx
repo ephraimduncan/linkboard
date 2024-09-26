@@ -39,7 +39,9 @@ export default async function CollectionPage({
 
   return (
     <div className="space-y-4 w-full">
-      <h1 className="text-xl font-semibold mb-2 mx-3">{collection.name}</h1>
+      <h1 className="text-xl font-semibold mb-2 mx-3">
+        collection / {collection.name}
+      </h1>
       {collection.bookmarks.items.length > 0 ? (
         <div>
           <BookmarkList
