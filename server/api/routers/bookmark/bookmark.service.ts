@@ -121,7 +121,7 @@ export const getPublicBookmarks = async (input: GetPublicBookmarksInput) => {
       where: whereClause,
       offset: (page - 1) * perPage,
       limit: perPage,
-      orderBy: (table, { desc }) => desc(table.createdAt),
+      orderBy: (table, { desc }) => desc(table.updatedAt),
       columns: {
         id: true,
         url: true,
