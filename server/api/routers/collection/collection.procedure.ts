@@ -1,4 +1,8 @@
-import { createTRPCRouter, protectedProcedure } from "../../trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "../../trpc";
 import * as inputs from "./collection.input";
 import * as services from "./collection.service";
 
@@ -10,6 +14,10 @@ export const collectionRouter = createTRPCRouter({
   get: protectedProcedure
     .input(inputs.GetCollectionSchema)
     .query(({ ctx, input }) => services.getCollection(ctx, input)),
+
+  getUserCollectionByUsername: publicProcedure
+    .input(inputs.GetUserCollectionByUsernameSchema)
+    .query(({ input }) => services.getUserCollectionByUsername(input)),
 
   getUserCollections: protectedProcedure
     .input(inputs.GetUserCollectionsSchema)

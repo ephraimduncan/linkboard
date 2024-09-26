@@ -1,13 +1,15 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { generateId } from "lucia";
-import { bookmarkCollections, collections } from "~/server/db/schema";
+import { db } from "~/server/db";
+import { bookmarkCollections, collections, users } from "~/server/db/schema";
 import type { ProtectedTRPCContext } from "../../trpc";
 import type {
   AddBookmarkToCollectionInput,
   CreateCollectionInput,
   DeleteCollectionInput,
   GetCollectionInput,
+  GetUserCollectionByUsernameInput,
   GetUserCollectionsInput,
   RemoveBookmarkFromCollectionInput,
   UpdateCollectionInput,
@@ -69,6 +71,79 @@ export const getCollection = async (
   }
 
   return collection;
+};
+
+export const getUserCollectionByUsername = async (
+  input: GetUserCollectionByUsernameInput,
+) => {
+  const user = await db.query.users.findFirst({
+    where: eq(users.username, input.username),
+  });
+
+  if (!user) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "User not found",
+    });
+  }
+
+  const collection = await db.query.collections.findFirst({
+    where: and(
+      eq(collections.id, input.id),
+      eq(collections.userId, user.id),
+      eq(collections.isPublic, true),
+    ),
+    columns: {
+      description: true,
+      id: true,
+      isPublic: true,
+      name: true,
+    },
+  });
+
+  if (!collection) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Collection not found",
+    });
+  }
+
+  const bookmarks = await db.query.bookmarkCollections.findMany({
+    where: eq(bookmarkCollections.collectionId, collection.id),
+    limit: input.perPage,
+    offset: (input.page - 1) * input.perPage,
+    columns: {},
+    with: {
+      bookmark: {
+        columns: {
+          createdAt: true,
+          description: true,
+          title: true,
+          url: true,
+        },
+        with: {
+          tags: {
+            with: {
+              tag: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const [{ count: totalBookmarks }] = await db
+    .select({ count: sql<number>`cast(count(*) as integer)` })
+    .from(bookmarkCollections)
+    .where(eq(bookmarkCollections.collectionId, collection.id));
+
+  return {
+    ...collection,
+    bookmarks: {
+      items: bookmarks,
+      total: Number(totalBookmarks),
+    },
+  };
 };
 
 export const getUserCollections = async (

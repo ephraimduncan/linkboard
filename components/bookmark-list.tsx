@@ -6,7 +6,7 @@ import {
 } from "~/components/primitives/context-menu";
 import { Link } from "~/components/primitives/link";
 import { auth } from "~/lib/auth/validate-request";
-import { getUrlWithPath, truncateText } from "~/lib/utils";
+import { cn, getUrlWithPath, truncateText } from "~/lib/utils";
 import { BookmarkWithTags } from "~/server/db/schema";
 
 const addReferral = (url: string) => {
@@ -17,7 +17,7 @@ const addReferral = (url: string) => {
 
 type BookmarkListProps = {
   bookmarks: BookmarkWithTags[];
-  route: "dashboard" | "discover" | "collection" | "tag";
+  route: "dashboard" | "discover" | "collection" | "tag" | "user-profile";
 };
 
 export const BookmarkList = async ({ bookmarks, route }: BookmarkListProps) => {
@@ -28,11 +28,17 @@ export const BookmarkList = async ({ bookmarks, route }: BookmarkListProps) => {
       {bookmarks.map((bookmark) => (
         <ContextMenu key={bookmark.id}>
           <ContextMenuTrigger>
-            <div className="mb-3 hover:bg-stone-100 p-2 px-3 rounded-lg">
+            <div
+              className={cn("mb-3 hover:bg-stone-100 p-2 px-3 rounded-lg", {
+                "hover:bg-stone-200": route === "user-profile",
+              })}
+            >
               <div className="flex items-center">
-                {route !== "discover" && bookmark.isPublic && (
-                  <LockOpen className="size-4 text-muted-foreground mr-1" />
-                )}
+                {route !== "discover" &&
+                  route !== "user-profile" &&
+                  bookmark.isPublic && (
+                    <LockOpen className="size-4 text-muted-foreground mr-1" />
+                  )}
                 {bookmark.title ? (
                   <>
                     <a
@@ -79,6 +85,18 @@ export const BookmarkList = async ({ bookmarks, route }: BookmarkListProps) => {
                     <span className="mr-2">•</span>
                   </>
                 )}
+
+                {route === "discover" && bookmark.user?.username && (
+                  <>
+                    <Link href={`/u/${bookmark.user?.username}`}>
+                      <span className="mr-2 hover:underline cursor-pointer">
+                        {bookmark.user.username}
+                      </span>
+                    </Link>
+                    <span className="mr-2">•</span>
+                  </>
+                )}
+
                 <span>
                   {new Date(bookmark.createdAt).toLocaleString("en-US", {
                     year: "numeric",
@@ -92,7 +110,7 @@ export const BookmarkList = async ({ bookmarks, route }: BookmarkListProps) => {
               </div>
             </div>
           </ContextMenuTrigger>
-          {route !== "discover" && user && (
+          {!["user-profile", "discover"].includes(route) && user && (
             <BookmarkContextMenu bookmark={bookmark} />
           )}
         </ContextMenu>

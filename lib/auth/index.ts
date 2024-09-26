@@ -29,6 +29,7 @@ export const lucia = new Lucia(adapter, {
       updatedAt: attributes.updatedAt,
       username: attributes.username,
       name: attributes.name,
+      bio: attributes.bio,
     };
   },
   sessionExpiresIn: new TimeSpan(30, "d"),

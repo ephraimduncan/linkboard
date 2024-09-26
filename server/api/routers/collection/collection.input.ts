@@ -10,6 +10,13 @@ export const GetCollectionSchema = z.object({
   id: z.string(),
 });
 
+export const GetUserCollectionByUsernameSchema = z.object({
+  id: z.string(),
+  username: z.string(),
+  page: z.number().int().positive().default(1),
+  perPage: z.number().int().positive().default(20),
+});
+
 export const GetUserCollectionsSchema = z.object({
   page: z.number().int().default(1),
   perPage: z.number().int().default(20),
@@ -39,6 +46,9 @@ export const RemoveBookmarkFromCollectionSchema = z.object({
 
 export type CreateCollectionInput = z.infer<typeof CreateCollectionSchema>;
 export type GetCollectionInput = z.infer<typeof GetCollectionSchema>;
+export type GetUserCollectionByUsernameInput = z.infer<
+  typeof GetUserCollectionByUsernameSchema
+>;
 export type GetUserCollectionsInput = z.infer<typeof GetUserCollectionsSchema>;
 export type UpdateCollectionInput = z.infer<typeof UpdateCollectionSchema>;
 export type DeleteCollectionInput = z.infer<typeof DeleteCollectionSchema>;

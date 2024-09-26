@@ -1,0 +1,1 @@
+ALTER TABLE `linkboard_users` ADD `bio` text(500);

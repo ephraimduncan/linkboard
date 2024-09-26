@@ -29,6 +29,7 @@ export const users = sqliteTable(
       .notNull(),
     avatar: text("avatar", { length: 255 }),
     username: text("username", { length: 255 }),
+    bio: text("bio", { length: 500 }),
     name: text("name", { length: 255 }),
   },
   (table) => ({
@@ -67,6 +68,8 @@ export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
 
 export const userRelations = relations(users, ({ many }) => ({
   oauthAccounts: many(oauthAccounts),
+  following: many(userRelationships, { relationName: "following" }),
+  followers: many(userRelationships, { relationName: "followers" }),
 }));
 
 export type User = typeof users.$inferSelect;
@@ -121,7 +124,7 @@ export type Bookmark = typeof bookmarks.$inferSelect;
 export type NewBookmark = typeof bookmarks.$inferInsert;
 export type BookmarkWithTags = Bookmark & {
   tags: { tag: Tag }[];
-  user: Pick<User, "username" | "name" | "email" | "id">;
+  user: Pick<User, "username" | "name" | "id">;
 };
 
 export const tags = sqliteTable(
@@ -223,6 +226,42 @@ export const bookmarkCollectionRelations = relations(
     collection: one(collections, {
       fields: [bookmarkCollections.collectionId],
       references: [collections.id],
+    }),
+  }),
+);
+
+export const userRelationships = sqliteTable(
+  "user_relationships",
+  {
+    id: text("id", { length: 21 }).primaryKey(),
+    followerId: text("follower_id", { length: 21 }).notNull(),
+    followedId: text("followed_id", { length: 21 }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    followerIdx: index("follower_idx").on(table.followerId),
+    followedIdx: index("followed_idx").on(table.followedId),
+    uniqueRelationship: index("unique_relationship").on(
+      table.followerId,
+      table.followedId,
+    ),
+  }),
+);
+
+export const userRelationshipRelations = relations(
+  userRelationships,
+  ({ one }) => ({
+    follower: one(users, {
+      fields: [userRelationships.followerId],
+      references: [users.id],
+      relationName: "following",
+    }),
+    followed: one(users, {
+      fields: [userRelationships.followedId],
+      references: [users.id],
+      relationName: "followers",
     }),
   }),
 );
