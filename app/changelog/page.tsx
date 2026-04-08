@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Fragment } from "react";
 import Link from "next/link";
-import { IconChevronLeft } from "@tabler/icons-react";
 
 export const metadata: Metadata = {
   title: "Changelog - Minimal",
@@ -125,9 +124,9 @@ function PrLink({ number }: { number: number }) {
       href={`${GITHUB_REPO}/pull/${number}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-muted-foreground hover:text-foreground hover:underline cursor-pointer text-xs font-mono"
+      className="font-mono text-xs text-zinc-400 transition-colors hover:text-black hover:underline dark:text-zinc-500 dark:hover:text-white"
     >
-      (#{number})
+      #{number}
     </a>
   );
 }
@@ -142,11 +141,11 @@ function ChangelogSection({
   if (entries.length === 0) return null;
 
   return (
-    <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-foreground text-balance">
+    <div>
+      <h3 className="mb-2 text-sm font-medium text-black dark:text-white">
         {category}
       </h3>
-      <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+      <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-500 dark:text-zinc-400">
         {entries.map((entry) => (
           <li key={`${entry.text}-${entry.pr ?? "no-pr"}`}>
             {entry.text}
@@ -165,49 +164,66 @@ function ChangelogSection({
 
 export default function ChangelogPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:py-16">
-      <div className="grid sm:grid-cols-[140px_1fr] sm:gap-6 md:grid-cols-[180px_1fr]">
-        <div className="hidden sm:block" />
-        <div className="mb-5">
-          <Link
-            href="/"
-            className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <IconChevronLeft className="size-4" />
-            Back to home
-          </Link>
-          <h1 className="text-3xl font-semibold text-foreground text-balance">Changelog</h1>
-          <p className="mt-1 text-sm text-muted-foreground text-pretty">
-            All notable changes to Minimal will be documented here.
-          </p>
-        </div>
+    <div className="min-h-dvh bg-white text-black dark:bg-zinc-950 dark:text-white">
+      <nav className="mx-auto flex max-w-3xl items-center justify-between px-6 py-6">
+        <Link href="/" className="text-base font-semibold" aria-label="Homepage">
+          minimal
+        </Link>
+        <Link
+          href="/"
+          className="text-sm text-zinc-400 transition-colors hover:text-black dark:text-zinc-500 dark:hover:text-white"
+        >
+          &larr; Back
+        </Link>
+      </nav>
 
-        {changelog.map((version) => (
-          <Fragment key={version.version}>
-            <div className="mb-1 sm:mb-0 sm:pt-0.5 sm:text-right">
-              <time
-                dateTime={toISODate(version.date)}
-                className="text-sm text-muted-foreground"
+      <article className="mx-auto max-w-3xl px-6 pb-20 pt-8 sm:pt-12">
+        <header className="mb-12">
+          <h1 className="text-3xl font-semibold tracking-tight text-balance">
+            Changelog
+          </h1>
+          <p className="mt-2 text-sm text-zinc-400 dark:text-zinc-500">
+            All notable changes to Minimal.
+          </p>
+        </header>
+
+        <div className="space-y-0">
+          {changelog.map((version, i) => (
+            <Fragment key={version.version}>
+              <section
+                id={`v${version.version}`}
+                className={`grid grid-cols-1 gap-4 sm:grid-cols-[140px_1fr] sm:gap-8 ${
+                  i < changelog.length - 1
+                    ? "border-b border-zinc-100 pb-10 mb-10 dark:border-zinc-800"
+                    : ""
+                }`}
               >
-                {version.date}
-              </time>
-            </div>
-            <section id={`v${version.version}`} className="mb-8 space-y-4">
-              <h2 className="text-lg font-medium text-foreground text-balance">
-                <a
-                  href={`#v${version.version}`}
-                  className="hover:underline"
-                >
-                  v{version.version}
-                </a>
-              </h2>
-              <ChangelogSection category="Added" entries={version.added} />
-              <ChangelogSection category="Changed" entries={version.changed} />
-              <ChangelogSection category="Fixed" entries={version.fixed} />
-            </section>
-          </Fragment>
-        ))}
-      </div>
+                <div className="sm:pt-0.5">
+                  <time
+                    dateTime={toISODate(version.date)}
+                    className="text-sm text-zinc-400 dark:text-zinc-500"
+                  >
+                    {version.date}
+                  </time>
+                </div>
+                <div className="space-y-5">
+                  <h2 className="text-lg font-semibold">
+                    <a href={`#v${version.version}`} className="hover:underline">
+                      v{version.version}
+                    </a>
+                  </h2>
+                  <ChangelogSection category="Added" entries={version.added} />
+                  <ChangelogSection
+                    category="Changed"
+                    entries={version.changed}
+                  />
+                  <ChangelogSection category="Fixed" entries={version.fixed} />
+                </div>
+              </section>
+            </Fragment>
+          ))}
+        </div>
+      </article>
     </div>
   );
 }

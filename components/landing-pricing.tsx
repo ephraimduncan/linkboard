@@ -1,135 +1,40 @@
 "use client";
 
-import type { ReactElement } from "react";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { TextMorph } from "torph/react";
 import { useSession } from "@/lib/auth-client";
-import {
-  PRICING_FREE_TAGS_ICON,
-  PRICING_FREE_EXPORT_ICON,
-  PRICING_FREE_SEARCH_ICON,
-  PRICING_FREE_SHARE_ICON,
-  PRICING_PRO_EVERYTHING_ICON,
-  PRICING_PRO_UNLIMITED_BOOKMARKS_ICON,
-  PRICING_PRO_UNLIMITED_COLLECTIONS_ICON,
-  PRICING_PRO_IMPORT_ICON,
-  PRICING_PRO_API_ICON,
-  PRICING_PRO_FILTER_ICON,
-  PRICING_PRO_SUPPORT_ICON,
-} from "@/components/landing-icons";
 import { type BillingCycle, startCheckout } from "@/lib/checkout";
 
-const FREE_PLAN_FEATURES = [
-  { icon: PRICING_PRO_UNLIMITED_BOOKMARKS_ICON, label: "Unlimited bookmarks" },
-  {
-    icon: PRICING_PRO_UNLIMITED_COLLECTIONS_ICON,
-    label: "Unlimited collections",
-  },
-  { icon: PRICING_FREE_EXPORT_ICON, label: "Export your data anytime" },
-  { icon: PRICING_FREE_SEARCH_ICON, label: "Search & keyboard shortcuts" },
-  {
-    icon: PRICING_FREE_SHARE_ICON,
-    label: "Public profile",
-  },
-  {
-    icon: PRICING_PRO_UNLIMITED_COLLECTIONS_ICON,
-    label: "Shared collections",
-  },
+const FREE_FEATURES = [
+  "Unlimited bookmarks",
+  "Unlimited collections",
+  "Export your data anytime",
+  "Search & keyboard shortcuts",
+  "Public profile",
+  "Shared collections",
 ];
 
-const PRO_PLAN_FEATURES: {
-  icon: ReactElement;
-  label: string;
-  soon?: boolean;
-}[] = [
-  { icon: PRICING_PRO_EVERYTHING_ICON, label: "Everything in Free" },
-  {
-    icon: PRICING_FREE_TAGS_ICON,
-    label: "Tags, colors, and notes",
-    soon: true,
-  },
-  { icon: PRICING_PRO_IMPORT_ICON, label: "Import from browser" },
-  { icon: PRICING_PRO_API_ICON, label: "API access with rate limits" },
-  {
-    icon: PRICING_PRO_FILTER_ICON,
-    label: "Advanced search and filtering",
-    soon: true,
-  },
-  { icon: PRICING_PRO_SUPPORT_ICON, label: "Priority support" },
+const PRO_FEATURES: { label: string; soon?: boolean }[] = [
+  { label: "Everything in Free" },
+  { label: "Tags, colors, and notes", soon: true },
+  { label: "Import from browser" },
+  { label: "API access with rate limits" },
+  { label: "Advanced search and filtering", soon: true },
+  { label: "Priority support" },
 ];
 
-const PRO_PLAN_PRICING: Record<BillingCycle, { priceLabel: string }> = {
-  monthly: { priceLabel: "$5/month" },
-  yearly: { priceLabel: "$50/year" },
+const PRO_PRICING: Record<BillingCycle, string> = {
+  monthly: "$5/mo",
+  yearly: "$50/yr",
 };
-
-function PricingFeature({
-  feature,
-}: {
-  feature: { icon: ReactElement; label: string; soon?: boolean };
-}) {
-  return (
-    <div className="flex items-start gap-2 text-sm">
-      <div className="mt-0.5">{feature.icon}</div>
-      <span>{feature.label}</span>
-      {feature.soon && (
-        <span className="ml-auto shrink-0 rounded-full border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-          Soon
-        </span>
-      )}
-    </div>
-  );
-}
-
-function BillingToggle({
-  value,
-  onChange,
-}: {
-  value: BillingCycle;
-  onChange: (next: BillingCycle) => void;
-}) {
-  const isYearly = value === "yearly";
-
-  return (
-    <div className="mt-6 flex justify-center">
-      <div className="inline-flex items-center gap-1 rounded-full border border-border bg-background p-1">
-        <button
-          type="button"
-          aria-pressed={!isYearly}
-          onClick={() => onChange("monthly")}
-          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-            isYearly
-              ? "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              : "bg-primary text-primary-foreground hover:bg-primary/90"
-          }`}
-        >
-          Monthly
-        </button>
-        <button
-          type="button"
-          aria-pressed={isYearly}
-          onClick={() => onChange("yearly")}
-          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-            isYearly
-              ? "bg-primary text-primary-foreground hover:bg-primary/90"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-          }`}
-        >
-          Yearly
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export function LandingPricing() {
   const router = useRouter();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("yearly");
   const [isCheckoutPending, startCheckoutTransition] = useTransition();
   const { data: session } = useSession();
-  const selectedPricing = PRO_PLAN_PRICING[billingCycle];
   const isSignedIn = Boolean(session?.user);
+
   let proActionLabel = "Sign up";
   if (isCheckoutPending) {
     proActionLabel = "Starting checkout...";
@@ -137,29 +42,25 @@ export function LandingPricing() {
     proActionLabel = "Upgrade";
   }
 
-  const signupHref = `/signup?plan=pro&billingCycle=${billingCycle}`;
-
   const handleFreeAction = () => {
     if (isSignedIn) {
       router.push("/dashboard");
       return;
     }
-
     router.push(`/signup?plan=free&billingCycle=${billingCycle}`);
   };
 
   const handleProAction = () => {
+    const signupHref = `/signup?plan=pro&billingCycle=${billingCycle}`;
     if (!isSignedIn) {
       router.push(signupHref);
       return;
     }
-
     const currentUser = session?.user;
     if (!currentUser) {
       router.push(signupHref);
       return;
     }
-
     const discountId = process.env.NEXT_PUBLIC_POLAR_DISCOUNT_ID?.trim();
     startCheckoutTransition(async () => {
       await startCheckout({
@@ -172,55 +73,90 @@ export function LandingPricing() {
   };
 
   return (
-    <div id="pricing" className="mx-auto max-w-[600px] scroll-mt-16">
-      <div className="relative mx-auto mb-2 flex max-w-[450px] items-center justify-center">
-        <h2 className="z-10 bg-background px-5 text-lg font-medium text-foreground text-balance">
+    <div>
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
           Pricing
         </h2>
-        <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border"></div>
+        <div className="flex gap-1 text-sm">
+          <button
+            type="button"
+            onClick={() => setBillingCycle("monthly")}
+            className={`rounded-full px-3 py-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 ${
+              billingCycle === "monthly"
+                ? "bg-zinc-100 font-medium text-black dark:bg-zinc-800 dark:text-white"
+                : "text-zinc-400 hover:text-black dark:text-zinc-500 dark:hover:text-white"
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillingCycle("yearly")}
+            className={`rounded-full px-3 py-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 ${
+              billingCycle === "yearly"
+                ? "bg-zinc-100 font-medium text-black dark:bg-zinc-800 dark:text-white"
+                : "text-zinc-400 hover:text-black dark:text-zinc-500 dark:hover:text-white"
+            }`}
+          >
+            Yearly
+          </button>
+        </div>
       </div>
-      <BillingToggle value={billingCycle} onChange={setBillingCycle} />
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1 rounded-lg bg-background px-4 py-5 shadow-[0_0_0_1px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06),0_3px_6px_rgba(0,0,0,0.04)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_1px_2px_rgba(0,0,0,0.3)]">
+      <div className="mt-8 grid grid-cols-1 gap-12 sm:grid-cols-2 sm:gap-8">
+        <div className="flex flex-col justify-between">
+          <div>
+            <div className="flex items-baseline gap-3">
+              <h3 className="text-xl font-semibold">Free</h3>
+              <span className="text-xl tabular-nums text-zinc-400 dark:text-zinc-500">
+                $0
+              </span>
+            </div>
+            <ul role="list" className="mt-6 space-y-2 text-sm text-zinc-500 dark:text-zinc-400">
+              {FREE_FEATURES.map((feature) => (
+                <li key={feature}>{feature}</li>
+              ))}
+            </ul>
+          </div>
           <button
             type="button"
             onClick={handleFreeAction}
-            className="absolute right-4 top-4 cursor-pointer rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring before:absolute before:-inset-1 before:content-['']"
+            className="mt-8 w-full rounded-full border border-zinc-200 py-2 text-sm font-medium text-black transition-colors hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800/50"
           >
-            {isSignedIn ? "Go to dashboard" : "Sign up"}
+            {isSignedIn ? "Go to dashboard" : "Get started"}
           </button>
-          <h3 className="mb-1 text-xl font-semibold text-balance">Free</h3>
-          <p className="text-lg">$0</p>
-          <div className="mt-4 flex flex-col gap-1.5">
-            {FREE_PLAN_FEATURES.map((feature) => (
-              <PricingFeature key={feature.label} feature={feature} />
-            ))}
-          </div>
         </div>
 
-        <div className="relative flex-1 rounded-lg bg-background px-4 py-5 shadow-[0_0_0_1px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06),0_3px_6px_rgba(0,0,0,0.04)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_1px_2px_rgba(0,0,0,0.3)]">
+        <div className="flex flex-col justify-between border-t border-zinc-100 pt-12 sm:border-t-0 sm:border-l sm:border-zinc-100 sm:pt-0 sm:pl-8 dark:border-zinc-800 sm:dark:border-zinc-800">
+          <div>
+            <div className="flex items-baseline gap-3">
+              <h3 className="text-xl font-semibold">Pro</h3>
+              <span className="text-xl tabular-nums text-zinc-400 dark:text-zinc-500">
+                {PRO_PRICING[billingCycle]}
+              </span>
+            </div>
+            <ul role="list" className="mt-6 space-y-2 text-sm text-zinc-500 dark:text-zinc-400">
+              {PRO_FEATURES.map((feature) => (
+                <li key={feature.label} className="flex items-center gap-2">
+                  {feature.label}
+                  {feature.soon && (
+                    <span className="rounded-full border border-zinc-200 px-1.5 py-0.5 text-[0.625rem] text-zinc-400 dark:border-zinc-700 dark:text-zinc-500">
+                      Soon
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
           <button
             type="button"
             onClick={handleProAction}
             disabled={isCheckoutPending}
-            className="absolute right-4 top-4 cursor-pointer rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60 before:absolute before:-inset-1 before:content-['']"
+            className="mt-8 w-full rounded-full bg-black py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
           >
             {proActionLabel}
           </button>
-          <h3 className="mb-1 text-xl font-semibold text-balance">Pro</h3>
-          <TextMorph
-            as="p"
-            duration={450}
-            className="text-lg font-medium text-foreground tabular-nums"
-          >
-            {selectedPricing.priceLabel}
-          </TextMorph>
-          <div className="mt-4 flex flex-col gap-1.5">
-            {PRO_PLAN_FEATURES.map((feature) => (
-              <PricingFeature key={feature.label} feature={feature} />
-            ))}
-          </div>
         </div>
       </div>
     </div>
