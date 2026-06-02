@@ -6,6 +6,7 @@ import { checkout, polar, portal, webhooks } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
 import { and, eq, isNull, lt, or } from "drizzle-orm";
 import type { DB } from "./db";
+import { APP_URL } from "./config";
 import { account, group, session, user, verification } from "./db/schema";
 import { sendEmail } from "./email";
 import { welcomeEmail } from "./emails/welcome";
@@ -115,7 +116,7 @@ export function createAuth(db: DB) {
     POLAR_PRO_YEARLY_PRODUCT_ID,
   } = process.env;
 
-  const appUrl = import.meta.env.VITE_APP_URL ?? "https://minimal.so";
+  const appUrl = APP_URL;
 
   const googleOAuthEnabled = Boolean(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
   const polarServer = POLAR_SERVER === "sandbox" ? "sandbox" : "production";
