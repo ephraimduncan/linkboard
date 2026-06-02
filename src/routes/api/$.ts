@@ -58,7 +58,7 @@ const handler = new OpenAPIHandler(apiRouter, {
       specPath: "/openapi.json",
       specGenerateOptions: {
         info: {
-          title: "bmrks API",
+          title: "minimal API",
           version: "1.0.0",
         },
         components: {

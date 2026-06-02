@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getSession } from "@/lib/auth-server";
-import { getPosthogServer } from "@/lib/posthog-server";
 import { createDb, type DB } from "@/lib/db";
 import { bookmark, group } from "@/lib/db/schema";
 import { getUrlMetadata, isArxivHost } from "@/lib/url-metadata";
@@ -137,15 +136,9 @@ async function handlePost(request: Request): Promise<Response> {
     return jsonError("Origin not allowed", "Forbidden", 403, headers);
   }
 
-  const posthog = getPosthogServer();
-
   try {
     const session = await getSession();
     if (!session?.user) {
-      posthog?.capture({
-        distinctId: "anonymous",
-        event: "extension_auth_failed",
-      });
       return jsonError(
         "Please log in to save bookmarks",
         "Unauthorized",
@@ -240,11 +233,6 @@ async function handlePost(request: Request): Promise<Response> {
         .where(and(eq(bookmark.id, existing.id), eq(bookmark.userId, userId)))
         .returning();
 
-      posthog?.capture({
-        distinctId: session.user.id,
-        event: "extension_bookmark_saved",
-      });
-
       return Response.json(
         {
           success: true,
@@ -283,11 +271,6 @@ async function handlePost(request: Request): Promise<Response> {
       })
       .returning();
 
-    posthog?.capture({
-      distinctId: session.user.id,
-      event: "extension_bookmark_saved",
-    });
-
     return Response.json(
       {
         success: true,
@@ -303,10 +286,6 @@ async function handlePost(request: Request): Promise<Response> {
     );
   } catch (error) {
     console.error("[Extension API] Error:", error);
-    posthog?.capture({
-      distinctId: "anonymous",
-      event: "extension_save_failed",
-    });
     return jsonError("Failed to save bookmark", "Server Error", 500, headers);
   }
 }

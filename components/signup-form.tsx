@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { OAuthButton } from "@/components/oauth-button";
 import { useAutofill } from "@/hooks/use-autofill";
-import posthog from "posthog-js";
 import { signUp } from "@/lib/auth-client";
 import { signupSchema } from "@/lib/schema";
 import { type BillingCycle } from "@/lib/checkout";
@@ -43,10 +42,6 @@ export function SignupForm({
   type AuthData = Awaited<ReturnType<typeof signUp.email>>["data"];
   const authRef = useRef<AuthData>(null);
 
-  useEffect(() => {
-    posthog.capture("signup_started");
-  }, []);
-
   const form = useForm({
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
     validators: {
@@ -66,15 +61,6 @@ export function SignupForm({
       },
     },
     onSubmit: async ({ value }) => {
-      if (authRef.current?.user) {
-        posthog.identify(authRef.current.user.id, {
-          email: authRef.current.user.email,
-          name: authRef.current.user.name,
-          created_at: authRef.current.user.createdAt,
-        });
-        posthog.capture("signup_account_created");
-      }
-
       const verifySearch: {
         email: string;
         plan?: string;

@@ -25,7 +25,6 @@ import { Route as SignupIndexRouteImport } from './routes/signup/index'
 import { Route as SignupVerifyEmailRouteImport } from './routes/signup/verify-email'
 import { Route as SignupCompleteRouteImport } from './routes/signup/complete'
 import { Route as RpcSplatRouteImport } from './routes/rpc/$'
-import { Route as IngestSplatRouteImport } from './routes/ingest/$'
 import { Route as AvatarsSplatRouteImport } from './routes/avatars/$'
 import { Route as ApiOgRouteImport } from './routes/api/og'
 import { Route as ApiAvatarRouteImport } from './routes/api/avatar'
@@ -118,11 +117,6 @@ const RpcSplatRoute = RpcSplatRouteImport.update({
   path: '/rpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IngestSplatRoute = IngestSplatRouteImport.update({
-  id: '/ingest/$',
-  path: '/ingest/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AvatarsSplatRoute = AvatarsSplatRouteImport.update({
   id: '/avatars/$',
   path: '/avatars/$',
@@ -197,7 +191,6 @@ export interface FileRoutesByFullPath {
   '/api/avatar': typeof ApiAvatarRoute
   '/api/og': typeof ApiOgRoute
   '/avatars/$': typeof AvatarsSplatRoute
-  '/ingest/$': typeof IngestSplatRoute
   '/rpc/$': typeof RpcSplatRoute
   '/signup/complete': typeof SignupCompleteRoute
   '/signup/verify-email': typeof SignupVerifyEmailRoute
@@ -227,7 +220,6 @@ export interface FileRoutesByTo {
   '/api/avatar': typeof ApiAvatarRoute
   '/api/og': typeof ApiOgRoute
   '/avatars/$': typeof AvatarsSplatRoute
-  '/ingest/$': typeof IngestSplatRoute
   '/rpc/$': typeof RpcSplatRoute
   '/signup/complete': typeof SignupCompleteRoute
   '/signup/verify-email': typeof SignupVerifyEmailRoute
@@ -258,7 +250,6 @@ export interface FileRoutesById {
   '/api/avatar': typeof ApiAvatarRoute
   '/api/og': typeof ApiOgRoute
   '/avatars/$': typeof AvatarsSplatRoute
-  '/ingest/$': typeof IngestSplatRoute
   '/rpc/$': typeof RpcSplatRoute
   '/signup/complete': typeof SignupCompleteRoute
   '/signup/verify-email': typeof SignupVerifyEmailRoute
@@ -290,7 +281,6 @@ export interface FileRouteTypes {
     | '/api/avatar'
     | '/api/og'
     | '/avatars/$'
-    | '/ingest/$'
     | '/rpc/$'
     | '/signup/complete'
     | '/signup/verify-email'
@@ -320,7 +310,6 @@ export interface FileRouteTypes {
     | '/api/avatar'
     | '/api/og'
     | '/avatars/$'
-    | '/ingest/$'
     | '/rpc/$'
     | '/signup/complete'
     | '/signup/verify-email'
@@ -350,7 +339,6 @@ export interface FileRouteTypes {
     | '/api/avatar'
     | '/api/og'
     | '/avatars/$'
-    | '/ingest/$'
     | '/rpc/$'
     | '/signup/complete'
     | '/signup/verify-email'
@@ -381,7 +369,6 @@ export interface RootRouteChildren {
   ApiAvatarRoute: typeof ApiAvatarRoute
   ApiOgRoute: typeof ApiOgRoute
   AvatarsSplatRoute: typeof AvatarsSplatRoute
-  IngestSplatRoute: typeof IngestSplatRoute
   RpcSplatRoute: typeof RpcSplatRoute
   SignupCompleteRoute: typeof SignupCompleteRoute
   SignupVerifyEmailRoute: typeof SignupVerifyEmailRoute
@@ -508,13 +495,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ingest/$': {
-      id: '/ingest/$'
-      path: '/ingest/$'
-      fullPath: '/ingest/$'
-      preLoaderRoute: typeof IngestSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/avatars/$': {
       id: '/avatars/$'
       path: '/avatars/$'
@@ -623,7 +603,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAvatarRoute: ApiAvatarRoute,
   ApiOgRoute: ApiOgRoute,
   AvatarsSplatRoute: AvatarsSplatRoute,
-  IngestSplatRoute: IngestSplatRoute,
   RpcSplatRoute: RpcSplatRoute,
   SignupCompleteRoute: SignupCompleteRoute,
   SignupVerifyEmailRoute: SignupVerifyEmailRoute,

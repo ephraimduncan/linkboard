@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { OAuthButton } from "@/components/oauth-button";
 import { useAutofill } from "@/hooks/use-autofill";
-import posthog from "posthog-js";
 import { signIn } from "@/lib/auth-client";
 import { loginSchema } from "@/lib/schema";
 
@@ -55,14 +54,6 @@ export function LoginForm({
       },
     },
     onSubmit: () => {
-      if (authRef.current?.user) {
-        posthog.identify(authRef.current.user.id, {
-          email: authRef.current.user.email,
-          name: authRef.current.user.name,
-          created_at: authRef.current.user.createdAt,
-        });
-        posthog.capture("login_completed");
-      }
       navigate({ to: "/dashboard" });
     },
   });

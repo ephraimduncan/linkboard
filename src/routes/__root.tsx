@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import {
   Outlet,
   HeadContent,
@@ -6,7 +6,6 @@ import {
   createRootRouteWithContext,
 } from "@tanstack/react-router";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
-import posthog from "posthog-js";
 import { Agentation } from "agentation";
 import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
@@ -46,24 +45,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-
-  useEffect(() => {
-    const key = import.meta.env.VITE_POSTHOG_KEY;
-    if (!key || (posthog as { __loaded?: boolean }).__loaded) return;
-    posthog.init(key, {
-      api_host: import.meta.env.VITE_POSTHOG_HOST ?? "/ingest",
-      person_profiles: "identified_only",
-      capture_pageview: true,
-      capture_pageleave: true,
-      autocapture: false,
-      disable_session_recording: true,
-    });
-    posthog.register({
-      app_version: "0.1.0",
-      runtime: "web",
-      environment: import.meta.env.DEV ? "development" : "production",
-    });
-  }, []);
 
   return (
     <RootDocument>

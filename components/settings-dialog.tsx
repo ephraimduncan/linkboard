@@ -2,7 +2,6 @@ import { useState, useCallback, useRef, type ChangeEvent } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import posthog from "posthog-js";
 import { authClient } from "@/lib/auth-client";
 import { client, orpc } from "@/lib/orpc";
 import { isExtensionAvailable, sendExtensionMessage } from "@/lib/extension";
@@ -226,7 +225,6 @@ export function SettingsDialog({
       return;
     }
 
-    posthog.capture("settings_updated");
     toast.success("Name updated");
     onOpenChange(false);
     router.invalidate();
@@ -504,7 +502,6 @@ function ProfileTab({ profile, onOpenChange }: ProfileTabProps) {
     mutationFn: (data: Parameters<typeof client.profile.update>[0]) =>
       client.profile.update(data),
     onSuccess: () => {
-      posthog.capture("settings_updated");
       toast.success("Profile updated");
       onOpenChange(false);
       router.invalidate();

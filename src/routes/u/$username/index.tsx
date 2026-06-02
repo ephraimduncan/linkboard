@@ -45,7 +45,7 @@ export const Route = createFileRoute("/u/$username/")({
       : undefined;
     const group = matchingGroup ? slugify(matchingGroup.name) : groupParam;
 
-    const title = `${user.name} (@${user.username}) — bmrks`;
+    const title = `${user.name} (@${user.username}) — minimal`;
     const description =
       user.bio || `Public bookmarks shared by ${user.name}`;
 

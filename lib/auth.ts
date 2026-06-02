@@ -7,7 +7,6 @@ import { Polar } from "@polar-sh/sdk";
 import { and, eq, isNull, lt, or } from "drizzle-orm";
 import type { DB } from "./db";
 import { account, group, session, user, verification } from "./db/schema";
-import { getPosthogServer } from "./posthog-server";
 import { sendEmail } from "./email";
 import { welcomeEmail } from "./emails/welcome";
 import { verificationEmail } from "./emails/verify-email";
@@ -312,14 +311,9 @@ export function createAuth(db: DB) {
 
         await ensureDefaultGroup(db, newSession.user.id);
 
-        const posthog = getPosthogServer();
         const isNewUser =
           Date.now() - new Date(newSession.user.createdAt).getTime() < 60_000;
         if (isNewUser) {
-          posthog?.capture({
-            distinctId: newSession.user.id,
-            event: "signup_completed",
-          });
           const result = await sendEmail({
             to: newSession.user.email,
             ...welcomeEmail(newSession.user.name),
@@ -328,15 +322,6 @@ export function createAuth(db: DB) {
           if (!result.ok) {
             console.error("[auth] Failed to send welcome email", result.error);
           }
-        } else {
-          posthog?.capture({
-            distinctId: newSession.user.id,
-            event: "login_completed",
-          });
-        }
-
-        if (posthog) {
-          await posthog.flush().catch(() => {});
         }
       }),
     },

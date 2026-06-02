@@ -1,11 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "bmrks",
+  "name": "minimal-so",
   "compatibility_date": "2025-11-01",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
   "observability": { "enabled": true },
-  "r2_buckets": [{ "binding": "AVATARS", "bucket_name": "bmrks-avatars" }],
+  "r2_buckets": [{ "binding": "AVATARS", "bucket_name": "minimal-so-avatars" }],
+  "send_email": [{ "name": "EMAIL" }],
   "ratelimits": [
     {
       "name": "API_RATELIMIT",

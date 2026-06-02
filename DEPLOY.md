@@ -1,6 +1,6 @@
-# Deploy runbook — bmrks on Cloudflare Workers
+# Deploy runbook — minimal-so on Cloudflare Workers
 
-Copy-paste commands to provision and deploy the Worker. App name is `bmrks`
+Copy-paste commands to provision and deploy the Worker. App name is `minimal-so`
 (from `wrangler.jsonc`). Run everything from the repo root.
 
 ## 0. Prerequisites (one-time)
@@ -14,16 +14,21 @@ bunx wrangler whoami         # confirm the right account is selected
 ## 1. Create the R2 bucket
 
 The `AVATARS` binding in `wrangler.jsonc` points at a bucket named
-`bmrks-avatars`. Create it once:
+`minimal-so-avatars`. Create it once:
 
 ```sh
-bunx wrangler r2 bucket create bmrks-avatars
+bunx wrangler r2 bucket create minimal-so-avatars
 ```
 
 > The two rate-limit bindings (`API_RATELIMIT`, `WRITE_RATELIMIT`) are
 > **config-only** — they're declared inline in `wrangler.jsonc` and need no
 > CLI command. Their `namespace_id`s (`1001`/`1002`) only need to be unique
 > within this Worker; leave them as-is unless you add more limiters.
+
+> The `EMAIL` binding (`send_email` in `wrangler.jsonc`) is also config-only —
+> no CLI command and no secret. Transactional email goes through Cloudflare
+> Email Sending; the sender domain (`mail.minimal.so`) must be onboarded once
+> via `wrangler email sending enable mail.minimal.so`.
 
 ## 2. Set server secrets
 
@@ -38,7 +43,6 @@ prompts for the value. On the first one, wrangler may ask to create the Worker
 bunx wrangler secret put TURSO_DATABASE_URL
 bunx wrangler secret put TURSO_AUTH_TOKEN
 bunx wrangler secret put BETTER_AUTH_SECRET
-bunx wrangler secret put PLUNK_API_KEY
 ```
 
 **Optional — Google OAuth** (login falls back to email-only if unset):
@@ -97,7 +101,6 @@ with the **server** vars only:
 TURSO_DATABASE_URL=libsql://your-db.turso.io
 TURSO_AUTH_TOKEN=...
 BETTER_AUTH_SECRET=...
-PLUNK_API_KEY=...
 
 # optional
 GOOGLE_CLIENT_ID=...
@@ -126,8 +129,6 @@ CHROME_EXTENSION_ID=...
 # .env  (client-exposed, inlined at build)
 VITE_APP_URL=https://minimal.so
 VITE_CHROME_EXTENSION_ID=
-VITE_POSTHOG_KEY=
-VITE_POSTHOG_HOST=/ingest
 VITE_DEFAULT_BILLING_CYCLE=yearly
 VITE_POLAR_DISCOUNT_ID=
 ```
@@ -146,7 +147,7 @@ bun run build && bunx wrangler dev    # runs the built worker on real workerd
 
 ## 6. Post-deploy
 
-- **Custom domain:** Cloudflare dashboard → Workers & Pages → `bmrks` →
+- **Custom domain:** Cloudflare dashboard → Workers & Pages → `minimal-so` →
   Settings → Domains & Routes → add `minimal.so`. (Or add a `routes` entry to
   `wrangler.jsonc` and redeploy.)
 - **Polar webhook:** point the Polar webhook at
