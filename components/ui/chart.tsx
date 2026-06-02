@@ -2,6 +2,10 @@
 
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
+import type {
+  NameType,
+  ValueType,
+} from "recharts/types/component/DefaultTooltipContent"
 
 import { cn } from "@/lib/utils"
 
@@ -102,7 +106,10 @@ ${colorConfig
   )
 }
 
-const ChartTooltip = RechartsPrimitive.Tooltip
+const ChartTooltip =
+  RechartsPrimitive.Tooltip as unknown as React.ComponentType<
+    RechartsPrimitive.TooltipProps<ValueType, NameType>
+  >
 
 function ChartTooltipContent({
   active,
@@ -118,7 +125,7 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+}: RechartsPrimitive.TooltipProps<ValueType, NameType> &
   React.ComponentProps<"div"> & {
     hideLabel?: boolean
     hideIndicator?: boolean

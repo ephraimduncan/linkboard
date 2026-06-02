@@ -206,13 +206,13 @@ export function SignupForm({
               const e = state.errorMap.onSubmit;
               return typeof e === "string" ? e : null;
             }}
-            children={(error) =>
+            children={(error: string | null) =>
               error ? <FieldError errors={[{ message: error }]} /> : null
             }
           />
           <form.Subscribe
             selector={(state) => state.isSubmitting}
-            children={(isSubmitting) => (
+            children={(isSubmitting: boolean) => (
               <Field>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Loading..." : "Sign up"}

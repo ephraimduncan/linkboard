@@ -1,10 +1,21 @@
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import {
+  Area as AreaBase,
+  AreaChart,
+  CartesianGrid,
+  XAxis as XAxisBase,
+  type AreaProps,
+  type XAxisProps,
+} from "recharts";
+import type { ComponentType } from "react";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+
+const XAxis = XAxisBase as unknown as ComponentType<XAxisProps>;
+const Area = AreaBase as unknown as ComponentType<AreaProps>;
 
 const chartConfig = {
   count: {
