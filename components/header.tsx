@@ -636,7 +636,6 @@ function BmrksLogo({ size = 24 }: { size?: number }) {
 function UserAvatar({ name, image }: { name: string; image?: string | null }) {
   if (image) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={image}
         alt={name}
