@@ -1,7 +1,7 @@
+import { env } from "cloudflare:workers";
 import { APP_URL } from "./config";
 
-const PLUNK_API_URL = "https://next-api.useplunk.com/v1/send";
-const FROM_EMAIL = "ephraim@minimal.so";
+const FROM_EMAIL = "noreply@mail.minimal.so";
 const FROM_NAME = "minimal";
 
 interface SendEmailParams {
@@ -13,7 +13,6 @@ interface SendEmailParams {
 
 export interface SendEmailResult {
   ok: boolean;
-  status?: number;
   error?: string;
 }
 
@@ -23,42 +22,23 @@ export async function sendEmail({
   html,
   text,
 }: SendEmailParams): Promise<SendEmailResult> {
-  const apiKey = process.env.PLUNK_API_KEY;
-  if (!apiKey) {
-    const error = "PLUNK_API_KEY not set";
-    console.error(`[email] ${error}, skipping email to`, to);
-    return { ok: false, error };
+  if (import.meta.env.DEV) {
+    console.log(
+      `\n[email:dev] EMAIL binding is a no-op locally. to=${to} subject="${subject}"\n${text ?? html}\n`,
+    );
+    return { ok: true };
   }
 
   try {
-    const res = await fetch(PLUNK_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        to: [to],
-        subject,
-        body: html,
-        from: FROM_EMAIL,
-        name: FROM_NAME,
-      }),
+    await env.EMAIL.send({
+      to,
+      from: { email: FROM_EMAIL, name: FROM_NAME },
+      subject,
+      html,
+      text,
     });
 
-    if (!res.ok) {
-      const body = await res.text();
-      console.error("[email] Plunk error:", res.status, body);
-      return { ok: false, status: res.status, error: body || "Plunk error" };
-    }
-
-    const data = await res.json();
-    if (!data.success) {
-      console.error("[email] Plunk rejected:", data);
-      return { ok: false, error: "Plunk rejected the request" };
-    }
-
-    return { ok: true, status: res.status };
+    return { ok: true };
   } catch (err) {
     console.error("[email] Failed to send:", err);
     const error = err instanceof Error ? err.message : "Unknown email error";

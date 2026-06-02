@@ -2,6 +2,7 @@
 
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { APP_URL } from "@/lib/config";
 
 export type BillingCycle = "monthly" | "yearly";
 
@@ -11,7 +12,7 @@ export const CHECKOUT_SLUGS: Record<BillingCycle, string> = {
 };
 
 export function getAppOrigin(): string {
-  return process.env.NEXT_PUBLIC_APP_URL?.trim() || window.location.origin;
+  return APP_URL;
 }
 
 export async function startCheckout(options: {

@@ -1,12 +1,10 @@
-"use client";
-
-import dynamic from "next/dynamic";
-
-const Toaster = dynamic(
-  () => import("@/components/ui/sonner").then((m) => m.Toaster),
-  { ssr: false }
-);
+import { ClientOnly } from "@tanstack/react-router";
+import { Toaster } from "@/components/ui/sonner";
 
 export function ToasterProvider() {
-  return <Toaster />;
+  return (
+    <ClientOnly>
+      <Toaster />
+    </ClientOnly>
+  );
 }

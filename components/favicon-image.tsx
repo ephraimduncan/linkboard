@@ -50,7 +50,6 @@ export function FaviconImage({ url, className }: FaviconImageProps) {
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt=""

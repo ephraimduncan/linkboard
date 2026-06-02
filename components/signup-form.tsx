@@ -1,8 +1,5 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRef } from "react";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { OAuthButton } from "@/components/oauth-button";
 import { useAutofill } from "@/hooks/use-autofill";
-import posthog from "posthog-js";
 import { signUp } from "@/lib/auth-client";
 import { signupSchema } from "@/lib/schema";
 import { type BillingCycle } from "@/lib/checkout";
@@ -32,10 +28,10 @@ export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const selectedPlan = searchParams.get("plan");
-  const billingCycleParam = searchParams.get("billingCycle");
+  const navigate = useNavigate();
+  const search = useSearch({ strict: false });
+  const selectedPlan = search.plan;
+  const billingCycleParam = search.billingCycle;
   const billingCycle: BillingCycle =
     billingCycleParam === "monthly" ? "monthly" : "yearly";
   const isProSignup = selectedPlan === "pro";
@@ -45,10 +41,6 @@ export function SignupForm({
 
   type AuthData = Awaited<ReturnType<typeof signUp.email>>["data"];
   const authRef = useRef<AuthData>(null);
-
-  useEffect(() => {
-    posthog.capture("signup_started");
-  }, []);
 
   const form = useForm({
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
@@ -69,21 +61,27 @@ export function SignupForm({
       },
     },
     onSubmit: async ({ value }) => {
-      if (authRef.current?.user) {
-        posthog.identify(authRef.current.user.id, {
-          email: authRef.current.user.email,
-          name: authRef.current.user.name,
-          created_at: authRef.current.user.createdAt,
-        });
-        posthog.capture("signup_account_created");
+      if (import.meta.env.DEV) {
+        if (isProSignup) {
+          navigate({
+            to: "/signup/complete",
+            search: { plan: "pro", billingCycle },
+          });
+        } else {
+          navigate({ to: "/dashboard" });
+        }
+        return;
       }
-
-      const verifyParams = new URLSearchParams({ email: value.email });
+      const verifySearch: {
+        email: string;
+        plan?: string;
+        billingCycle?: string;
+      } = { email: value.email };
       if (isProSignup) {
-        verifyParams.set("plan", "pro");
-        verifyParams.set("billingCycle", billingCycle);
+        verifySearch.plan = "pro";
+        verifySearch.billingCycle = billingCycle;
       }
-      router.push(`/signup/verify-email?${verifyParams}`);
+      navigate({ to: "/signup/verify-email", search: verifySearch });
     },
   });
 
@@ -205,20 +203,20 @@ export function SignupForm({
               const e = state.errorMap.onSubmit;
               return typeof e === "string" ? e : null;
             }}
-            children={(error) =>
+            children={(error: string | null) =>
               error ? <FieldError errors={[{ message: error }]} /> : null
             }
           />
           <form.Subscribe
             selector={(state) => state.isSubmitting}
-            children={(isSubmitting) => (
+            children={(isSubmitting: boolean) => (
               <Field>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Loading..." : "Sign up"}
                 </Button>
                 <FieldDescription className="text-center">
                   Already have an account?{" "}
-                  <Link href="/login" className="underline underline-offset-4">
+                  <Link to="/login" className="underline underline-offset-4">
                     Login
                   </Link>
                 </FieldDescription>

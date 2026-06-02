@@ -1,36 +1,39 @@
-"use client";
-
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { useQueryState } from "nuqs";
+import {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useMemo,
+  lazy,
+  Suspense,
+} from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import posthog from "posthog-js";
-import dynamic from "next/dynamic";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ClientOnly, useNavigate, useSearch } from "@tanstack/react-router";
 import { Header } from "@/components/header";
 import { BookmarkInput } from "@/components/bookmark-input";
 import { BookmarkList } from "@/components/bookmark-list";
 import { BookmarkListSkeleton } from "@/components/dashboard-skeleton";
 
-const MultiSelectToolbar = dynamic(
-  () =>
-    import("@/components/multi-select-toolbar").then(
-      (m) => m.MultiSelectToolbar,
-    ),
-  { ssr: false },
+const MultiSelectToolbar = lazy(() =>
+  import("@/components/multi-select-toolbar").then((m) => ({
+    default: m.MultiSelectToolbar,
+  })),
 );
-const BulkMoveDialog = dynamic(
-  () => import("@/components/bulk-move-dialog").then((m) => m.BulkMoveDialog),
-  { ssr: false },
+const BulkMoveDialog = lazy(() =>
+  import("@/components/bulk-move-dialog").then((m) => ({
+    default: m.BulkMoveDialog,
+  })),
 );
-const BulkDeleteDialog = dynamic(
-  () =>
-    import("@/components/bulk-delete-dialog").then((m) => m.BulkDeleteDialog),
-  { ssr: false },
+const BulkDeleteDialog = lazy(() =>
+  import("@/components/bulk-delete-dialog").then((m) => ({
+    default: m.BulkDeleteDialog,
+  })),
 );
-const ExportDialog = dynamic(
-  () => import("@/components/export-dialog").then((m) => m.ExportDialog),
-  { ssr: false },
+const ExportDialog = lazy(() =>
+  import("@/components/export-dialog").then((m) => ({
+    default: m.ExportDialog,
+  })),
 );
 const preloadBulkMoveDialog = () => import("@/components/bulk-move-dialog");
 const preloadBulkDeleteDialog = () => import("@/components/bulk-delete-dialog");
@@ -42,7 +45,6 @@ import { client, orpc } from "@/lib/orpc";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useFocusRefetch } from "@/hooks/use-focus-refetch";
 import { useLatestRef } from "@/lib/hooks/use-latest-ref";
-import { hasActiveProAccess } from "@/lib/plan-limits";
 import { PastDueBanner } from "@/components/past-due-banner";
 import type { BookmarkType, GroupItem, BookmarkItem } from "@/lib/schema";
 import type { Session } from "@/lib/auth";
@@ -82,13 +84,21 @@ export function DashboardContent({
   initialBookmarks,
   profile,
 }: DashboardContentProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const navigate = useNavigate();
+  const search = useSearch({ strict: false });
   const queryClient = useQueryClient();
   const [mountedAt] = useState(Date.now);
 
-  const [groupSlug, setGroupSlug] = useQueryState("group");
+  const groupSlug = search.group ?? null;
+  const setGroupSlug = useCallback(
+    (value: string | null) =>
+      navigate({
+        to: "/dashboard",
+        search: (prev) => ({ ...prev, group: value ?? undefined }),
+        replace: true,
+      }),
+    [navigate],
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
@@ -109,7 +119,6 @@ export function DashboardContent({
   });
 
   const groups = useMemo(() => groupsQuery.data ?? [], [groupsQuery.data]);
-  const hasProAccess = hasActiveProAccess(profile.plan, profile.subscriptionStatus, profile.subscriptionCurrentPeriodEnd);
 
   const hasUsername = profile.username !== null;
   const publicGroupIds = useMemo(
@@ -118,7 +127,7 @@ export function DashboardContent({
   );
 
   useEffect(() => {
-    const checkoutStatus = searchParams.get("checkout");
+    const checkoutStatus = search.checkout;
 
     if (!checkoutStatus) {
       return;
@@ -130,32 +139,17 @@ export function DashboardContent({
       });
     }
 
-    const nextParams = new URLSearchParams(searchParams.toString());
-    nextParams.delete("checkout");
-    nextParams.delete("checkout_id");
-    router.replace(
-      nextParams.toString() ? `${pathname}?${nextParams.toString()}` : pathname,
-      { scroll: false },
-    );
-  }, [pathname, router, searchParams]);
-
-  useEffect(() => {
-    if (posthog.get_distinct_id() === session.user.id) return;
-
-    posthog.identify(session.user.id, {
-      email: session.user.email,
-      name: session.user.name,
-      created_at: session.user.createdAt,
+    navigate({
+      to: "/dashboard",
+      search: (prev) => {
+        const { checkout: _checkout, checkout_id: _checkoutId, ...rest } = prev;
+        return rest;
+      },
+      replace: true,
     });
-  }, [session]);
+  }, [navigate, search.checkout]);
 
   useFocusRefetch(groups);
-
-  useEffect(() => {
-    if (debouncedSearchQuery) {
-      posthog.capture("bookmark_searched");
-    }
-  }, [debouncedSearchQuery]);
 
   useEffect(() => {
     if (selectionMode) {
@@ -220,7 +214,7 @@ export function DashboardContent({
         queryClient.getQueryData<GroupItem[]>(groupListKey());
 
       const optimisticBookmark: BookmarkItem = {
-        id: `temp-${Date.now()}`,
+        id: newBookmark.id ?? crypto.randomUUID(),
         title: newBookmark.title,
         url: newBookmark.url || null,
         favicon: null,
@@ -264,16 +258,52 @@ export function DashboardContent({
       }
       toast.error(err.message || "Failed to create bookmark");
     },
-    onSuccess: () => {
-      posthog.capture("bookmark_created");
-    },
-    onSettled: (_data, _error, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: orpc.bookmark.list.key({
-          input: { groupId: variables.groupId },
-        }),
+    onSuccess: (created, variables) => {
+      if (!created) return;
+      const { groupId, id: clientId } = variables;
+      const serverItem: BookmarkItem = {
+        id: created.id,
+        title: created.title,
+        url: created.url ?? null,
+        favicon: created.favicon ?? null,
+        type: created.type,
+        color: created.color ?? null,
+        isPublic: created.isPublic ?? null,
+        groupId: created.groupId,
+        createdAt: created.createdAt,
+      };
+      const isDedup = serverItem.id !== clientId;
+
+      // Reconcile the optimistic row with the persisted one in place. The
+      // optimistic item already uses the final id (clientId), so its React key
+      // never changes — the row updates its title/favicon without remounting,
+      // which is what previously reloaded favicons and shifted rows on every add.
+      queryClient.setQueryData<BookmarkItem[]>(bookmarkListKey(groupId), (old) => {
+        if (!old) return old;
+        if (isDedup) {
+          // Server merged into an existing bookmark: drop the placeholder and
+          // refresh the existing row in its original position.
+          return old
+            .filter((b) => b.id !== clientId)
+            .map((b) => (b.id === serverItem.id ? serverItem : b));
+        }
+        const idx = clientId ? old.findIndex((b) => b.id === clientId) : -1;
+        if (idx === -1) return old; // placeholder removed in-flight; don't resurrect
+        const next = old.slice();
+        next[idx] = serverItem;
+        return next;
       });
-      queryClient.invalidateQueries({ queryKey: orpc.group.key() });
+
+      // A dedup hit added no new bookmark; undo the optimistic count bump.
+      if (isDedup) {
+        queryClient.setQueryData<GroupItem[]>(groupListKey(), (old) =>
+          old?.map((g) =>
+            g.id === groupId
+              ? { ...g, bookmarkCount: Math.max(0, (g.bookmarkCount ?? 0) - 1) }
+              : g,
+          ),
+        );
+      }
     },
   });
 
@@ -380,15 +410,6 @@ export function DashboardContent({
 
       return { previousBookmarks, sourceGroupId, previousGroups };
     },
-    onSuccess: (_data, variables) => {
-      const isMove =
-        variables.groupId &&
-        variables._sourceGroupId &&
-        variables.groupId !== variables._sourceGroupId;
-      if (isMove) return;
-
-      posthog.capture("bookmark_edited");
-    },
     onError: (_err, data, context) => {
       if (
         context?.previousSourceBookmarks !== undefined &&
@@ -478,9 +499,6 @@ export function DashboardContent({
         previousGroupSlug,
         optimisticId: optimisticGroup.id,
       };
-    },
-    onSuccess: () => {
-      posthog.capture("collection_created");
     },
     onError: (err, _newGroup, context) => {
       if (context?.previousGroups) {
@@ -603,9 +621,6 @@ export function DashboardContent({
       );
 
       return { previousBookmarks, previousGroups, groupId };
-    },
-    onSuccess: () => {
-      posthog.capture("bookmark_deleted");
     },
     onError: (_err, _data, context) => {
       if (context?.previousBookmarks) {
@@ -1021,10 +1036,13 @@ export function DashboardContent({
       const trimmedValue = value.trim();
       if (!trimmedValue) return;
 
+      const id = crypto.randomUUID();
+
       const colorResult = parseColor(trimmedValue);
 
       if (colorResult.isColor) {
         createBookmarkMutation.mutate({
+          id,
           title: colorResult.original || trimmedValue,
           url: "",
           type: "color",
@@ -1034,6 +1052,7 @@ export function DashboardContent({
       } else if (!trimmedValue.includes("\n") && isUrl(trimmedValue)) {
         const url = normalizeUrl(trimmedValue);
         createBookmarkMutation.mutate({
+          id,
           title: new URL(url).hostname.replace("www.", ""),
           url,
           type: "link",
@@ -1041,6 +1060,7 @@ export function DashboardContent({
         });
       } else {
         createBookmarkMutation.mutate({
+          id,
           title: trimmedValue,
           url: "",
           type: "text",
@@ -1246,7 +1266,6 @@ export function DashboardContent({
 
       if ((e.metaKey || e.ctrlKey) && e.key === "c") {
         e.preventDefault();
-        posthog.capture("keyboard_shortcut_used", { shortcut: "cmd+c" });
         const textToCopy =
           activeBookmark.url || activeBookmark.color || activeBookmark.title;
         navigator.clipboard.writeText(textToCopy ?? "");
@@ -1254,13 +1273,11 @@ export function DashboardContent({
 
       if ((e.metaKey || e.ctrlKey) && e.key === "e") {
         e.preventDefault();
-        posthog.capture("keyboard_shortcut_used", { shortcut: "cmd+e" });
         handleStartRenameRef.current(activeBookmark.id);
       }
 
       if ((e.metaKey || e.ctrlKey) && e.key === "Backspace") {
         e.preventDefault();
-        posthog.capture("keyboard_shortcut_used", { shortcut: "cmd+backspace" });
         handleDeleteBookmarkRef.current(activeBookmark.id);
       }
     };
@@ -1340,50 +1357,56 @@ export function DashboardContent({
             onToggleVisibility={handleToggleBookmarkVisibility}
           />
         )}
-        <AnimatePresence initial={false}>
-        {selectionMode && selectedIds.size > 0 && (
-          <MultiSelectToolbar
-            onSelectAll={handleSelectAll}
-            onMove={() => setMoveDialogOpen(true)}
-            onCopyUrls={handleCopyUrls}
-            onExport={handleQuickExportAction}
-            onDelete={() => setDeleteDialogOpen(true)}
-            onClose={handleExitSelectionMode}
-            hasUsername={hasUsername}
-            onMakePublic={
-              currentGroupId && publicGroupIds.has(currentGroupId)
-                ? undefined
-                : handleBulkMakePublic
-            }
-            onMakePrivate={
-              currentGroupId && publicGroupIds.has(currentGroupId)
-                ? handleBulkMakePrivate
-                : undefined
-            }
-          />
-        )}
-        </AnimatePresence>
-        <BulkMoveDialog
-          open={moveDialogOpen}
-          onOpenChange={setMoveDialogOpen}
-          groups={groups}
-          currentGroupId={currentGroupId || ""}
-          selectedCount={selectedIds.size}
-          onConfirm={handleConfirmMove}
-        />
-        <BulkDeleteDialog
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          count={selectedIds.size}
-          onConfirm={handleConfirmDelete}
-        />
-        <ExportDialog
-          open={exportDialogOpen}
-          onOpenChange={setExportDialogOpen}
-          mode="settings"
-          bookmarks={allBookmarks}
-          groups={groups}
-        />
+        <Suspense fallback={null}>
+          <AnimatePresence initial={false}>
+            {selectionMode && selectedIds.size > 0 && (
+              <MultiSelectToolbar
+                onSelectAll={handleSelectAll}
+                onMove={() => setMoveDialogOpen(true)}
+                onCopyUrls={handleCopyUrls}
+                onExport={handleQuickExportAction}
+                onDelete={() => setDeleteDialogOpen(true)}
+                onClose={handleExitSelectionMode}
+                hasUsername={hasUsername}
+                onMakePublic={
+                  currentGroupId && publicGroupIds.has(currentGroupId)
+                    ? undefined
+                    : handleBulkMakePublic
+                }
+                onMakePrivate={
+                  currentGroupId && publicGroupIds.has(currentGroupId)
+                    ? handleBulkMakePrivate
+                    : undefined
+                }
+              />
+            )}
+          </AnimatePresence>
+        </Suspense>
+        <ClientOnly>
+          <Suspense fallback={null}>
+            <BulkMoveDialog
+              open={moveDialogOpen}
+              onOpenChange={setMoveDialogOpen}
+              groups={groups}
+              currentGroupId={currentGroupId || ""}
+              selectedCount={selectedIds.size}
+              onConfirm={handleConfirmMove}
+            />
+            <BulkDeleteDialog
+              open={deleteDialogOpen}
+              onOpenChange={setDeleteDialogOpen}
+              count={selectedIds.size}
+              onConfirm={handleConfirmDelete}
+            />
+            <ExportDialog
+              open={exportDialogOpen}
+              onOpenChange={setExportDialogOpen}
+              mode="settings"
+              bookmarks={allBookmarks}
+              groups={groups}
+            />
+          </Suspense>
+        </ClientOnly>
       </main>
     </div>
   );

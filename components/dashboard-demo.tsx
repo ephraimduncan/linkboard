@@ -1,7 +1,5 @@
-"use client";
-
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { Header } from "@/components/header";
 import { BookmarkInput } from "@/components/bookmark-input";
 import { BookmarkList } from "@/components/bookmark-list";
@@ -295,7 +293,7 @@ function getFaviconUrl(url: string): string {
 }
 
 export function DashboardDemo() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>(() =>
     initialBookmarks.map((b) => ({ ...b, favicon: null })),
@@ -330,7 +328,7 @@ export function DashboardDemo() {
   const [renamingId, setRenamingId] = useState<string | null>(null);
 
   const handleLinkClick = () => {
-    router.push("/login");
+    navigate({ to: "/login" });
   };
 
   const groupsWithCounts = useMemo(() => {

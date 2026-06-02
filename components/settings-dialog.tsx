@@ -1,10 +1,7 @@
-"use client";
-
 import { useState, useCallback, useRef, type ChangeEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import posthog from "posthog-js";
 import { authClient } from "@/lib/auth-client";
 import { client, orpc } from "@/lib/orpc";
 import { isExtensionAvailable, sendExtensionMessage } from "@/lib/extension";
@@ -67,6 +64,37 @@ const ACCEPTED_AVATAR_TYPES = new Set([
 ]);
 
 const MAX_AVATAR_FILE_SIZE_BYTES = 2 * 1024 * 1024;
+const MAX_AVATAR_DIMENSION = 512;
+
+async function resizeAvatar(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file, {
+    imageOrientation: "from-image",
+  });
+  const scale = Math.min(
+    1,
+    MAX_AVATAR_DIMENSION / Math.max(bitmap.width, bitmap.height),
+  );
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    bitmap.close();
+    throw new Error("Image processing is not supported in this browser");
+  }
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) =>
+        blob ? resolve(blob) : reject(new Error("Failed to process image")),
+      "image/webp",
+      0.85,
+    );
+  });
+}
 
 interface SettingsDialogProps {
   open: boolean;
@@ -127,8 +155,9 @@ export function SettingsDialog({
 
     setIsUploading(true);
     try {
+      const resized = await resizeAvatar(file);
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", resized, "avatar.webp");
 
       const response = await fetch("/api/avatar", {
         method: "POST",
@@ -143,7 +172,7 @@ export function SettingsDialog({
 
       setAvatarUrl(data.url);
       toast.success("Avatar updated");
-      router.refresh();
+      router.invalidate();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to upload avatar",
@@ -171,7 +200,7 @@ export function SettingsDialog({
 
       setAvatarUrl(null);
       toast.success("Avatar removed");
-      router.refresh();
+      router.invalidate();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to remove avatar",
@@ -196,10 +225,9 @@ export function SettingsDialog({
       return;
     }
 
-    posthog.capture("settings_updated");
     toast.success("Name updated");
     onOpenChange(false);
-    router.refresh();
+    router.invalidate();
   };
 
   const handleImportBookmarks = async () => {
@@ -474,10 +502,9 @@ function ProfileTab({ profile, onOpenChange }: ProfileTabProps) {
     mutationFn: (data: Parameters<typeof client.profile.update>[0]) =>
       client.profile.update(data),
     onSuccess: () => {
-      posthog.capture("settings_updated");
       toast.success("Profile updated");
       onOpenChange(false);
-      router.refresh();
+      router.invalidate();
     },
     onError: (err) => {
       toast.error(err.message || "Failed to update profile");
@@ -1081,7 +1108,7 @@ function BillingTab({ profile }: { profile: ProfileData }) {
 
   const handleUpgrade = () => {
     const billingCycle =
-      process.env.NEXT_PUBLIC_DEFAULT_BILLING_CYCLE === "monthly"
+      import.meta.env.VITE_DEFAULT_BILLING_CYCLE === "monthly"
         ? ("monthly" as const)
         : ("yearly" as const);
     setIsBillingPending(true);

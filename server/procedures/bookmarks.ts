@@ -1,5 +1,4 @@
 import { authed } from "../context";
-import { db } from "@/lib/db";
 import {
   listBookmarksInputSchema,
   createBookmarkSchema,
@@ -14,13 +13,17 @@ import { getUrlMetadata } from "@/lib/url-metadata";
 import { normalizeUrl, canonicalizeUrl } from "@/lib/utils";
 import { z } from "zod";
 import { ORPCError } from "@orpc/server";
+import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
+import type { DB } from "@/lib/db";
+import { bookmark, group } from "@/lib/db/schema";
 
-async function assertGroupOwnership(groupId: string, userId: string) {
-  const group = await db.group.findFirst({
-    where: { id: groupId, userId },
-    select: { id: true },
-  });
-  if (!group) {
+async function assertGroupOwnership(db: DB, groupId: string, userId: string) {
+  const [found] = await db
+    .select({ id: group.id })
+    .from(group)
+    .where(and(eq(group.id, groupId), eq(group.userId, userId)))
+    .limit(1);
+  if (!found) {
     throw new ORPCError("NOT_FOUND", { message: "Group not found" });
   }
 }
@@ -28,20 +31,23 @@ async function assertGroupOwnership(groupId: string, userId: string) {
 export const listBookmarks = authed
   .input(listBookmarksInputSchema)
   .handler(async ({ context, input }) => {
-    const bookmarks = await db.bookmark.findMany({
-      where: {
-        userId: context.user.id,
-        ...(input.groupId && { groupId: input.groupId }),
-      },
-      orderBy: { updatedAt: "desc" },
-    });
-    return bookmarks;
+    return context.db
+      .select()
+      .from(bookmark)
+      .where(
+        and(
+          eq(bookmark.userId, context.user.id),
+          input.groupId ? eq(bookmark.groupId, input.groupId) : undefined,
+        ),
+      )
+      .orderBy(desc(bookmark.createdAt), desc(bookmark.id));
   });
 
 export const createBookmark = authed
   .input(createBookmarkSchema)
   .handler(async ({ context, input }) => {
-    await assertGroupOwnership(input.groupId, context.user.id);
+    const { db } = context;
+    await assertGroupOwnership(db, input.groupId, context.user.id);
     let title = input.title;
     let favicon: string | null = null;
     let url = input.url || null;
@@ -50,27 +56,34 @@ export const createBookmark = authed
       const normalizedUrl = normalizeUrl(input.url);
       url = normalizedUrl;
 
-      const [existing, metadata] = await Promise.all([
-        db.bookmark.findFirst({
-          where: {
-            userId: context.user.id,
-            groupId: input.groupId,
-            url: normalizedUrl,
-          },
-        }),
+      const [[existing], metadata] = await Promise.all([
+        db
+          .select()
+          .from(bookmark)
+          .where(
+            and(
+              eq(bookmark.userId, context.user.id),
+              eq(bookmark.groupId, input.groupId),
+              eq(bookmark.url, normalizedUrl),
+            ),
+          )
+          .limit(1),
         getUrlMetadata(normalizedUrl),
       ]);
 
       if (existing) {
-        const bookmark = await db.bookmark.update({
-          where: { id: existing.id, userId: context.user.id },
-          data: {
+        const [updated] = await db
+          .update(bookmark)
+          .set({
             title: metadata.title || existing.title,
             favicon: metadata.favicon || existing.favicon,
             updatedAt: new Date(),
-          },
-        });
-        return bookmark;
+          })
+          .where(
+            and(eq(bookmark.id, existing.id), eq(bookmark.userId, context.user.id)),
+          )
+          .returning();
+        return updated;
       }
 
       if (metadata.title) {
@@ -79,8 +92,10 @@ export const createBookmark = authed
       favicon = metadata.favicon;
     }
 
-    const bookmark = await db.bookmark.create({
-      data: {
+    const [created] = await db
+      .insert(bookmark)
+      .values({
+        id: input.id,
         title,
         url,
         normalizedUrl: url ? canonicalizeUrl(url) : null,
@@ -89,101 +104,103 @@ export const createBookmark = authed
         color: input.color,
         groupId: input.groupId,
         userId: context.user.id,
-      },
-    });
-    return bookmark;
+      })
+      .returning();
+    return created;
   });
 
 export const updateBookmark = authed
   .input(updateBookmarkSchema)
   .handler(async ({ context, input }) => {
+    const { db } = context;
     const { id, ...data } = input;
-    const updateData: Record<string, unknown> = { ...data };
+    const updateData: Partial<typeof bookmark.$inferInsert> = { ...data };
 
     if (data.groupId) {
-      await assertGroupOwnership(data.groupId, context.user.id);
-      const existing = await db.bookmark.findFirst({
-        where: { id, userId: context.user.id },
-        select: { groupId: true },
-      });
+      await assertGroupOwnership(db, data.groupId, context.user.id);
+      const [existing] = await db
+        .select({ groupId: bookmark.groupId })
+        .from(bookmark)
+        .where(and(eq(bookmark.id, id), eq(bookmark.userId, context.user.id)))
+        .limit(1);
       if (existing && existing.groupId !== data.groupId) {
         updateData.isPublic = null;
       }
     }
 
-    const bookmark = await db.bookmark.update({
-      where: { id, userId: context.user.id },
-      data: updateData,
-    });
-    return bookmark;
+    const [updated] = await db
+      .update(bookmark)
+      .set(updateData)
+      .where(and(eq(bookmark.id, id), eq(bookmark.userId, context.user.id)))
+      .returning();
+    return updated;
   });
 
 export const deleteBookmark = authed
   .input(deleteByIdSchema)
   .handler(async ({ context, input }) => {
-    await db.bookmark.deleteMany({
-      where: { id: input.id, userId: context.user.id },
-    });
+    await context.db
+      .delete(bookmark)
+      .where(and(eq(bookmark.id, input.id), eq(bookmark.userId, context.user.id)));
     return { success: true };
   });
 
 export const listGroups = authed.handler(async ({ context }) => {
-  const groups = await db.group.findMany({
-    where: { userId: context.user.id },
-    orderBy: { createdAt: "asc" },
-    include: {
-      _count: {
-        select: { bookmarks: true },
-      },
-    },
-  });
-  return groups.map((g) => ({
-    id: g.id,
-    name: g.name,
-    color: g.color,
-    isPublic: g.isPublic,
-    bookmarkCount: g._count.bookmarks,
-  }));
+  return context.db
+    .select({
+      id: group.id,
+      name: group.name,
+      color: group.color,
+      isPublic: group.isPublic,
+      bookmarkCount: count(bookmark.id),
+    })
+    .from(group)
+    .leftJoin(bookmark, eq(bookmark.groupId, group.id))
+    .where(eq(group.userId, context.user.id))
+    .groupBy(group.id)
+    .orderBy(asc(group.createdAt));
 });
 
 export const createGroup = authed
   .input(createGroupSchema)
   .handler(async ({ context, input }) => {
-    const group = await db.group.create({
-      data: {
-        ...input,
-        userId: context.user.id,
-      },
-    });
-    return group;
+    const [created] = await context.db
+      .insert(group)
+      .values({ ...input, userId: context.user.id })
+      .returning();
+    return created;
   });
 
 export const updateGroup = authed
   .input(updateGroupSchema)
   .handler(async ({ context, input }) => {
     const { id, ...data } = input;
-    const group = await db.group.update({
-      where: { id, userId: context.user.id },
-      data,
-    });
-    return group;
+    const [updated] = await context.db
+      .update(group)
+      .set(data)
+      .where(and(eq(group.id, id), eq(group.userId, context.user.id)))
+      .returning();
+    return updated;
   });
 
 export const deleteGroup = authed
   .input(deleteByIdSchema)
   .handler(async ({ context, input }) => {
-    await db.group.deleteMany({
-      where: { id: input.id, userId: context.user.id },
-    });
+    await context.db
+      .delete(group)
+      .where(and(eq(group.id, input.id), eq(group.userId, context.user.id)));
     return { success: true };
   });
 
 export const refetchBookmark = authed
   .input(z.object({ id: z.string() }))
   .handler(async ({ context, input }) => {
-    const existing = await db.bookmark.findFirst({
-      where: { id: input.id, userId: context.user.id },
-    });
+    const { db } = context;
+    const [existing] = await db
+      .select()
+      .from(bookmark)
+      .where(and(eq(bookmark.id, input.id), eq(bookmark.userId, context.user.id)))
+      .limit(1);
 
     if (!existing || !existing.url) {
       throw new ORPCError("NOT_FOUND", {
@@ -193,49 +210,57 @@ export const refetchBookmark = authed
 
     const metadata = await getUrlMetadata(existing.url);
 
-    const bookmark = await db.bookmark.update({
-      where: { id: input.id, userId: context.user.id },
-      data: {
+    const [updated] = await db
+      .update(bookmark)
+      .set({
         title: metadata.title || existing.title,
         favicon: metadata.favicon,
-      },
-    });
+      })
+      .where(and(eq(bookmark.id, input.id), eq(bookmark.userId, context.user.id)))
+      .returning();
 
-    return bookmark;
+    return updated;
   });
 
 export const bulkDeleteBookmarks = authed
   .input(bulkDeleteBookmarksSchema)
   .handler(async ({ context, input }) => {
-    const result = await db.bookmark.deleteMany({
-      where: { id: { in: input.ids }, userId: context.user.id },
-    });
-    return { success: true, count: result.count };
+    const deleted = await context.db
+      .delete(bookmark)
+      .where(
+        and(inArray(bookmark.id, input.ids), eq(bookmark.userId, context.user.id)),
+      )
+      .returning({ id: bookmark.id });
+    return { success: true, count: deleted.length };
   });
 
 export const bulkMoveBookmarks = authed
   .input(bulkMoveBookmarksSchema)
   .handler(async ({ context, input }) => {
-    await assertGroupOwnership(input.targetGroupId, context.user.id);
-    const result = await db.bookmark.updateMany({
-      where: { id: { in: input.ids }, userId: context.user.id },
-      data: {
+    await assertGroupOwnership(context.db, input.targetGroupId, context.user.id);
+    const moved = await context.db
+      .update(bookmark)
+      .set({
         groupId: input.targetGroupId,
         isPublic: null,
         updatedAt: new Date(),
-      },
-    });
-    return { success: true, count: result.count };
+      })
+      .where(
+        and(inArray(bookmark.id, input.ids), eq(bookmark.userId, context.user.id)),
+      )
+      .returning({ id: bookmark.id });
+    return { success: true, count: moved.length };
   });
 
 export const setBookmarkVisibility = authed
   .input(z.object({ id: z.string(), isPublic: z.boolean().nullable() }))
   .handler(async ({ context, input }) => {
-    const bookmark = await db.bookmark.update({
-      where: { id: input.id, userId: context.user.id },
-      data: { isPublic: input.isPublic },
-    });
-    return bookmark;
+    const [updated] = await context.db
+      .update(bookmark)
+      .set({ isPublic: input.isPublic })
+      .where(and(eq(bookmark.id, input.id), eq(bookmark.userId, context.user.id)))
+      .returning();
+    return updated;
   });
 
 export const bulkSetVisibility = authed
@@ -246,19 +271,23 @@ export const bulkSetVisibility = authed
     }),
   )
   .handler(async ({ context, input }) => {
-    const result = await db.bookmark.updateMany({
-      where: { id: { in: input.ids }, userId: context.user.id },
-      data: { isPublic: input.isPublic },
-    });
-    return { success: true, count: result.count };
+    const updated = await context.db
+      .update(bookmark)
+      .set({ isPublic: input.isPublic })
+      .where(
+        and(inArray(bookmark.id, input.ids), eq(bookmark.userId, context.user.id)),
+      )
+      .returning({ id: bookmark.id });
+    return { success: true, count: updated.length };
   });
 
 export const setGroupVisibility = authed
   .input(z.object({ id: z.string(), isPublic: z.boolean() }))
   .handler(async ({ context, input }) => {
-    const group = await db.group.update({
-      where: { id: input.id, userId: context.user.id },
-      data: { isPublic: input.isPublic },
-    });
-    return group;
+    const [updated] = await context.db
+      .update(group)
+      .set({ isPublic: input.isPublic })
+      .where(and(eq(group.id, input.id), eq(group.userId, context.user.id)))
+      .returning();
+    return updated;
   });

@@ -1,7 +1,4 @@
-"use client";
-
-import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,10 +18,10 @@ export function ResetPasswordForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const token = searchParams.get("token");
-  const urlError = searchParams.get("error");
+  const navigate = useNavigate();
+  const search = useSearch({ strict: false });
+  const token = search.token;
+  const urlError = search.error;
 
   const form = useForm({
     defaultValues: { password: "", confirmPassword: "" },
@@ -43,7 +40,7 @@ export function ResetPasswordForm({
     },
     onSubmit: () => {
       toast.success("Password reset successfully");
-      router.push("/login");
+      navigate({ to: "/login" });
     },
   });
 
@@ -58,7 +55,7 @@ export function ResetPasswordForm({
         </div>
         <FieldDescription className="text-center">
           <Link
-            href="/forgot-password"
+            to="/forgot-password"
             className="underline underline-offset-4"
           >
             Request a new reset link
@@ -127,20 +124,20 @@ export function ResetPasswordForm({
               const e = state.errorMap.onSubmit;
               return typeof e === "string" ? e : null;
             }}
-            children={(error) =>
+            children={(error: string | null) =>
               error ? <FieldError errors={[{ message: error }]} /> : null
             }
           />
           <form.Subscribe
             selector={(state) => state.isSubmitting}
-            children={(isSubmitting) => (
+            children={(isSubmitting: boolean) => (
               <Field>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Loading..." : "Reset password"}
                 </Button>
                 <FieldDescription className="text-center">
                   <Link
-                    href="/login"
+                    to="/login"
                     className="underline underline-offset-4"
                   >
                     Back to login

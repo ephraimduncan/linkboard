@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -52,7 +50,7 @@ export function ForgotPasswordForm({
           </p>
         </div>
         <FieldDescription className="text-center">
-          <Link href="/login" className="underline underline-offset-4">
+          <Link to="/login" className="underline underline-offset-4">
             Back to login
           </Link>
         </FieldDescription>
@@ -99,20 +97,20 @@ export function ForgotPasswordForm({
               const e = state.errorMap.onSubmit;
               return typeof e === "string" ? e : null;
             }}
-            children={(error) =>
+            children={(error: string | null) =>
               error ? <FieldError errors={[{ message: error }]} /> : null
             }
           />
           <form.Subscribe
             selector={(state) => state.isSubmitting}
-            children={(isSubmitting) => (
+            children={(isSubmitting: boolean) => (
               <Field>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Loading..." : "Send reset link"}
                 </Button>
                 <FieldDescription className="text-center">
                   Remember your password?{" "}
-                  <Link href="/login" className="underline underline-offset-4">
+                  <Link to="/login" className="underline underline-offset-4">
                     Login
                   </Link>
                 </FieldDescription>

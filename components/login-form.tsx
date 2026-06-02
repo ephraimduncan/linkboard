@@ -1,8 +1,5 @@
-"use client";
-
 import { useRef } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { OAuthButton } from "@/components/oauth-button";
 import { useAutofill } from "@/hooks/use-autofill";
-import posthog from "posthog-js";
 import { signIn } from "@/lib/auth-client";
 import { loginSchema } from "@/lib/schema";
 
@@ -29,7 +25,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const router = useRouter();
+  const navigate = useNavigate();
   type AuthData = Awaited<ReturnType<typeof signIn.email>>["data"];
   const authRef = useRef<AuthData>(null);
 
@@ -45,9 +41,10 @@ export function LoginForm({
         });
         if (error) {
           if (error.code === "EMAIL_NOT_VERIFIED") {
-            router.push(
-              `/signup/verify-email?email=${encodeURIComponent(value.email)}`
-            );
+            navigate({
+              to: "/signup/verify-email",
+              search: { email: value.email },
+            });
             return { form: "", fields: {} };
           }
           return { form: error.message ?? "An error occurred", fields: {} };
@@ -57,15 +54,7 @@ export function LoginForm({
       },
     },
     onSubmit: () => {
-      if (authRef.current?.user) {
-        posthog.identify(authRef.current.user.id, {
-          email: authRef.current.user.email,
-          name: authRef.current.user.name,
-          created_at: authRef.current.user.createdAt,
-        });
-        posthog.capture("login_completed");
-      }
-      router.push("/dashboard");
+      navigate({ to: "/dashboard" });
     },
   });
 
@@ -129,7 +118,7 @@ export function LoginForm({
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                   <Link
-                    href="/forgot-password"
+                    to="/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Forgot your password?
@@ -153,20 +142,20 @@ export function LoginForm({
               const e = state.errorMap.onSubmit;
               return typeof e === "string" ? e : null;
             }}
-            children={(error) =>
+            children={(error: string | null) =>
               error ? <FieldError errors={[{ message: error }]} /> : null
             }
           />
           <form.Subscribe
             selector={(state) => state.isSubmitting}
-            children={(isSubmitting) => (
+            children={(isSubmitting: boolean) => (
               <Field>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Loading..." : "Login"}
                 </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}
-                  <Link href="/signup" className="underline underline-offset-4">
+                  <Link to="/signup" className="underline underline-offset-4">
                     Sign up
                   </Link>
                 </FieldDescription>

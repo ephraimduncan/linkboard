@@ -88,6 +88,7 @@ export const bookmarkItemSchema = z.object({
 });
 
 export const createBookmarkSchema = z.object({
+  id: z.string().optional(),
   title: z.string(),
   url: z.string().optional(),
   type: bookmarkTypeSchema.default("link"),
