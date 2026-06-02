@@ -1,9 +1,7 @@
-import "server-only";
-
 import { PostHog } from "posthog-node";
 
-function createPostHogServer(): PostHog | null {
-  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+export function getPosthogServer(): PostHog | null {
+  const key = import.meta.env.VITE_POSTHOG_KEY;
   if (!key) return null;
 
   return new PostHog(key, {
@@ -12,5 +10,3 @@ function createPostHogServer(): PostHog | null {
     flushInterval: 0,
   });
 }
-
-export const posthogServer = createPostHogServer();

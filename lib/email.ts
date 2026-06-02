@@ -52,7 +52,7 @@ export async function sendEmail({
       return { ok: false, status: res.status, error: body || "Plunk error" };
     }
 
-    const data = await res.json();
+    const data = (await res.json()) as { success?: boolean };
     if (!data.success) {
       console.error("[email] Plunk rejected:", data);
       return { ok: false, error: "Plunk rejected the request" };

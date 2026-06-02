@@ -1,20 +1,28 @@
 import { ORPCError, os } from "@orpc/server";
-import { headers } from "next/headers";
-import { auth, type Session } from "@/lib/auth";
+import { createAuth, type Session } from "@/lib/auth";
+import { createDb } from "@/lib/db";
 
-export const base = os.use(async ({ next }) => {
-  const headersList = await headers();
-  const session: Session | null = await auth.api.getSession({
-    headers: headersList,
-  });
+export interface InitialContext {
+  headers: Headers;
+}
 
-  return next({
-    context: {
-      session,
-      user: session?.user ?? null,
-    },
+export const base = os
+  .$context<InitialContext>()
+  .use(async ({ context, next }) => {
+    const db = createDb();
+    const auth = createAuth(db);
+    const session: Session | null = await auth.api.getSession({
+      headers: context.headers,
+    });
+
+    return next({
+      context: {
+        db,
+        session,
+        user: session?.user ?? null,
+      },
+    });
   });
-});
 
 export const authed = base.use(({ context, next }) => {
   if (!context.user) {

@@ -11,7 +11,7 @@ export const CHECKOUT_SLUGS: Record<BillingCycle, string> = {
 };
 
 export function getAppOrigin(): string {
-  return process.env.NEXT_PUBLIC_APP_URL?.trim() || window.location.origin;
+  return import.meta.env.VITE_APP_URL?.trim() || window.location.origin;
 }
 
 export async function startCheckout(options: {

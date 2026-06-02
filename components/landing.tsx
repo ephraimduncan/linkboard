@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { DashboardDemoLazy as DashboardDemo } from "@/components/dashboard-demo-lazy";
 import { LandingPricing } from "@/components/landing-pricing";
 
@@ -20,7 +20,7 @@ export function Landing() {
         className="mx-auto flex max-w-3xl items-center justify-between px-6 py-6"
         aria-label="Primary"
       >
-        <Link href="/" className="text-base font-semibold" aria-label="Homepage">
+        <Link to="/" className="text-base font-semibold" aria-label="Homepage">
           minimal
         </Link>
         <div className="flex items-center gap-6 text-sm text-zinc-500 dark:text-zinc-400">
@@ -31,13 +31,13 @@ export function Landing() {
             Pricing
           </a>
           <Link
-            href="/changelog"
+            to="/changelog"
             className="transition-colors hover:text-black dark:hover:text-white max-sm:hidden"
           >
             Changelog
           </Link>
           <Link
-            href="/login"
+            to="/login"
             className="transition-colors hover:text-black dark:hover:text-white"
           >
             Sign in
@@ -61,7 +61,7 @@ export function Landing() {
           style={{ animationDelay: "200ms" }}
         >
           <Link
-            href="/signup"
+            to="/signup"
             className="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
           >
             Get started
@@ -107,19 +107,19 @@ export function Landing() {
         <p>© {CURRENT_YEAR} minimal.so</p>
         <nav className="flex gap-6" aria-label="Footer">
           <Link
-            href="/terms"
+            to="/terms"
             className="transition-colors hover:text-black dark:hover:text-white"
           >
             Terms
           </Link>
           <Link
-            href="/privacy"
+            to="/privacy"
             className="transition-colors hover:text-black dark:hover:text-white"
           >
             Privacy
           </Link>
           <Link
-            href="/changelog"
+            to="/changelog"
             className="transition-colors hover:text-black dark:hover:text-white"
           >
             Changelog

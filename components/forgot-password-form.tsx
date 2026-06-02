@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -52,7 +50,7 @@ export function ForgotPasswordForm({
           </p>
         </div>
         <FieldDescription className="text-center">
-          <Link href="/login" className="underline underline-offset-4">
+          <Link to="/login" className="underline underline-offset-4">
             Back to login
           </Link>
         </FieldDescription>
@@ -112,7 +110,7 @@ export function ForgotPasswordForm({
                 </Button>
                 <FieldDescription className="text-center">
                   Remember your password?{" "}
-                  <Link href="/login" className="underline underline-offset-4">
+                  <Link to="/login" className="underline underline-offset-4">
                     Login
                   </Link>
                 </FieldDescription>

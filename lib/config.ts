@@ -1,2 +1,2 @@
 export const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ?? "https://minimal.so";
+  import.meta.env.VITE_APP_URL ?? "https://minimal.so";

@@ -1,8 +1,13 @@
-"use client";
-
-import { useState, useRef, useEffect, useCallback, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useTransition,
+  lazy,
+  Suspense,
+} from "react";
+import { useNavigate, ClientOnly } from "@tanstack/react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,14 +69,15 @@ import { type GroupItem } from "@/lib/schema";
 import type { ProfileData } from "@/components/dashboard-content";
 import { KeyboardShortcutsDialog } from "@/components/keyboard-shortcuts-dialog";
 import { ChromeIcon } from "@/components/chrome-icon";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 
 import { hasActiveProAccess } from "@/lib/plan-limits";
 import { startCheckout } from "@/lib/checkout";
 
-const SettingsDialog = dynamic(
-  () => import("@/components/settings-dialog").then((m) => m.SettingsDialog),
-  { ssr: false },
+const SettingsDialog = lazy(() =>
+  import("@/components/settings-dialog").then((m) => ({
+    default: m.SettingsDialog,
+  })),
 );
 const preloadSettingsDialog = () => import("@/components/settings-dialog");
 
@@ -112,7 +118,7 @@ export function Header({
   showUserMenu = true,
   logoSize = 24,
 }: HeaderProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { setTheme, theme } = useTheme();
   const [newGroupName, setNewGroupName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -147,7 +153,7 @@ export function Header({
 
   const handleUpgradeClick = () => {
     const billingCycle =
-      process.env.NEXT_PUBLIC_DEFAULT_BILLING_CYCLE === "monthly"
+      import.meta.env.VITE_DEFAULT_BILLING_CYCLE === "monthly"
         ? ("monthly" as const)
         : ("yearly" as const);
     startBillingTransition(async () => {
@@ -170,7 +176,7 @@ export function Header({
     setSignOutOpen(false);
     posthog.reset();
     await signOut();
-    router.push("/login");
+    navigate({ to: "/login" });
   };
 
   const handleCreateGroup = () => {
@@ -586,17 +592,21 @@ export function Header({
             open={shortcutsOpen}
             onOpenChange={setShortcutsOpen}
           />
-          <SettingsDialog
-            open={settingsOpen}
-            onOpenChange={setSettingsOpen}
-            user={{
-              name: userName,
-              email: userEmail,
-              image: userImage ?? null,
-            }}
-            profile={profile}
-            onExport={onExport}
-          />
+          <ClientOnly>
+            <Suspense fallback={null}>
+              <SettingsDialog
+                open={settingsOpen}
+                onOpenChange={setSettingsOpen}
+                user={{
+                  name: userName,
+                  email: userEmail,
+                  image: userImage ?? null,
+                }}
+                profile={profile}
+                onExport={onExport}
+              />
+            </Suspense>
+          </ClientOnly>
         </>
       ) : null}
     </header>

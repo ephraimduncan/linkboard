@@ -1,8 +1,5 @@
-"use client";
-
 import { useEffect, useRef } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,10 +29,10 @@ export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const selectedPlan = searchParams.get("plan");
-  const billingCycleParam = searchParams.get("billingCycle");
+  const navigate = useNavigate();
+  const search = useSearch({ strict: false });
+  const selectedPlan = search.plan;
+  const billingCycleParam = search.billingCycle;
   const billingCycle: BillingCycle =
     billingCycleParam === "monthly" ? "monthly" : "yearly";
   const isProSignup = selectedPlan === "pro";
@@ -78,12 +75,16 @@ export function SignupForm({
         posthog.capture("signup_account_created");
       }
 
-      const verifyParams = new URLSearchParams({ email: value.email });
+      const verifySearch: {
+        email: string;
+        plan?: string;
+        billingCycle?: string;
+      } = { email: value.email };
       if (isProSignup) {
-        verifyParams.set("plan", "pro");
-        verifyParams.set("billingCycle", billingCycle);
+        verifySearch.plan = "pro";
+        verifySearch.billingCycle = billingCycle;
       }
-      router.push(`/signup/verify-email?${verifyParams}`);
+      navigate({ to: "/signup/verify-email", search: verifySearch });
     },
   });
 
@@ -218,7 +219,7 @@ export function SignupForm({
                 </Button>
                 <FieldDescription className="text-center">
                   Already have an account?{" "}
-                  <Link href="/login" className="underline underline-offset-4">
+                  <Link to="/login" className="underline underline-offset-4">
                     Login
                   </Link>
                 </FieldDescription>

@@ -1,52 +1,64 @@
 import { ORPCError, os } from "@orpc/server";
-import { headers } from "next/headers";
-import { db } from "@/lib/db";
+import { eq } from "drizzle-orm";
+import { createDb } from "@/lib/db";
+import { apiKey } from "@/lib/db/schema";
 import { hasActiveProAccess } from "@/lib/plan-limits";
 import { hashApiKey } from "@/lib/api-key-hash";
 
+export interface ApiInitialContext {
+  headers: Headers;
+}
 
-export const apiBase = os.use(async ({ next }) => {
-  const headersList = await headers();
-  const authorization = headersList.get("authorization");
+export const apiBase = os
+  .$context<ApiInitialContext>()
+  .use(async ({ context, next }) => {
+    const authorization = context.headers.get("authorization");
 
-  if (!authorization || !authorization.startsWith("Bearer ")) {
-    throw new ORPCError("UNAUTHORIZED", {
-      message: "Invalid API key",
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      throw new ORPCError("UNAUTHORIZED", {
+        message: "Invalid API key",
+      });
+    }
+
+    const token = authorization.slice(7);
+    const keyHash = hashApiKey(token);
+
+    const db = createDb();
+    const found = await db.query.apiKey.findFirst({
+      where: eq(apiKey.keyHash, keyHash),
+      with: { user: true },
     });
-  }
 
-  const token = authorization.slice(7);
+    if (!found) {
+      throw new ORPCError("UNAUTHORIZED", {
+        message: "Invalid API key",
+      });
+    }
 
-  const keyHash = hashApiKey(token);
+    await db
+      .update(apiKey)
+      .set({ lastUsedAt: new Date() })
+      .where(eq(apiKey.id, found.id));
 
-  const apiKey = await db.apiKey.findUnique({
-    where: { keyHash },
-    include: { user: true },
-  });
+    if (
+      !hasActiveProAccess(
+        found.user.plan,
+        found.user.subscriptionStatus,
+        found.user.subscriptionCurrentPeriodEnd,
+      )
+    ) {
+      throw new ORPCError("FORBIDDEN", {
+        message: "API access requires an active Pro subscription",
+      });
+    }
 
-  if (!apiKey) {
-    throw new ORPCError("UNAUTHORIZED", {
-      message: "Invalid API key",
+    return next({
+      context: {
+        db,
+        user: found.user,
+        apiKeyId: found.id,
+      },
     });
-  }
-
-  await db.apiKey.update({
-    where: { id: apiKey.id },
-    data: { lastUsedAt: new Date() },
   });
-
-  if (!hasActiveProAccess(apiKey.user.plan, apiKey.user.subscriptionStatus, apiKey.user.subscriptionCurrentPeriodEnd)) {
-    throw new ORPCError("FORBIDDEN", {
-      message: "API access requires an active Pro subscription",
-    });
-  }
-
-  return next({
-    context: {
-      user: apiKey.user,
-      apiKeyId: apiKey.id,
-    },
-  });
-});
 
 export const apiAuthed = apiBase;

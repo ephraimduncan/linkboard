@@ -1,8 +1,5 @@
-"use client";
-
 import { useRef } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,7 +26,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const router = useRouter();
+  const navigate = useNavigate();
   type AuthData = Awaited<ReturnType<typeof signIn.email>>["data"];
   const authRef = useRef<AuthData>(null);
 
@@ -45,9 +42,10 @@ export function LoginForm({
         });
         if (error) {
           if (error.code === "EMAIL_NOT_VERIFIED") {
-            router.push(
-              `/signup/verify-email?email=${encodeURIComponent(value.email)}`
-            );
+            navigate({
+              to: "/signup/verify-email",
+              search: { email: value.email },
+            });
             return { form: "", fields: {} };
           }
           return { form: error.message ?? "An error occurred", fields: {} };
@@ -65,7 +63,7 @@ export function LoginForm({
         });
         posthog.capture("login_completed");
       }
-      router.push("/dashboard");
+      navigate({ to: "/dashboard" });
     },
   });
 
@@ -129,7 +127,7 @@ export function LoginForm({
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                   <Link
-                    href="/forgot-password"
+                    to="/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Forgot your password?
@@ -166,7 +164,7 @@ export function LoginForm({
                 </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}
-                  <Link href="/signup" className="underline underline-offset-4">
+                  <Link to="/signup" className="underline underline-offset-4">
                     Sign up
                   </Link>
                 </FieldDescription>

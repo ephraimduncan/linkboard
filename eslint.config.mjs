@@ -1,10 +1,8 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import tseslint from "typescript-eslint";
+import { globalIgnores } from "eslint/config";
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
+export default tseslint.config(
+  ...tseslint.configs.recommended,
   {
     rules: {
       "@typescript-eslint/no-unused-vars": [
@@ -18,14 +16,15 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-  // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
+    "dist/**",
+    ".output/**",
+    ".wrangler/**",
+    "src/routeTree.gen.ts",
+    "worker-configuration.d.ts",
+    "app/**",
+    "prisma/**",
+    "extension/**",
+    "extension-dist/**",
   ]),
-]);
-
-export default eslintConfig;
+);

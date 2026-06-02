@@ -1,55 +1,18 @@
 import { betterAuth } from "better-auth";
 import { createAuthMiddleware } from "better-auth/api";
-import { prismaAdapter } from "better-auth/adapters/prisma";
-import { nextCookies } from "better-auth/next-js";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { checkout, polar, portal, webhooks } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
-import { db } from "./db";
-import { APP_URL } from "./config";
-import { posthogServer } from "./posthog-server";
+import { and, eq, isNull, lt, or } from "drizzle-orm";
+import type { DB } from "./db";
+import { account, group, session, user, verification } from "./db/schema";
+import { getPosthogServer } from "./posthog-server";
 import { sendEmail } from "./email";
 import { welcomeEmail } from "./emails/welcome";
 import { verificationEmail } from "./emails/verify-email";
 import { resetPasswordEmail } from "./emails/reset-password";
 import { hasActiveProAccess, type PlanValue } from "./plan-limits";
-
-const {
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  CHROME_EXTENSION_ID,
-  POLAR_ACCESS_TOKEN,
-  POLAR_WEBHOOK_SECRET,
-  POLAR_SERVER,
-  POLAR_CREATE_CUSTOMER_ON_SIGN_UP,
-  POLAR_PRO_MONTHLY_PRODUCT_ID,
-  POLAR_PRO_YEARLY_PRODUCT_ID,
-  NEXT_PUBLIC_APP_URL,
-} = process.env;
-const googleOAuthEnabled = Boolean(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
-const polarServer = POLAR_SERVER === "sandbox" ? "sandbox" : "production";
-const polarEnabled = Boolean(POLAR_ACCESS_TOKEN && POLAR_WEBHOOK_SECRET);
-const polarCreateCustomerOnSignUp =
-  POLAR_CREATE_CUSTOMER_ON_SIGN_UP === "true";
-
-const polarProductMappings = [
-  POLAR_PRO_MONTHLY_PRODUCT_ID
-    ? { productId: POLAR_PRO_MONTHLY_PRODUCT_ID, slug: "pro-monthly" }
-    : null,
-  POLAR_PRO_YEARLY_PRODUCT_ID
-    ? { productId: POLAR_PRO_YEARLY_PRODUCT_ID, slug: "pro-yearly" }
-    : null,
-].filter((mapping): mapping is { productId: string; slug: string } => Boolean(mapping));
-
-const proProductIds = new Set(polarProductMappings.map((m) => m.productId));
-
-function resolvePlan(
-  status: string,
-  productId: string,
-  currentPeriodEnd?: Date | null,
-): PlanValue {
-  if (!proProductIds.has(productId)) return "free";
-  return hasActiveProAccess("pro", status, currentPeriodEnd) ? "pro" : "free";
-}
 
 type CustomerSyncInput = {
   id: string;
@@ -68,49 +31,54 @@ type SubscriptionSyncInput = {
   canceledAt: Date | null;
 };
 
-async function syncCustomerData(input: {
-  customerId: string;
-  externalId: string | null;
-  email: string;
-}): Promise<void> {
+function resolvePlan(
+  proProductIds: Set<string>,
+  status: string,
+  productId: string,
+  currentPeriodEnd?: Date | null,
+): PlanValue {
+  if (!proProductIds.has(productId)) return "free";
+  return hasActiveProAccess("pro", status, currentPeriodEnd) ? "pro" : "free";
+}
+
+async function syncCustomerData(
+  db: DB,
+  input: { customerId: string; externalId: string | null; email: string },
+): Promise<void> {
   if (input.externalId) {
-    await db.user.updateMany({
-      where: { id: input.externalId },
-      data: {
+    await db
+      .update(user)
+      .set({
         polarCustomerId: input.customerId,
         polarCustomerExternalId: input.externalId,
-      },
-    });
+      })
+      .where(eq(user.id, input.externalId));
     return;
   }
 
-  await db.user.updateMany({
-    where: { email: input.email },
-    data: {
-      polarCustomerId: input.customerId,
-    },
-  });
+  await db
+    .update(user)
+    .set({ polarCustomerId: input.customerId })
+    .where(eq(user.email, input.email));
 }
 
 async function syncSubscriptionData(
+  db: DB,
+  proProductIds: Set<string>,
   input: SubscriptionSyncInput,
   eventTimestamp?: Date,
 ): Promise<void> {
   const eventTime = eventTimestamp ?? new Date();
 
-  // Atomic guard against out-of-order and duplicate webhook events.
-  // The temporal check is in the where clause so the read + write is a single operation,
-  // eliminating the TOCTOU race condition. Uses strict lt so duplicate timestamps are no-ops.
-  await db.user.updateMany({
-    where: {
-      polarCustomerId: input.customerId,
-      OR: [
-        { planUpdatedAt: null },
-        { planUpdatedAt: { lt: eventTime } },
-      ],
-    },
-    data: {
-      plan: resolvePlan(input.status, input.productId, input.currentPeriodEnd),
+  await db
+    .update(user)
+    .set({
+      plan: resolvePlan(
+        proProductIds,
+        input.status,
+        input.productId,
+        input.currentPeriodEnd,
+      ),
       subscriptionStatus: input.status,
       polarSubscriptionId: input.id,
       polarProductId: input.productId,
@@ -119,168 +87,262 @@ async function syncSubscriptionData(
       subscriptionCancelAtPeriodEnd: input.cancelAtPeriodEnd,
       subscriptionCanceledAt: input.canceledAt,
       planUpdatedAt: eventTime,
+    })
+    .where(
+      and(
+        eq(user.polarCustomerId, input.customerId),
+        or(isNull(user.planUpdatedAt), lt(user.planUpdatedAt, eventTime)),
+      ),
+    );
+}
+
+async function ensureDefaultGroup(db: DB, userId: string): Promise<void> {
+  const existing = await db.$count(group, eq(group.userId, userId));
+  if (existing > 0) return;
+
+  await db.insert(group).values({ name: "Bookmarks", color: "#74B06F", userId });
+}
+
+export function createAuth(db: DB) {
+  const {
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    CHROME_EXTENSION_ID,
+    POLAR_ACCESS_TOKEN,
+    POLAR_WEBHOOK_SECRET,
+    POLAR_SERVER,
+    POLAR_CREATE_CUSTOMER_ON_SIGN_UP,
+    POLAR_PRO_MONTHLY_PRODUCT_ID,
+    POLAR_PRO_YEARLY_PRODUCT_ID,
+  } = process.env;
+
+  const appUrl = import.meta.env.VITE_APP_URL ?? "https://minimal.so";
+
+  const googleOAuthEnabled = Boolean(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
+  const polarServer = POLAR_SERVER === "sandbox" ? "sandbox" : "production";
+  const polarEnabled = Boolean(POLAR_ACCESS_TOKEN && POLAR_WEBHOOK_SECRET);
+  const polarCreateCustomerOnSignUp =
+    POLAR_CREATE_CUSTOMER_ON_SIGN_UP === "true";
+
+  const polarProductMappings = [
+    POLAR_PRO_MONTHLY_PRODUCT_ID
+      ? { productId: POLAR_PRO_MONTHLY_PRODUCT_ID, slug: "pro-monthly" }
+      : null,
+    POLAR_PRO_YEARLY_PRODUCT_ID
+      ? { productId: POLAR_PRO_YEARLY_PRODUCT_ID, slug: "pro-yearly" }
+      : null,
+  ].filter(
+    (mapping): mapping is { productId: string; slug: string } =>
+      Boolean(mapping),
+  );
+
+  const proProductIds = new Set(polarProductMappings.map((m) => m.productId));
+
+  return betterAuth({
+    baseURL: appUrl,
+    secret: process.env.BETTER_AUTH_SECRET,
+    database: drizzleAdapter(db, {
+      provider: "sqlite",
+      schema: { user, session, account, verification },
+    }),
+    trustedOrigins: CHROME_EXTENSION_ID
+      ? [`chrome-extension://${CHROME_EXTENSION_ID}`]
+      : [],
+    rateLimit: {
+      enabled: true,
+      window: 60,
+      max: 10,
     },
-  });
-}
-
-async function handleCustomerPayload(payload: {
-  data: CustomerSyncInput;
-}): Promise<void> {
-  await syncCustomerData({
-    customerId: payload.data.id,
-    externalId: payload.data.externalId,
-    email: payload.data.email,
-  });
-}
-
-async function handleSubscriptionPayload(payload: {
-  data: SubscriptionSyncInput;
-  timestamp?: Date;
-}): Promise<void> {
-  await syncSubscriptionData(payload.data, payload.timestamp);
-}
-
-async function ensureDefaultGroup(userId: string): Promise<void> {
-  const existingGroups = await db.group.count({ where: { userId } });
-  if (existingGroups > 0) return;
-
-  await db.group.create({
-    data: { name: "Bookmarks", color: "#74B06F", userId },
-  });
-}
-
-export const auth = betterAuth({
-  baseURL: APP_URL,
-  secret: process.env.BETTER_AUTH_SECRET,
-  database: prismaAdapter(db, { provider: "sqlite" }),
-  trustedOrigins: CHROME_EXTENSION_ID
-    ? [`chrome-extension://${CHROME_EXTENSION_ID}`]
-    : [],
-  rateLimit: {
-    enabled: true,
-    window: 60,
-    max: 10,
-  },
-  plugins: [
-    nextCookies(),
-    ...(polarEnabled
-      ? [
-          polar({
-            client: new Polar({
-              accessToken: POLAR_ACCESS_TOKEN,
-              server: polarServer,
-            }),
-            createCustomerOnSignUp: polarCreateCustomerOnSignUp,
-            getCustomerCreateParams: async ({ user }) => ({
-              metadata: user.id
-                ? {
-                    appUserId: user.id,
-                  }
-                : undefined,
-            }),
-            use: [
-              checkout({
-                products: polarProductMappings,
-                successUrl: "/dashboard?checkout=success&checkout_id={CHECKOUT_ID}",
-                authenticatedUsersOnly: true,
-                returnUrl: NEXT_PUBLIC_APP_URL ?? undefined,
+    plugins: [
+      ...(polarEnabled
+        ? [
+            polar({
+              client: new Polar({
+                accessToken: POLAR_ACCESS_TOKEN,
+                server: polarServer,
               }),
-              portal({
-                returnUrl: NEXT_PUBLIC_APP_URL
-                  ? `${NEXT_PUBLIC_APP_URL}/dashboard`
+              createCustomerOnSignUp: polarCreateCustomerOnSignUp,
+              getCustomerCreateParams: async ({ user: polarUser }) => ({
+                metadata: polarUser.id
+                  ? {
+                      appUserId: polarUser.id,
+                    }
                   : undefined,
               }),
-              webhooks({
-                secret: POLAR_WEBHOOK_SECRET!,
-                onCustomerCreated: handleCustomerPayload,
-                onCustomerUpdated: handleCustomerPayload,
-                onSubscriptionCreated: handleSubscriptionPayload,
-                onSubscriptionUpdated: handleSubscriptionPayload,
-                onSubscriptionActive: handleSubscriptionPayload,
-                onSubscriptionCanceled: handleSubscriptionPayload,
-                onSubscriptionRevoked: handleSubscriptionPayload,
-                onSubscriptionUncanceled: handleSubscriptionPayload,
-              }),
-            ],
-          }),
-        ]
-      : []),
-  ],
-  session: {
-    expiresIn: 60 * 60 * 24 * 7,
-    updateAge: 60 * 60 * 24,
-  },
-  emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: true,
-    sendResetPassword: async ({ user, url }) => {
-      const result = await sendEmail({
-        to: user.email,
-        ...resetPasswordEmail(user.name, url),
-      });
-
-      if (!result.ok) {
-        throw new Error("Failed to send password reset email");
-      }
+              use: [
+                checkout({
+                  products: polarProductMappings,
+                  successUrl:
+                    "/dashboard?checkout=success&checkout_id={CHECKOUT_ID}",
+                  authenticatedUsersOnly: true,
+                  returnUrl: appUrl,
+                }),
+                portal({
+                  returnUrl: `${appUrl}/dashboard`,
+                }),
+                webhooks({
+                  secret: POLAR_WEBHOOK_SECRET!,
+                  onCustomerCreated: (payload: { data: CustomerSyncInput }) =>
+                    syncCustomerData(db, {
+                      customerId: payload.data.id,
+                      externalId: payload.data.externalId,
+                      email: payload.data.email,
+                    }),
+                  onCustomerUpdated: (payload: { data: CustomerSyncInput }) =>
+                    syncCustomerData(db, {
+                      customerId: payload.data.id,
+                      externalId: payload.data.externalId,
+                      email: payload.data.email,
+                    }),
+                  onSubscriptionCreated: (payload: {
+                    data: SubscriptionSyncInput;
+                    timestamp?: Date;
+                  }) =>
+                    syncSubscriptionData(
+                      db,
+                      proProductIds,
+                      payload.data,
+                      payload.timestamp,
+                    ),
+                  onSubscriptionUpdated: (payload: {
+                    data: SubscriptionSyncInput;
+                    timestamp?: Date;
+                  }) =>
+                    syncSubscriptionData(
+                      db,
+                      proProductIds,
+                      payload.data,
+                      payload.timestamp,
+                    ),
+                  onSubscriptionActive: (payload: {
+                    data: SubscriptionSyncInput;
+                    timestamp?: Date;
+                  }) =>
+                    syncSubscriptionData(
+                      db,
+                      proProductIds,
+                      payload.data,
+                      payload.timestamp,
+                    ),
+                  onSubscriptionCanceled: (payload: {
+                    data: SubscriptionSyncInput;
+                    timestamp?: Date;
+                  }) =>
+                    syncSubscriptionData(
+                      db,
+                      proProductIds,
+                      payload.data,
+                      payload.timestamp,
+                    ),
+                  onSubscriptionRevoked: (payload: {
+                    data: SubscriptionSyncInput;
+                    timestamp?: Date;
+                  }) =>
+                    syncSubscriptionData(
+                      db,
+                      proProductIds,
+                      payload.data,
+                      payload.timestamp,
+                    ),
+                  onSubscriptionUncanceled: (payload: {
+                    data: SubscriptionSyncInput;
+                    timestamp?: Date;
+                  }) =>
+                    syncSubscriptionData(
+                      db,
+                      proProductIds,
+                      payload.data,
+                      payload.timestamp,
+                    ),
+                }),
+              ],
+            }),
+          ]
+        : []),
+      tanstackStartCookies(),
+    ],
+    session: {
+      expiresIn: 60 * 60 * 24 * 7,
+      updateAge: 60 * 60 * 24,
     },
-  },
-  emailVerification: {
-    sendOnSignUp: true,
-    sendOnSignIn: true,
-    autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }) => {
-      const result = await sendEmail({
-        to: user.email,
-        ...verificationEmail(user.name, url),
-      });
-
-      if (!result.ok) {
-        throw new Error("Failed to send verification email");
-      }
-    },
-  },
-  ...(googleOAuthEnabled && {
-    socialProviders: {
-      google: {
-        clientId: GOOGLE_CLIENT_ID!,
-        clientSecret: GOOGLE_CLIENT_SECRET!,
-      },
-    },
-  }),
-  account: {
-    accountLinking: { enabled: true, trustedProviders: ["google"] },
-  },
-  hooks: {
-    after: createAuthMiddleware(async (ctx) => {
-      const session = ctx.context.newSession;
-      if (!session) return;
-
-      await ensureDefaultGroup(session.user.id);
-
-      const isNewUser =
-        Date.now() - new Date(session.user.createdAt).getTime() < 60_000;
-      if (isNewUser) {
-        posthogServer?.capture({
-          distinctId: session.user.id,
-          event: "signup_completed",
-        });
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification: true,
+      sendResetPassword: async ({ user: resetUser, url }) => {
         const result = await sendEmail({
-          to: session.user.email,
-          ...welcomeEmail(session.user.name),
+          to: resetUser.email,
+          ...resetPasswordEmail(resetUser.name, url),
         });
 
         if (!result.ok) {
-          console.error("[auth] Failed to send welcome email", result.error);
+          throw new Error("Failed to send password reset email");
         }
-      } else {
-        posthogServer?.capture({
-          distinctId: session.user.id,
-          event: "login_completed",
+      },
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      sendOnSignIn: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user: verifyUser, url }) => {
+        const result = await sendEmail({
+          to: verifyUser.email,
+          ...verificationEmail(verifyUser.name, url),
         });
-      }
-    }),
-  },
-});
 
-export type Session = typeof auth.$Infer.Session;
+        if (!result.ok) {
+          throw new Error("Failed to send verification email");
+        }
+      },
+    },
+    ...(googleOAuthEnabled && {
+      socialProviders: {
+        google: {
+          clientId: GOOGLE_CLIENT_ID!,
+          clientSecret: GOOGLE_CLIENT_SECRET!,
+        },
+      },
+    }),
+    account: {
+      accountLinking: { enabled: true, trustedProviders: ["google"] },
+    },
+    hooks: {
+      after: createAuthMiddleware(async (ctx) => {
+        const newSession = ctx.context.newSession;
+        if (!newSession) return;
+
+        await ensureDefaultGroup(db, newSession.user.id);
+
+        const posthog = getPosthogServer();
+        const isNewUser =
+          Date.now() - new Date(newSession.user.createdAt).getTime() < 60_000;
+        if (isNewUser) {
+          posthog?.capture({
+            distinctId: newSession.user.id,
+            event: "signup_completed",
+          });
+          const result = await sendEmail({
+            to: newSession.user.email,
+            ...welcomeEmail(newSession.user.name),
+          });
+
+          if (!result.ok) {
+            console.error("[auth] Failed to send welcome email", result.error);
+          }
+        } else {
+          posthog?.capture({
+            distinctId: newSession.user.id,
+            event: "login_completed",
+          });
+        }
+
+        if (posthog) {
+          await posthog.flush().catch(() => {});
+        }
+      }),
+    },
+  });
+}
+
+export type Auth = ReturnType<typeof createAuth>;
+export type Session = Auth["$Infer"]["Session"];
 export type User = Session["user"];

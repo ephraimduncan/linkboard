@@ -5,8 +5,8 @@ import { getPublicProfileData } from "../queries/public-profile";
 
 export const getPublicProfile = base
   .input(z.object({ username: z.string() }))
-  .handler(async ({ input }) => {
-    const data = await getPublicProfileData(input.username);
+  .handler(async ({ context, input }) => {
+    const data = await getPublicProfileData(context.db, input.username);
 
     if (!data) {
       throw new ORPCError("NOT_FOUND", { message: "User not found" });

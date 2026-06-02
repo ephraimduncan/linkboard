@@ -1,22 +1,35 @@
 import { ORPCError } from "@orpc/server";
+import { eq } from "drizzle-orm";
+import { randomBytes } from "node:crypto";
 import { hasActiveProAccess } from "@/lib/plan-limits";
 import { authed } from "../context";
-import { db } from "@/lib/db";
 import { hashApiKey } from "@/lib/api-key-hash";
-import crypto from "crypto";
+import { apiKey, user } from "@/lib/db/schema";
 
 function generateRawKey(): string {
-  const token = crypto.randomBytes(20).toString("hex"); // 40 hex chars
+  const token = randomBytes(20).toString("hex"); // 40 hex chars
   return `mnk_${token}`;
 }
 
 export const generateApiKey = authed.handler(async ({ context }) => {
-  const user = await db.user.findUnique({
-    where: { id: context.user.id },
-    select: { plan: true, subscriptionStatus: true, subscriptionCurrentPeriodEnd: true },
-  });
+  const { db } = context;
+  const [account] = await db
+    .select({
+      plan: user.plan,
+      subscriptionStatus: user.subscriptionStatus,
+      subscriptionCurrentPeriodEnd: user.subscriptionCurrentPeriodEnd,
+    })
+    .from(user)
+    .where(eq(user.id, context.user.id))
+    .limit(1);
 
-  if (!hasActiveProAccess(user?.plan, user?.subscriptionStatus, user?.subscriptionCurrentPeriodEnd)) {
+  if (
+    !hasActiveProAccess(
+      account?.plan,
+      account?.subscriptionStatus,
+      account?.subscriptionCurrentPeriodEnd,
+    )
+  ) {
     throw new ORPCError("FORBIDDEN", {
       message: "API key generation requires an active Pro subscription",
     });
@@ -26,34 +39,33 @@ export const generateApiKey = authed.handler(async ({ context }) => {
   const keyHash = hashApiKey(rawKey);
   const keyPrefix = rawKey.slice(0, 8); // "mnk_xxxx"
 
-  const result = await db.$transaction(async (tx) => {
-    await tx.apiKey.deleteMany({ where: { userId: context.user.id } });
-    await tx.apiKey.create({
-      data: { keyHash, keyPrefix, userId: context.user.id },
+  await db.transaction(async (tx) => {
+    await tx.delete(apiKey).where(eq(apiKey.userId, context.user.id));
+    await tx.insert(apiKey).values({
+      keyHash,
+      keyPrefix,
+      userId: context.user.id,
     });
-    return { key: rawKey };
   });
 
-  return result;
+  return { key: rawKey };
 });
 
 export const revokeApiKey = authed.handler(async ({ context }) => {
-  await db.apiKey.deleteMany({
-    where: { userId: context.user.id },
-  });
-
+  await context.db.delete(apiKey).where(eq(apiKey.userId, context.user.id));
   return { success: true };
 });
 
 export const getApiKey = authed.handler(async ({ context }) => {
-  const apiKey = await db.apiKey.findUnique({
-    where: { userId: context.user.id },
-    select: {
-      keyPrefix: true,
-      lastUsedAt: true,
-      createdAt: true,
-    },
-  });
+  const [key] = await context.db
+    .select({
+      keyPrefix: apiKey.keyPrefix,
+      lastUsedAt: apiKey.lastUsedAt,
+      createdAt: apiKey.createdAt,
+    })
+    .from(apiKey)
+    .where(eq(apiKey.userId, context.user.id))
+    .limit(1);
 
-  return apiKey;
+  return key ?? null;
 });

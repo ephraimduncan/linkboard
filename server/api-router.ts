@@ -1,7 +1,8 @@
 import { os, ORPCError } from "@orpc/server";
 import * as z from "zod";
+import { and, asc, count, desc, eq, like, or } from "drizzle-orm";
 import { apiAuthed } from "./api-context";
-import { db } from "@/lib/db";
+import { bookmark, group } from "@/lib/db/schema";
 import { normalizeUrl, canonicalizeUrl } from "@/lib/utils";
 import { getUrlMetadata } from "@/lib/url-metadata";
 
@@ -47,31 +48,31 @@ const listBookmarks = apiAuthed
     }),
   )
   .handler(async ({ context, input }) => {
-    const where: Record<string, unknown> = {
-      userId: context.user.id,
-    };
-
-    if (input.groupId) {
-      where.groupId = input.groupId;
-    }
-
-    if (input.search) {
-      where.OR = [
-        { title: { contains: input.search } },
-        { url: { contains: input.search } },
-      ];
-    }
+    const { db } = context;
+    const conditions = and(
+      eq(bookmark.userId, context.user.id),
+      input.groupId ? eq(bookmark.groupId, input.groupId) : undefined,
+      input.search
+        ? or(
+            like(bookmark.title, `%${input.search}%`),
+            like(bookmark.url, `%${input.search}%`),
+          )
+        : undefined,
+    );
 
     const [bookmarks, total] = await Promise.all([
-      db.bookmark.findMany({
-        where,
-        orderBy: {
-          createdAt: input.sort === "newest" ? "desc" : "asc",
-        },
-        skip: input.offset,
-        take: input.limit,
-      }),
-      db.bookmark.count({ where }),
+      db
+        .select()
+        .from(bookmark)
+        .where(conditions)
+        .orderBy(
+          input.sort === "newest"
+            ? desc(bookmark.createdAt)
+            : asc(bookmark.createdAt),
+        )
+        .limit(input.limit)
+        .offset(input.offset),
+      db.$count(bookmark, conditions),
     ]);
 
     return {
@@ -108,36 +109,40 @@ const createBookmark = apiAuthed
     }),
   )
   .handler(async ({ context, input }) => {
+    const { db } = context;
     let resolvedGroupId: string;
 
     if (input.groupId) {
-      const group = await db.group.findFirst({
-        where: { id: input.groupId, userId: context.user.id },
-        select: { id: true },
-      });
-      if (!group) {
+      const [owned] = await db
+        .select({ id: group.id })
+        .from(group)
+        .where(and(eq(group.id, input.groupId), eq(group.userId, context.user.id)))
+        .limit(1);
+      if (!owned) {
         throw new ORPCError("BAD_REQUEST", {
           message: "Group not found",
         });
       }
-      resolvedGroupId = group.id;
+      resolvedGroupId = owned.id;
     } else {
-      const firstGroup = await db.group.findFirst({
-        where: { userId: context.user.id },
-        orderBy: { createdAt: "asc" },
-        select: { id: true },
-      });
+      const [firstGroup] = await db
+        .select({ id: group.id })
+        .from(group)
+        .where(eq(group.userId, context.user.id))
+        .orderBy(asc(group.createdAt))
+        .limit(1);
 
       if (firstGroup) {
         resolvedGroupId = firstGroup.id;
       } else {
-        const defaultGroup = await db.group.create({
-          data: {
+        const [defaultGroup] = await db
+          .insert(group)
+          .values({
             name: "Bookmarks",
             color: "#737373",
             userId: context.user.id,
-          },
-        });
+          })
+          .returning({ id: group.id });
         resolvedGroupId = defaultGroup.id;
       }
     }
@@ -147,21 +152,25 @@ const createBookmark = apiAuthed
 
     const metadata = await getUrlMetadata(normalized);
 
-    const result = await db.$transaction(async (tx) => {
-      const existing = await tx.bookmark.findFirst({
-        where: {
-          userId: context.user.id,
-          normalizedUrl: canonical,
-        },
-        select: { id: true },
-      });
+    const result = await db.transaction(async (tx) => {
+      const [existing] = await tx
+        .select({ id: bookmark.id })
+        .from(bookmark)
+        .where(
+          and(
+            eq(bookmark.userId, context.user.id),
+            eq(bookmark.normalizedUrl, canonical),
+          ),
+        )
+        .limit(1);
 
       if (existing) {
         return { bookmarkId: existing.id, duplicate: true as const };
       }
 
-      const bookmark = await tx.bookmark.create({
-        data: {
+      const [created] = await tx
+        .insert(bookmark)
+        .values({
           title: input.title || metadata.title || normalized,
           url: normalized,
           normalizedUrl: canonical,
@@ -169,10 +178,10 @@ const createBookmark = apiAuthed
           type: "link",
           groupId: resolvedGroupId,
           userId: context.user.id,
-        },
-      });
+        })
+        .returning({ id: bookmark.id });
 
-      return { bookmarkId: bookmark.id, duplicate: false as const };
+      return { bookmarkId: created.id, duplicate: false as const };
     });
 
     return {
@@ -201,12 +210,14 @@ const updateBookmark = apiAuthed
     }),
   )
   .handler(async ({ context, input }) => {
+    const { db } = context;
     const { id, ...fields } = input;
 
-    const existing = await db.bookmark.findFirst({
-      where: { id, userId: context.user.id },
-      select: { id: true, groupId: true },
-    });
+    const [existing] = await db
+      .select({ id: bookmark.id, groupId: bookmark.groupId })
+      .from(bookmark)
+      .where(and(eq(bookmark.id, id), eq(bookmark.userId, context.user.id)))
+      .limit(1);
 
     if (!existing) {
       throw new ORPCError("NOT_FOUND", {
@@ -215,18 +226,21 @@ const updateBookmark = apiAuthed
     }
 
     if (fields.groupId !== undefined) {
-      const group = await db.group.findFirst({
-        where: { id: fields.groupId, userId: context.user.id },
-        select: { id: true },
-      });
-      if (!group) {
+      const [owned] = await db
+        .select({ id: group.id })
+        .from(group)
+        .where(
+          and(eq(group.id, fields.groupId), eq(group.userId, context.user.id)),
+        )
+        .limit(1);
+      if (!owned) {
         throw new ORPCError("BAD_REQUEST", {
           message: "Group not found",
         });
       }
     }
 
-    const updateData: Record<string, unknown> = {};
+    const updateData: Partial<typeof bookmark.$inferInsert> = {};
 
     if (fields.title !== undefined) updateData.title = fields.title;
     if (fields.url !== undefined) {
@@ -242,10 +256,10 @@ const updateBookmark = apiAuthed
     }
     if (fields.isPublic !== undefined) updateData.isPublic = fields.isPublic;
 
-    await db.bookmark.update({
-      where: { id, userId: context.user.id },
-      data: updateData,
-    });
+    await db
+      .update(bookmark)
+      .set(updateData)
+      .where(and(eq(bookmark.id, id), eq(bookmark.userId, context.user.id)));
 
     return {
       success: true,
@@ -269,10 +283,12 @@ const deleteBookmark = apiAuthed
     }),
   )
   .handler(async ({ context, input }) => {
-    const existing = await db.bookmark.findFirst({
-      where: { id: input.id, userId: context.user.id },
-      select: { id: true },
-    });
+    const { db } = context;
+    const [existing] = await db
+      .select({ id: bookmark.id })
+      .from(bookmark)
+      .where(and(eq(bookmark.id, input.id), eq(bookmark.userId, context.user.id)))
+      .limit(1);
 
     if (!existing) {
       throw new ORPCError("NOT_FOUND", {
@@ -280,9 +296,9 @@ const deleteBookmark = apiAuthed
       });
     }
 
-    await db.bookmark.deleteMany({
-      where: { id: input.id, userId: context.user.id },
-    });
+    await db
+      .delete(bookmark)
+      .where(and(eq(bookmark.id, input.id), eq(bookmark.userId, context.user.id)));
 
     return {
       success: true,
@@ -308,11 +324,20 @@ const listGroups = apiAuthed
     }),
   )
   .handler(async ({ context }) => {
-    const groups = await db.group.findMany({
-      where: { userId: context.user.id },
-      include: { _count: { select: { bookmarks: true } } },
-      orderBy: { createdAt: "desc" },
-    });
+    const groups = await context.db
+      .select({
+        id: group.id,
+        name: group.name,
+        color: group.color,
+        isPublic: group.isPublic,
+        createdAt: group.createdAt,
+        bookmarkCount: count(bookmark.id),
+      })
+      .from(group)
+      .leftJoin(bookmark, eq(bookmark.groupId, group.id))
+      .where(eq(group.userId, context.user.id))
+      .groupBy(group.id)
+      .orderBy(desc(group.createdAt));
 
     return {
       success: true,
@@ -321,7 +346,7 @@ const listGroups = apiAuthed
         name: g.name,
         color: g.color,
         isPublic: g.isPublic,
-        bookmarkCount: g._count.bookmarks,
+        bookmarkCount: g.bookmarkCount,
         createdAt: g.createdAt.toISOString(),
       })),
     };
@@ -342,17 +367,18 @@ const createGroup = apiAuthed
     }),
   )
   .handler(async ({ context, input }) => {
-    const group = await db.group.create({
-      data: {
+    const [created] = await context.db
+      .insert(group)
+      .values({
         name: input.name,
         color: input.color,
         userId: context.user.id,
-      },
-    });
+      })
+      .returning({ id: group.id });
 
     return {
       success: true,
-      groupId: group.id,
+      groupId: created.id,
     };
   });
 
@@ -374,12 +400,14 @@ const updateGroup = apiAuthed
     }),
   )
   .handler(async ({ context, input }) => {
+    const { db } = context;
     const { id, ...fields } = input;
 
-    const existing = await db.group.findFirst({
-      where: { id, userId: context.user.id },
-      select: { id: true },
-    });
+    const [existing] = await db
+      .select({ id: group.id })
+      .from(group)
+      .where(and(eq(group.id, id), eq(group.userId, context.user.id)))
+      .limit(1);
 
     if (!existing) {
       throw new ORPCError("NOT_FOUND", {
@@ -387,16 +415,16 @@ const updateGroup = apiAuthed
       });
     }
 
-    const updateData: Record<string, unknown> = {};
+    const updateData: Partial<typeof group.$inferInsert> = {};
 
     if (fields.name !== undefined) updateData.name = fields.name;
     if (fields.color !== undefined) updateData.color = fields.color;
     if (fields.isPublic !== undefined) updateData.isPublic = fields.isPublic;
 
-    await db.group.updateMany({
-      where: { id, userId: context.user.id },
-      data: updateData,
-    });
+    await db
+      .update(group)
+      .set(updateData)
+      .where(and(eq(group.id, id), eq(group.userId, context.user.id)));
 
     return {
       success: true,
@@ -421,10 +449,12 @@ const deleteGroup = apiAuthed
     }),
   )
   .handler(async ({ context, input }) => {
-    const existing = await db.group.findFirst({
-      where: { id: input.id, userId: context.user.id },
-      select: { id: true },
-    });
+    const { db } = context;
+    const [existing] = await db
+      .select({ id: group.id })
+      .from(group)
+      .where(and(eq(group.id, input.id), eq(group.userId, context.user.id)))
+      .limit(1);
 
     if (!existing) {
       throw new ORPCError("NOT_FOUND", {
@@ -432,11 +462,14 @@ const deleteGroup = apiAuthed
       });
     }
 
-    const deletedBookmarkCount = await db.bookmark.count({ where: { groupId: input.id, userId: context.user.id } });
+    const deletedBookmarkCount = await db.$count(
+      bookmark,
+      and(eq(bookmark.groupId, input.id), eq(bookmark.userId, context.user.id)),
+    );
 
-    await db.group.deleteMany({
-      where: { id: input.id, userId: context.user.id },
-    });
+    await db
+      .delete(group)
+      .where(and(eq(group.id, input.id), eq(group.userId, context.user.id)));
 
     return {
       success: true,
@@ -445,7 +478,6 @@ const deleteGroup = apiAuthed
       deletedBookmarkCount,
     };
   });
-
 
 const getMe = apiAuthed
   .route({ method: "GET", path: "/user/me" })

@@ -1,7 +1,5 @@
-"use client";
-
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { useSession } from "@/lib/auth-client";
 import { type BillingCycle, startCheckout } from "@/lib/checkout";
 
@@ -29,7 +27,7 @@ const PRO_PRICING: Record<BillingCycle, string> = {
 };
 
 export function LandingPricing() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("yearly");
   const [isCheckoutPending, startCheckoutTransition] = useTransition();
   const { data: session } = useSession();
@@ -44,24 +42,23 @@ export function LandingPricing() {
 
   const handleFreeAction = () => {
     if (isSignedIn) {
-      router.push("/dashboard");
+      navigate({ to: "/dashboard" });
       return;
     }
-    router.push(`/signup?plan=free&billingCycle=${billingCycle}`);
+    navigate({ to: "/signup", search: { plan: "free", billingCycle } });
   };
 
   const handleProAction = () => {
-    const signupHref = `/signup?plan=pro&billingCycle=${billingCycle}`;
     if (!isSignedIn) {
-      router.push(signupHref);
+      navigate({ to: "/signup", search: { plan: "pro", billingCycle } });
       return;
     }
     const currentUser = session?.user;
     if (!currentUser) {
-      router.push(signupHref);
+      navigate({ to: "/signup", search: { plan: "pro", billingCycle } });
       return;
     }
-    const discountId = process.env.NEXT_PUBLIC_POLAR_DISCOUNT_ID?.trim();
+    const discountId = import.meta.env.VITE_POLAR_DISCOUNT_ID?.trim();
     startCheckoutTransition(async () => {
       await startCheckout({
         billingCycle,

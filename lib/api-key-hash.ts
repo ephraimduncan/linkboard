@@ -1,5 +1,5 @@
-import crypto from "crypto";
+import { createHash } from "node:crypto";
 
 export function hashApiKey(raw: string): string {
-  return crypto.createHash("sha256").update(raw).digest("hex");
+  return createHash("sha256").update(raw).digest("hex");
 }

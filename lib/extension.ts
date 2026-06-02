@@ -9,7 +9,7 @@ interface ChromeRuntime {
 
 declare const chrome: { runtime: ChromeRuntime };
 
-const EXTENSION_ID = process.env.NEXT_PUBLIC_CHROME_EXTENSION_ID;
+const EXTENSION_ID = import.meta.env.VITE_CHROME_EXTENSION_ID;
 
 const SEND_TIMEOUT_MS = 60_000;
 

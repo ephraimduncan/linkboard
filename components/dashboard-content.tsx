@@ -1,36 +1,40 @@
-"use client";
-
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { useQueryState } from "nuqs";
+import {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useMemo,
+  lazy,
+  Suspense,
+} from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import posthog from "posthog-js";
-import dynamic from "next/dynamic";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ClientOnly, useNavigate, useSearch } from "@tanstack/react-router";
 import { Header } from "@/components/header";
 import { BookmarkInput } from "@/components/bookmark-input";
 import { BookmarkList } from "@/components/bookmark-list";
 import { BookmarkListSkeleton } from "@/components/dashboard-skeleton";
 
-const MultiSelectToolbar = dynamic(
-  () =>
-    import("@/components/multi-select-toolbar").then(
-      (m) => m.MultiSelectToolbar,
-    ),
-  { ssr: false },
+const MultiSelectToolbar = lazy(() =>
+  import("@/components/multi-select-toolbar").then((m) => ({
+    default: m.MultiSelectToolbar,
+  })),
 );
-const BulkMoveDialog = dynamic(
-  () => import("@/components/bulk-move-dialog").then((m) => m.BulkMoveDialog),
-  { ssr: false },
+const BulkMoveDialog = lazy(() =>
+  import("@/components/bulk-move-dialog").then((m) => ({
+    default: m.BulkMoveDialog,
+  })),
 );
-const BulkDeleteDialog = dynamic(
-  () =>
-    import("@/components/bulk-delete-dialog").then((m) => m.BulkDeleteDialog),
-  { ssr: false },
+const BulkDeleteDialog = lazy(() =>
+  import("@/components/bulk-delete-dialog").then((m) => ({
+    default: m.BulkDeleteDialog,
+  })),
 );
-const ExportDialog = dynamic(
-  () => import("@/components/export-dialog").then((m) => m.ExportDialog),
-  { ssr: false },
+const ExportDialog = lazy(() =>
+  import("@/components/export-dialog").then((m) => ({
+    default: m.ExportDialog,
+  })),
 );
 const preloadBulkMoveDialog = () => import("@/components/bulk-move-dialog");
 const preloadBulkDeleteDialog = () => import("@/components/bulk-delete-dialog");
@@ -82,13 +86,21 @@ export function DashboardContent({
   initialBookmarks,
   profile,
 }: DashboardContentProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const navigate = useNavigate();
+  const search = useSearch({ strict: false });
   const queryClient = useQueryClient();
   const [mountedAt] = useState(Date.now);
 
-  const [groupSlug, setGroupSlug] = useQueryState("group");
+  const groupSlug = search.group ?? null;
+  const setGroupSlug = useCallback(
+    (value: string | null) =>
+      navigate({
+        to: "/dashboard",
+        search: (prev) => ({ ...prev, group: value ?? undefined }),
+        replace: true,
+      }),
+    [navigate],
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
@@ -118,7 +130,7 @@ export function DashboardContent({
   );
 
   useEffect(() => {
-    const checkoutStatus = searchParams.get("checkout");
+    const checkoutStatus = search.checkout;
 
     if (!checkoutStatus) {
       return;
@@ -130,14 +142,15 @@ export function DashboardContent({
       });
     }
 
-    const nextParams = new URLSearchParams(searchParams.toString());
-    nextParams.delete("checkout");
-    nextParams.delete("checkout_id");
-    router.replace(
-      nextParams.toString() ? `${pathname}?${nextParams.toString()}` : pathname,
-      { scroll: false },
-    );
-  }, [pathname, router, searchParams]);
+    navigate({
+      to: "/dashboard",
+      search: (prev) => {
+        const { checkout: _checkout, checkout_id: _checkoutId, ...rest } = prev;
+        return rest;
+      },
+      replace: true,
+    });
+  }, [navigate, search.checkout]);
 
   useEffect(() => {
     if (posthog.get_distinct_id() === session.user.id) return;
@@ -1340,50 +1353,56 @@ export function DashboardContent({
             onToggleVisibility={handleToggleBookmarkVisibility}
           />
         )}
-        <AnimatePresence initial={false}>
-        {selectionMode && selectedIds.size > 0 && (
-          <MultiSelectToolbar
-            onSelectAll={handleSelectAll}
-            onMove={() => setMoveDialogOpen(true)}
-            onCopyUrls={handleCopyUrls}
-            onExport={handleQuickExportAction}
-            onDelete={() => setDeleteDialogOpen(true)}
-            onClose={handleExitSelectionMode}
-            hasUsername={hasUsername}
-            onMakePublic={
-              currentGroupId && publicGroupIds.has(currentGroupId)
-                ? undefined
-                : handleBulkMakePublic
-            }
-            onMakePrivate={
-              currentGroupId && publicGroupIds.has(currentGroupId)
-                ? handleBulkMakePrivate
-                : undefined
-            }
-          />
-        )}
-        </AnimatePresence>
-        <BulkMoveDialog
-          open={moveDialogOpen}
-          onOpenChange={setMoveDialogOpen}
-          groups={groups}
-          currentGroupId={currentGroupId || ""}
-          selectedCount={selectedIds.size}
-          onConfirm={handleConfirmMove}
-        />
-        <BulkDeleteDialog
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          count={selectedIds.size}
-          onConfirm={handleConfirmDelete}
-        />
-        <ExportDialog
-          open={exportDialogOpen}
-          onOpenChange={setExportDialogOpen}
-          mode="settings"
-          bookmarks={allBookmarks}
-          groups={groups}
-        />
+        <Suspense fallback={null}>
+          <AnimatePresence initial={false}>
+            {selectionMode && selectedIds.size > 0 && (
+              <MultiSelectToolbar
+                onSelectAll={handleSelectAll}
+                onMove={() => setMoveDialogOpen(true)}
+                onCopyUrls={handleCopyUrls}
+                onExport={handleQuickExportAction}
+                onDelete={() => setDeleteDialogOpen(true)}
+                onClose={handleExitSelectionMode}
+                hasUsername={hasUsername}
+                onMakePublic={
+                  currentGroupId && publicGroupIds.has(currentGroupId)
+                    ? undefined
+                    : handleBulkMakePublic
+                }
+                onMakePrivate={
+                  currentGroupId && publicGroupIds.has(currentGroupId)
+                    ? handleBulkMakePrivate
+                    : undefined
+                }
+              />
+            )}
+          </AnimatePresence>
+        </Suspense>
+        <ClientOnly>
+          <Suspense fallback={null}>
+            <BulkMoveDialog
+              open={moveDialogOpen}
+              onOpenChange={setMoveDialogOpen}
+              groups={groups}
+              currentGroupId={currentGroupId || ""}
+              selectedCount={selectedIds.size}
+              onConfirm={handleConfirmMove}
+            />
+            <BulkDeleteDialog
+              open={deleteDialogOpen}
+              onOpenChange={setDeleteDialogOpen}
+              count={selectedIds.size}
+              onConfirm={handleConfirmDelete}
+            />
+            <ExportDialog
+              open={exportDialogOpen}
+              onOpenChange={setExportDialogOpen}
+              mode="settings"
+              bookmarks={allBookmarks}
+              groups={groups}
+            />
+          </Suspense>
+        </ClientOnly>
       </main>
     </div>
   );
