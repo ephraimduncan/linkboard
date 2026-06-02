@@ -214,7 +214,7 @@ export function DashboardContent({
         queryClient.getQueryData<GroupItem[]>(groupListKey());
 
       const optimisticBookmark: BookmarkItem = {
-        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        id: newBookmark.id ?? crypto.randomUUID(),
         title: newBookmark.title,
         url: newBookmark.url || null,
         favicon: null,
@@ -258,24 +258,52 @@ export function DashboardContent({
       }
       toast.error(err.message || "Failed to create bookmark");
     },
-    onSettled: (_data, _error, variables) => {
-      // Rapid sequential adds keep several create mutations in flight at once.
-      // Only refetch once the last one settles, so the list isn't refetched per
-      // add — overlapping refetches race and can drop optimistic bookmarks whose
-      // server insert hasn't committed yet.
-      if (
-        queryClient.isMutating({
-          mutationKey: orpc.bookmark.create.mutationKey(),
-        }) !== 1
-      ) {
-        return;
-      }
-      queryClient.invalidateQueries({
-        queryKey: orpc.bookmark.list.key({
-          input: { groupId: variables.groupId },
-        }),
+    onSuccess: (created, variables) => {
+      if (!created) return;
+      const { groupId, id: clientId } = variables;
+      const serverItem: BookmarkItem = {
+        id: created.id,
+        title: created.title,
+        url: created.url ?? null,
+        favicon: created.favicon ?? null,
+        type: created.type,
+        color: created.color ?? null,
+        isPublic: created.isPublic ?? null,
+        groupId: created.groupId,
+        createdAt: created.createdAt,
+      };
+      const isDedup = serverItem.id !== clientId;
+
+      // Reconcile the optimistic row with the persisted one in place. The
+      // optimistic item already uses the final id (clientId), so its React key
+      // never changes — the row updates its title/favicon without remounting,
+      // which is what previously reloaded favicons and shifted rows on every add.
+      queryClient.setQueryData<BookmarkItem[]>(bookmarkListKey(groupId), (old) => {
+        if (!old) return old;
+        if (isDedup) {
+          // Server merged into an existing bookmark: drop the placeholder and
+          // refresh the existing row in its original position.
+          return old
+            .filter((b) => b.id !== clientId)
+            .map((b) => (b.id === serverItem.id ? serverItem : b));
+        }
+        const idx = clientId ? old.findIndex((b) => b.id === clientId) : -1;
+        if (idx === -1) return old; // placeholder removed in-flight; don't resurrect
+        const next = old.slice();
+        next[idx] = serverItem;
+        return next;
       });
-      queryClient.invalidateQueries({ queryKey: orpc.group.key() });
+
+      // A dedup hit added no new bookmark; undo the optimistic count bump.
+      if (isDedup) {
+        queryClient.setQueryData<GroupItem[]>(groupListKey(), (old) =>
+          old?.map((g) =>
+            g.id === groupId
+              ? { ...g, bookmarkCount: Math.max(0, (g.bookmarkCount ?? 0) - 1) }
+              : g,
+          ),
+        );
+      }
     },
   });
 
@@ -1008,10 +1036,13 @@ export function DashboardContent({
       const trimmedValue = value.trim();
       if (!trimmedValue) return;
 
+      const id = crypto.randomUUID();
+
       const colorResult = parseColor(trimmedValue);
 
       if (colorResult.isColor) {
         createBookmarkMutation.mutate({
+          id,
           title: colorResult.original || trimmedValue,
           url: "",
           type: "color",
@@ -1021,6 +1052,7 @@ export function DashboardContent({
       } else if (!trimmedValue.includes("\n") && isUrl(trimmedValue)) {
         const url = normalizeUrl(trimmedValue);
         createBookmarkMutation.mutate({
+          id,
           title: new URL(url).hostname.replace("www.", ""),
           url,
           type: "link",
@@ -1028,6 +1060,7 @@ export function DashboardContent({
         });
       } else {
         createBookmarkMutation.mutate({
+          id,
           title: trimmedValue,
           url: "",
           type: "text",

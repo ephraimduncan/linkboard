@@ -95,6 +95,7 @@ export const createBookmark = authed
     const [created] = await db
       .insert(bookmark)
       .values({
+        id: input.id,
         title,
         url,
         normalizedUrl: url ? canonicalizeUrl(url) : null,

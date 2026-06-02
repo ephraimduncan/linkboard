@@ -31,6 +31,13 @@ export const BookmarkInput = forwardRef<HTMLInputElement, BookmarkInputProps>(
       if (e.key === "Enter" && value.trim()) {
         onSubmit(value.trim());
         onChange("");
+        // Optimistic list/layout re-renders after submit can drop input focus.
+        // Restore it after the commit so rapid sequential entry keeps working.
+        requestAnimationFrame(() => {
+          if (ref && "current" in ref && ref.current) {
+            ref.current.focus();
+          }
+        });
       }
       if (e.key === "Escape") {
         if (ref && "current" in ref && ref.current) {
