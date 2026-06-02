@@ -22,6 +22,13 @@ export async function sendEmail({
   html,
   text,
 }: SendEmailParams): Promise<SendEmailResult> {
+  if (import.meta.env.DEV) {
+    console.log(
+      `\n[email:dev] EMAIL binding is a no-op locally. to=${to} subject="${subject}"\n${text ?? html}\n`,
+    );
+    return { ok: true };
+  }
+
   try {
     await env.EMAIL.send({
       to,

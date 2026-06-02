@@ -61,6 +61,17 @@ export function SignupForm({
       },
     },
     onSubmit: async ({ value }) => {
+      if (import.meta.env.DEV) {
+        if (isProSignup) {
+          navigate({
+            to: "/signup/complete",
+            search: { plan: "pro", billingCycle },
+          });
+        } else {
+          navigate({ to: "/dashboard" });
+        }
+        return;
+      }
       const verifySearch: {
         email: string;
         plan?: string;

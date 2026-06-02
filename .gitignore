@@ -51,7 +51,7 @@ next-env.d.ts
 prisma/generated
 
 # sqlite
-*.db
+*.db*
 
 .vscode
 

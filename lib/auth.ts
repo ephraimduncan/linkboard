@@ -266,7 +266,7 @@ export function createAuth(db: DB) {
     },
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: true,
+      requireEmailVerification: !import.meta.env.DEV,
       sendResetPassword: async ({ user: resetUser, url }) => {
         const result = await sendEmail({
           to: resetUser.email,
