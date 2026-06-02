@@ -52,8 +52,8 @@ function RootComponent() {
         <QueryClientProvider client={queryClient}>
           <Outlet />
         </QueryClientProvider>
+        <ToasterProvider />
       </ThemeProvider>
-      <ToasterProvider />
       {import.meta.env.DEV ? <Agentation /> : null}
     </RootDocument>
   );
