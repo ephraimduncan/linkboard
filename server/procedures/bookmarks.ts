@@ -40,7 +40,7 @@ export const listBookmarks = authed
           input.groupId ? eq(bookmark.groupId, input.groupId) : undefined,
         ),
       )
-      .orderBy(desc(bookmark.updatedAt));
+      .orderBy(desc(bookmark.createdAt), desc(bookmark.id));
   });
 
 export const createBookmark = authed

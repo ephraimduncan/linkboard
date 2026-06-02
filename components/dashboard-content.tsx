@@ -214,7 +214,7 @@ export function DashboardContent({
         queryClient.getQueryData<GroupItem[]>(groupListKey());
 
       const optimisticBookmark: BookmarkItem = {
-        id: `temp-${Date.now()}`,
+        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         title: newBookmark.title,
         url: newBookmark.url || null,
         favicon: null,
@@ -259,6 +259,17 @@ export function DashboardContent({
       toast.error(err.message || "Failed to create bookmark");
     },
     onSettled: (_data, _error, variables) => {
+      // Rapid sequential adds keep several create mutations in flight at once.
+      // Only refetch once the last one settles, so the list isn't refetched per
+      // add — overlapping refetches race and can drop optimistic bookmarks whose
+      // server insert hasn't committed yet.
+      if (
+        queryClient.isMutating({
+          mutationKey: orpc.bookmark.create.mutationKey(),
+        }) !== 1
+      ) {
+        return;
+      }
       queryClient.invalidateQueries({
         queryKey: orpc.bookmark.list.key({
           input: { groupId: variables.groupId },

@@ -69,7 +69,7 @@ const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
         .select()
         .from(bookmark)
         .where(eq(bookmark.groupId, firstGroup.id))
-        .orderBy(desc(bookmark.createdAt))
+        .orderBy(desc(bookmark.createdAt), desc(bookmark.id))
     : [];
 
   const initialBookmarks: BookmarkItem[] = firstGroupBookmarks.map((b) => ({
