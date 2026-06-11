@@ -53,14 +53,16 @@ import {
 import { authClient, signOut } from "@/lib/auth-client";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogBody,
+  ResponsiveDialogClose,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Form } from "@/components/ui/form";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
@@ -86,7 +88,11 @@ interface HeaderProps {
   onSelectGroup: (id: string) => void;
   onCreateGroup: (name: string) => void;
   onDeleteGroup?: (id: string) => void;
-  onToggleGroupVisibility?: (id: string, isPublic: boolean, onSettled?: () => void) => void;
+  onToggleGroupVisibility?: (
+    id: string,
+    isPublic: boolean,
+    onSettled?: () => void,
+  ) => void;
   isTogglingGroupVisibility?: boolean;
   userName: string;
   userEmail: string;
@@ -121,6 +127,7 @@ export function Header({
   const { setTheme, theme } = useTheme();
   const [newGroupName, setNewGroupName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const isMobile = useIsMobile();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [signOutOpen, setSignOutOpen] = useState(false);
@@ -345,8 +352,11 @@ export function Header({
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-sm" showCloseButton={false}>
+        <ResponsiveDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <ResponsiveDialogContent
+            className="sm:max-w-sm"
+            showCloseButton={false}
+          >
             <Form
               className="contents"
               onSubmit={(e) => {
@@ -354,32 +364,34 @@ export function Header({
                 handleCreateGroup();
               }}
             >
-              <DialogHeader>
-                <DialogTitle>Create Group</DialogTitle>
-                <DialogDescription>
+              <ResponsiveDialogHeader>
+                <ResponsiveDialogTitle>Create Group</ResponsiveDialogTitle>
+                <ResponsiveDialogDescription>
                   Create a new group to organize your bookmarks.
-                </DialogDescription>
-              </DialogHeader>
-              <Field>
-                <FieldLabel>Name</FieldLabel>
-                <Input
-                  placeholder="Enter group name"
-                  value={newGroupName}
-                  onChange={(e) => setNewGroupName(e.target.value)}
-                  autoFocus
-                />
-              </Field>
-              <DialogFooter>
-                <DialogClose render={<Button variant="ghost" />}>
+                </ResponsiveDialogDescription>
+              </ResponsiveDialogHeader>
+              <ResponsiveDialogBody>
+                <Field>
+                  <FieldLabel>Name</FieldLabel>
+                  <Input
+                    placeholder="Enter group name"
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                    autoFocus={!isMobile}
+                  />
+                </Field>
+              </ResponsiveDialogBody>
+              <ResponsiveDialogFooter>
+                <ResponsiveDialogClose render={<Button variant="ghost" />}>
                   Cancel
-                </DialogClose>
+                </ResponsiveDialogClose>
                 <Button type="submit" disabled={!newGroupName.trim()}>
                   Create
                 </Button>
-              </DialogFooter>
+              </ResponsiveDialogFooter>
             </Form>
-          </DialogContent>
-        </Dialog>
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
       </div>
 
       {showUserMenu ? (
@@ -398,7 +410,10 @@ export function Header({
               <span className="truncate max-sm:hidden">{userName}</span>
               <IconSelector className="ml-auto h-4 w-4 shrink-0 text-muted-foreground max-sm:hidden" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-2xl max-sm:w-60">
+            <DropdownMenuContent
+              align="end"
+              className="rounded-2xl max-sm:w-60"
+            >
               <DropdownMenuItem
                 className="rounded-lg"
                 onClick={() => setSettingsOpen(true)}
@@ -473,7 +488,9 @@ export function Header({
                     >
                       <IconSun className="h-4 w-4" />
                       Light
-                      {theme === "light" && <IconCheck className="ml-auto h-4 w-4" />}
+                      {theme === "light" && (
+                        <IconCheck className="ml-auto h-4 w-4" />
+                      )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="rounded-lg"
@@ -481,7 +498,9 @@ export function Header({
                     >
                       <IconMoon className="h-4 w-4" />
                       Dark
-                      {theme === "dark" && <IconCheck className="ml-auto h-4 w-4" />}
+                      {theme === "dark" && (
+                        <IconCheck className="ml-auto h-4 w-4" />
+                      )}
                     </DropdownMenuItem>
                   </DropdownMenuSubContent>
                 </DropdownMenuPortal>
@@ -546,7 +565,9 @@ export function Header({
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle className="font-semibold text-xl">
-                  {pendingVisibilityTarget ? "Make group public?" : "Make group private?"}
+                  {pendingVisibilityTarget
+                    ? "Make group public?"
+                    : "Make group private?"}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   {pendingVisibilityTarget
@@ -675,4 +696,3 @@ function UserAvatar({ name, image }: { name: string; image?: string | null }) {
     </svg>
   );
 }
-

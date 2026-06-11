@@ -1,10 +1,11 @@
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogBody,
+  ResponsiveDialogContent,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 
 interface KeyboardShortcutsDialogProps {
@@ -13,7 +14,8 @@ interface KeyboardShortcutsDialogProps {
 }
 
 const isMac =
-  typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent);
+  typeof navigator !== "undefined" &&
+  /Mac|iPhone|iPad/.test(navigator.userAgent);
 const mod = isMac ? "⌘" : "Ctrl";
 
 const shortcuts = [
@@ -33,36 +35,41 @@ export function KeyboardShortcutsDialog({
   onOpenChange,
 }: KeyboardShortcutsDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Keyboard Shortcuts</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-2">
-          {shortcuts.map((shortcut) => (
-            <div
-              key={shortcut.action}
-              className="flex items-center justify-between py-1"
-            >
-              <span className="text-sm text-muted-foreground">
-                {shortcut.action}
-              </span>
-              <KbdGroup>
-                {shortcut.keys.map((key) =>
-                  key === "/" ? (
-                    <span key={key} className="text-xs text-muted-foreground">
-                      /
-                    </span>
-                  ) : (
-                    <Kbd key={key}>{key}</Kbd>
-                  ),
-                )}
-              </KbdGroup>
-            </div>
-          ))}
-        </div>
-        <DialogFooter showCloseButton />
-      </DialogContent>
-    </Dialog>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent
+        className="sm:max-w-sm"
+        aria-describedby={undefined}
+      >
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>Keyboard Shortcuts</ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
+        <ResponsiveDialogBody>
+          <div className="grid gap-2">
+            {shortcuts.map((shortcut) => (
+              <div
+                key={shortcut.action}
+                className="flex items-center justify-between py-1"
+              >
+                <span className="text-sm text-muted-foreground">
+                  {shortcut.action}
+                </span>
+                <KbdGroup>
+                  {shortcut.keys.map((key) =>
+                    key === "/" ? (
+                      <span key={key} className="text-xs text-muted-foreground">
+                        /
+                      </span>
+                    ) : (
+                      <Kbd key={key}>{key}</Kbd>
+                    ),
+                  )}
+                </KbdGroup>
+              </div>
+            ))}
+          </div>
+        </ResponsiveDialogBody>
+        <ResponsiveDialogFooter showCloseButton />
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }
