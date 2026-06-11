@@ -230,51 +230,58 @@ export function Header({
     <header
       className={cn(
         "flex items-center justify-between",
-        readOnly ? "px-4 py-2" : "px-6 py-3",
+        readOnly ? "px-4 py-2" : "px-4 py-3 sm:px-6",
       )}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-1 sm:gap-2">
         <BmrksLogo size={logoSize} />
         <span className="text-muted-foreground">/</span>
         <DropdownMenu>
           <DropdownMenuTrigger
             className="rounded-xl"
-            render={<Button variant="ghost" className="gap-2 px-2" />}
+            render={
+              <Button
+                variant="ghost"
+                className="gap-1.5 px-1.5 sm:gap-2 sm:px-2"
+              />
+            }
           >
             <span
-              className="h-2.5 w-2.5 rounded-full"
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
               style={{ backgroundColor: selectedGroup.color }}
             />
-            <span>{selectedGroup.name}</span>
+            <span className="max-w-[32vw] truncate sm:max-w-none">
+              {selectedGroup.name}
+            </span>
             <IconSelector className="h-4 w-4 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="start"
-            className="w-48 space-y-1 rounded-xl"
+            className="w-48 space-y-1 rounded-xl pointer-coarse:space-y-0"
           >
             {groups.map((group) => (
               <DropdownMenuItem
                 key={group.id}
                 onClick={() => onSelectGroup(group.id)}
                 className={cn(
-                  "flex items-start justify-between rounded-lg px-2 py-1.5",
+                  "flex items-start justify-between rounded-lg px-2 py-1.5 pointer-coarse:items-center",
                   group.id === selectedGroup.id && "bg-accent",
                 )}
               >
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-2 pointer-coarse:items-center">
                   <span
-                    className="mt-[5px] h-2.5 w-2.5 shrink-0 rounded-full"
+                    className="mt-[5px] h-2.5 w-2.5 shrink-0 rounded-full pointer-coarse:mt-0"
                     style={{ backgroundColor: group.color }}
                   />
                   <span>{group.name}</span>
                   {group.isPublic && (
-                    <IconWorld className="mt-1 h-3 w-3 shrink-0 text-muted-foreground" />
+                    <IconWorld className="mt-1 h-3 w-3 shrink-0 text-muted-foreground pointer-coarse:mt-0" />
                   )}
                 </div>
                 {group.id === selectedGroup.id ? (
-                  <IconCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                  <IconCheck className="mt-0.5 h-4 w-4 shrink-0 pointer-coarse:mt-0" />
                 ) : (
-                  <span className="mt-0.5 shrink-0 text-xs tabular-nums text-muted-foreground">
+                  <span className="mt-0.5 shrink-0 text-xs tabular-nums text-muted-foreground pointer-coarse:mt-0">
                     {group.bookmarkCount ?? 0}
                   </span>
                 )}
@@ -383,15 +390,15 @@ export function Header({
               render={
                 <Button
                   variant="ghost"
-                  className="w-44 justify-start gap-2 px-2 border-0"
+                  className="justify-start gap-2 px-2 border-0 max-sm:h-9 max-sm:w-9 max-sm:justify-center max-sm:px-0 sm:w-44"
                 />
               }
             >
               <UserAvatar name={userName} image={userImage} />
-              <span className="truncate">{userName}</span>
-              <IconSelector className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className="truncate max-sm:hidden">{userName}</span>
+              <IconSelector className="ml-auto h-4 w-4 shrink-0 text-muted-foreground max-sm:hidden" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-2xl">
+            <DropdownMenuContent align="end" className="rounded-2xl max-sm:w-60">
               <DropdownMenuItem
                 className="rounded-lg"
                 onClick={() => setSettingsOpen(true)}
@@ -480,7 +487,7 @@ export function Header({
                 </DropdownMenuPortal>
               </DropdownMenuSub>
               <DropdownMenuItem
-                className="rounded-lg"
+                className="rounded-lg pointer-coarse:hidden"
                 onClick={() => setShortcutsOpen(true)}
               >
                 <IconKeyboard className="h-4 w-4" />
@@ -639,13 +646,19 @@ function UserAvatar({ name, image }: { name: string; image?: string | null }) {
       <img
         src={image}
         alt={name}
-        className="size-4.5 shrink-0 rounded-full object-cover"
+        className="size-6 sm:size-4.5 shrink-0 rounded-full object-cover"
       />
     );
   }
 
   return (
-    <svg viewBox="0 0 32 32" fill="none" width="18" height="18">
+    <svg
+      viewBox="0 0 32 32"
+      fill="none"
+      width="18"
+      height="18"
+      className="size-6 sm:size-4"
+    >
       <title>User avatar</title>
       <rect width="32" height="32" rx="16" fill="#74B06F" />
       <text
