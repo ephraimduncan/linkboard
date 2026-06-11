@@ -53,14 +53,16 @@ import {
 import { authClient, signOut } from "@/lib/auth-client";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogBody,
+  ResponsiveDialogClose,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Form } from "@/components/ui/form";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
@@ -86,7 +88,11 @@ interface HeaderProps {
   onSelectGroup: (id: string) => void;
   onCreateGroup: (name: string) => void;
   onDeleteGroup?: (id: string) => void;
-  onToggleGroupVisibility?: (id: string, isPublic: boolean, onSettled?: () => void) => void;
+  onToggleGroupVisibility?: (
+    id: string,
+    isPublic: boolean,
+    onSettled?: () => void,
+  ) => void;
   isTogglingGroupVisibility?: boolean;
   userName: string;
   userEmail: string;
@@ -121,6 +127,7 @@ export function Header({
   const { setTheme, theme } = useTheme();
   const [newGroupName, setNewGroupName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const isMobile = useIsMobile();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [signOutOpen, setSignOutOpen] = useState(false);
@@ -230,51 +237,58 @@ export function Header({
     <header
       className={cn(
         "flex items-center justify-between",
-        readOnly ? "px-4 py-2" : "px-6 py-3",
+        readOnly ? "px-4 py-2" : "px-4 py-3 sm:px-6",
       )}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-1 sm:gap-2">
         <BmrksLogo size={logoSize} />
         <span className="text-muted-foreground">/</span>
         <DropdownMenu>
           <DropdownMenuTrigger
             className="rounded-xl"
-            render={<Button variant="ghost" className="gap-2 px-2" />}
+            render={
+              <Button
+                variant="ghost"
+                className="gap-1.5 px-1.5 sm:gap-2 sm:px-2"
+              />
+            }
           >
             <span
-              className="h-2.5 w-2.5 rounded-full"
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
               style={{ backgroundColor: selectedGroup.color }}
             />
-            <span>{selectedGroup.name}</span>
+            <span className="max-w-[32vw] truncate sm:max-w-none">
+              {selectedGroup.name}
+            </span>
             <IconSelector className="h-4 w-4 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="start"
-            className="w-48 space-y-1 rounded-xl"
+            className="w-48 space-y-1 rounded-xl pointer-coarse:space-y-0"
           >
             {groups.map((group) => (
               <DropdownMenuItem
                 key={group.id}
                 onClick={() => onSelectGroup(group.id)}
                 className={cn(
-                  "flex items-start justify-between rounded-lg px-2 py-1.5",
+                  "flex items-start justify-between rounded-lg px-2 py-1.5 pointer-coarse:items-center",
                   group.id === selectedGroup.id && "bg-accent",
                 )}
               >
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-2 pointer-coarse:items-center">
                   <span
-                    className="mt-[5px] h-2.5 w-2.5 shrink-0 rounded-full"
+                    className="mt-[5px] h-2.5 w-2.5 shrink-0 rounded-full pointer-coarse:mt-0"
                     style={{ backgroundColor: group.color }}
                   />
                   <span>{group.name}</span>
                   {group.isPublic && (
-                    <IconWorld className="mt-1 h-3 w-3 shrink-0 text-muted-foreground" />
+                    <IconWorld className="mt-1 h-3 w-3 shrink-0 text-muted-foreground pointer-coarse:mt-0" />
                   )}
                 </div>
                 {group.id === selectedGroup.id ? (
-                  <IconCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                  <IconCheck className="mt-0.5 h-4 w-4 shrink-0 pointer-coarse:mt-0" />
                 ) : (
-                  <span className="mt-0.5 shrink-0 text-xs tabular-nums text-muted-foreground">
+                  <span className="mt-0.5 shrink-0 text-xs tabular-nums text-muted-foreground pointer-coarse:mt-0">
                     {group.bookmarkCount ?? 0}
                   </span>
                 )}
@@ -338,8 +352,11 @@ export function Header({
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-sm" showCloseButton={false}>
+        <ResponsiveDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <ResponsiveDialogContent
+            className="sm:max-w-sm"
+            showCloseButton={false}
+          >
             <Form
               className="contents"
               onSubmit={(e) => {
@@ -347,32 +364,34 @@ export function Header({
                 handleCreateGroup();
               }}
             >
-              <DialogHeader>
-                <DialogTitle>Create Group</DialogTitle>
-                <DialogDescription>
+              <ResponsiveDialogHeader>
+                <ResponsiveDialogTitle>Create Group</ResponsiveDialogTitle>
+                <ResponsiveDialogDescription>
                   Create a new group to organize your bookmarks.
-                </DialogDescription>
-              </DialogHeader>
-              <Field>
-                <FieldLabel>Name</FieldLabel>
-                <Input
-                  placeholder="Enter group name"
-                  value={newGroupName}
-                  onChange={(e) => setNewGroupName(e.target.value)}
-                  autoFocus
-                />
-              </Field>
-              <DialogFooter>
-                <DialogClose render={<Button variant="ghost" />}>
+                </ResponsiveDialogDescription>
+              </ResponsiveDialogHeader>
+              <ResponsiveDialogBody>
+                <Field>
+                  <FieldLabel>Name</FieldLabel>
+                  <Input
+                    placeholder="Enter group name"
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                    autoFocus={!isMobile}
+                  />
+                </Field>
+              </ResponsiveDialogBody>
+              <ResponsiveDialogFooter>
+                <ResponsiveDialogClose render={<Button variant="ghost" />}>
                   Cancel
-                </DialogClose>
+                </ResponsiveDialogClose>
                 <Button type="submit" disabled={!newGroupName.trim()}>
                   Create
                 </Button>
-              </DialogFooter>
+              </ResponsiveDialogFooter>
             </Form>
-          </DialogContent>
-        </Dialog>
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
       </div>
 
       {showUserMenu ? (
@@ -383,15 +402,18 @@ export function Header({
               render={
                 <Button
                   variant="ghost"
-                  className="w-44 justify-start gap-2 px-2 border-0"
+                  className="justify-start gap-2 px-2 border-0 max-sm:h-9 max-sm:w-9 max-sm:justify-center max-sm:px-0 sm:w-44"
                 />
               }
             >
               <UserAvatar name={userName} image={userImage} />
-              <span className="truncate">{userName}</span>
-              <IconSelector className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className="truncate max-sm:hidden">{userName}</span>
+              <IconSelector className="ml-auto h-4 w-4 shrink-0 text-muted-foreground max-sm:hidden" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-2xl">
+            <DropdownMenuContent
+              align="end"
+              className="rounded-2xl max-sm:w-60"
+            >
               <DropdownMenuItem
                 className="rounded-lg"
                 onClick={() => setSettingsOpen(true)}
@@ -466,7 +488,9 @@ export function Header({
                     >
                       <IconSun className="h-4 w-4" />
                       Light
-                      {theme === "light" && <IconCheck className="ml-auto h-4 w-4" />}
+                      {theme === "light" && (
+                        <IconCheck className="ml-auto h-4 w-4" />
+                      )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="rounded-lg"
@@ -474,13 +498,15 @@ export function Header({
                     >
                       <IconMoon className="h-4 w-4" />
                       Dark
-                      {theme === "dark" && <IconCheck className="ml-auto h-4 w-4" />}
+                      {theme === "dark" && (
+                        <IconCheck className="ml-auto h-4 w-4" />
+                      )}
                     </DropdownMenuItem>
                   </DropdownMenuSubContent>
                 </DropdownMenuPortal>
               </DropdownMenuSub>
               <DropdownMenuItem
-                className="rounded-lg"
+                className="rounded-lg pointer-coarse:hidden"
                 onClick={() => setShortcutsOpen(true)}
               >
                 <IconKeyboard className="h-4 w-4" />
@@ -539,7 +565,9 @@ export function Header({
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle className="font-semibold text-xl">
-                  {pendingVisibilityTarget ? "Make group public?" : "Make group private?"}
+                  {pendingVisibilityTarget
+                    ? "Make group public?"
+                    : "Make group private?"}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   {pendingVisibilityTarget
@@ -639,13 +667,19 @@ function UserAvatar({ name, image }: { name: string; image?: string | null }) {
       <img
         src={image}
         alt={name}
-        className="size-4.5 shrink-0 rounded-full object-cover"
+        className="size-6 sm:size-4.5 shrink-0 rounded-full object-cover"
       />
     );
   }
 
   return (
-    <svg viewBox="0 0 32 32" fill="none" width="18" height="18">
+    <svg
+      viewBox="0 0 32 32"
+      fill="none"
+      width="18"
+      height="18"
+      className="size-6 sm:size-4"
+    >
       <title>User avatar</title>
       <rect width="32" height="32" rx="16" fill="#74B06F" />
       <text
@@ -662,4 +696,3 @@ function UserAvatar({ name, image }: { name: string; image?: string | null }) {
     </svg>
   );
 }
-

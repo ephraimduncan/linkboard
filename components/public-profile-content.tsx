@@ -218,7 +218,7 @@ export function PublicProfileContent({
                     setActiveGroup(tab.value === "all" ? null : tab.value)
                   }
                   className={cn(
-                    "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                    "flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors sm:py-1.5",
                     activeTab === tab.value
                       ? "bg-muted text-foreground"
                       : "text-muted-foreground hover:text-foreground",
@@ -274,7 +274,7 @@ export function PublicProfileContent({
                         className={cn(
                           "text-[13px] text-muted-foreground whitespace-nowrap tabular-nums",
                           bookmark.url &&
-                            "transition-transform duration-200 group-hover:-translate-x-5",
+                            "transition-transform duration-200 group-hover:-translate-x-5 pointer-coarse:-translate-x-5",
                         )}
                       >
                         {formatDate(bookmark.updatedAt)}
@@ -290,7 +290,7 @@ export function PublicProfileContent({
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          className="text-muted-foreground transition-[opacity,transform,filter] duration-200 ease-[cubic-bezier(0.2,0,0,1)] opacity-0 scale-[0.25] blur-[4px] group-hover:opacity-100 group-hover:scale-100 group-hover:blur-0 absolute right-4"
+                          className="text-muted-foreground transition-[opacity,transform,filter] duration-200 ease-[cubic-bezier(0.2,0,0,1)] opacity-0 scale-[0.25] blur-[4px] group-hover:opacity-100 group-hover:scale-100 group-hover:blur-0 pointer-coarse:opacity-100 pointer-coarse:scale-100 pointer-coarse:blur-0 absolute right-4"
                         >
                           <path d="M7 7h10v10" />
                           <path d="M7 17 17 7" />

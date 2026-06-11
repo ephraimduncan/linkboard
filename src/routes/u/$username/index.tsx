@@ -8,7 +8,7 @@ import { APP_URL } from "@/lib/config";
 import { PublicProfileContent } from "@/components/public-profile-content";
 
 const getProfile = createServerFn({ method: "GET" })
-  .inputValidator((username: string) => username)
+  .validator((username: string) => username)
   .handler(async ({ data: username }) => {
     const db = createDb();
     const [data, session] = await Promise.all([

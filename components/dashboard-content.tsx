@@ -1320,7 +1320,7 @@ export function DashboardContent({
         profile={profile}
         onExport={handleOpenExportDialog}
       />
-      <main className="mx-auto w-full max-w-2xl px-5 py-20">
+      <main className="mx-auto w-full max-w-2xl px-5 py-8 sm:py-20">
         {profile.subscriptionStatus === "past_due" && <PastDueBanner />}
         <BookmarkInput
           ref={inputRef}

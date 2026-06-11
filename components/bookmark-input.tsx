@@ -58,7 +58,7 @@ export const BookmarkInput = forwardRef<HTMLInputElement, BookmarkInputProps>(
       <div className="relative mb-8">
         <Input
           ref={ref}
-          className="peer ps-8 pe-16"
+          className="peer ps-8 pe-16 pointer-coarse:pe-2.5"
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -69,7 +69,7 @@ export const BookmarkInput = forwardRef<HTMLInputElement, BookmarkInputProps>(
         <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-2.5 text-muted-foreground/80 peer-disabled:opacity-50">
           <IconPlus size={16} />
         </div>
-        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground/80 peer-disabled:opacity-50">
+        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground/80 peer-disabled:opacity-50 pointer-coarse:hidden">
           <KbdGroup>
             <Kbd>⌘</Kbd>
             <Kbd>F</Kbd>

@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogBody,
+  ResponsiveDialogClose,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +42,9 @@ export function BulkMoveDialog({
   onConfirm,
 }: BulkMoveDialogProps) {
   const availableGroups = groups.filter((g) => g.id !== currentGroupId);
-  const [targetGroupId, setTargetGroupId] = useState<string>(availableGroups[0]?.id ?? "");
+  const [targetGroupId, setTargetGroupId] = useState<string>(
+    availableGroups[0]?.id ?? "",
+  );
   const selectedGroup = availableGroups.find((g) => g.id === targetGroupId);
 
   const [prevOpen, setPrevOpen] = useState(open);
@@ -61,8 +64,8 @@ export function BulkMoveDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xs" showCloseButton={false}>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent className="sm:max-w-xs" showCloseButton={false}>
         <Form
           className="contents"
           onSubmit={(e) => {
@@ -70,72 +73,83 @@ export function BulkMoveDialog({
             handleConfirm();
           }}
         >
-          <DialogHeader>
-            <DialogTitle>Move {selectedCount} bookmarks</DialogTitle>
-            <DialogDescription>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>
+              Move {selectedCount} bookmarks
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
               Select the group to move the selected bookmarks to.
-            </DialogDescription>
-          </DialogHeader>
-          <Field>
-            <FieldLabel>Target Group</FieldLabel>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                className="rounded-xl w-full"
-                render={
-                  <Button variant="outline" className="w-full gap-2 px-2 justify-between" />
-                }
-              >
-                {selectedGroup ? (
-                  <>
-                    <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: selectedGroup.color }}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+          <ResponsiveDialogBody>
+            <Field>
+              <FieldLabel>Target Group</FieldLabel>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="rounded-xl w-full"
+                  render={
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2 px-2 justify-between"
                     />
-                    <span className="flex-1 text-left">{selectedGroup.name}</span>
-                  </>
-                ) : (
-                  <span className="text-muted-foreground flex-1 text-left">Select a group</span>
-                )}
-                <IconSelector className="h-4 w-4 text-muted-foreground shrink-0" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                className="min-w-[16rem] rounded-xl space-y-1"
-              >
-                {availableGroups.map((group) => (
-                  <DropdownMenuItem
-                    key={group.id}
-                    onClick={() => setTargetGroupId(group.id)}
-                    className={cn(
-                      "flex items-center justify-between rounded-lg",
-                      group.id === targetGroupId && "bg-accent",
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
+                  }
+                >
+                  {selectedGroup ? (
+                    <>
                       <span
                         className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: group.color }}
+                        style={{ backgroundColor: selectedGroup.color }}
                       />
-                      <span>{group.name}</span>
-                    </div>
-                    {group.id === targetGroupId && (
-                      <IconCheck className="h-4 w-4" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </Field>
-          <DialogFooter>
-            <DialogClose render={<Button variant="ghost" />}>
+                      <span className="flex-1 text-left">
+                        {selectedGroup.name}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground flex-1 text-left">
+                      Select a group
+                    </span>
+                  )}
+                  <IconSelector className="h-4 w-4 text-muted-foreground shrink-0" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  className="pointer-events-auto min-w-[16rem] rounded-xl space-y-1"
+                >
+                  {availableGroups.map((group) => (
+                    <DropdownMenuItem
+                      key={group.id}
+                      onClick={() => setTargetGroupId(group.id)}
+                      className={cn(
+                        "flex items-center justify-between rounded-lg",
+                        group.id === targetGroupId && "bg-accent",
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: group.color }}
+                        />
+                        <span>{group.name}</span>
+                      </div>
+                      {group.id === targetGroupId && (
+                        <IconCheck className="h-4 w-4" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Field>
+          </ResponsiveDialogBody>
+          <ResponsiveDialogFooter>
+            <ResponsiveDialogClose render={<Button variant="ghost" />}>
               Cancel
-            </DialogClose>
+            </ResponsiveDialogClose>
             <Button type="submit" disabled={!targetGroupId}>
               Move
             </Button>
-          </DialogFooter>
+          </ResponsiveDialogFooter>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

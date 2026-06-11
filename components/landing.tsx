@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { IconMenu2 } from "@tabler/icons-react";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { DashboardDemoLazy as DashboardDemo } from "@/components/dashboard-demo-lazy";
 import { LandingPricing } from "@/components/landing-pricing";
 
@@ -14,6 +17,8 @@ const FEATURES = [
 ];
 
 export function Landing() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <main className="min-h-dvh bg-white text-black dark:bg-zinc-950 dark:text-white">
       <nav
@@ -38,11 +43,50 @@ export function Landing() {
           </Link>
           <Link
             to="/login"
-            className="transition-colors hover:text-black dark:hover:text-white"
+            className="transition-colors hover:text-black dark:hover:text-white max-sm:hidden"
           >
             Sign in
           </Link>
+          <button
+            type="button"
+            aria-label="Open menu"
+            onClick={() => setMenuOpen(true)}
+            className="sm:hidden -m-2 flex size-11 items-center justify-center text-zinc-500 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-white"
+          >
+            <IconMenu2 size={22} />
+          </button>
         </div>
+        <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
+          <DrawerContent aria-describedby={undefined}>
+            <DrawerTitle className="sr-only">Menu</DrawerTitle>
+            <nav
+              aria-label="Mobile"
+              className="flex flex-col px-4 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-base"
+            >
+              <a
+                href="#pricing"
+                onClick={() => setMenuOpen(false)}
+                className="flex min-h-12 items-center rounded-lg px-3 active:bg-muted"
+              >
+                Pricing
+              </a>
+              <Link
+                to="/changelog"
+                onClick={() => setMenuOpen(false)}
+                className="flex min-h-12 items-center rounded-lg px-3 active:bg-muted"
+              >
+                Changelog
+              </Link>
+              <Link
+                to="/login"
+                onClick={() => setMenuOpen(false)}
+                className="flex min-h-12 items-center rounded-lg px-3 active:bg-muted"
+              >
+                Sign in
+              </Link>
+            </nav>
+          </DrawerContent>
+        </Drawer>
       </nav>
 
       <section className="mx-auto max-w-3xl px-6 pt-16 sm:pt-24">
@@ -103,9 +147,9 @@ export function Landing() {
         <LandingPricing />
       </section>
 
-      <footer className="mx-auto flex max-w-3xl items-center justify-between border-t border-zinc-100 px-6 py-8 text-sm text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
+      <footer className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-zinc-100 px-6 py-8 text-sm text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
         <p>© {CURRENT_YEAR} minimal.so</p>
-        <nav className="flex gap-6" aria-label="Footer">
+        <nav className="flex gap-4 sm:gap-6" aria-label="Footer">
           <Link
             to="/terms"
             className="transition-colors hover:text-black dark:hover:text-white"

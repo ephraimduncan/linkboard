@@ -26,8 +26,16 @@ import {
   IconSquaresSelected,
   IconWorld,
   IconWorldOff,
+  IconDots,
+  IconArrowLeft,
 } from "@tabler/icons-react";
 import { ContextMenuSeparator } from "@/components/ui/context-menu";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Empty,
   EmptyMedia,
@@ -49,6 +57,9 @@ const EMPTY_STATE = (
 );
 
 const EMPTY_SET = new Set<string>();
+
+const DRAWER_ITEM_CLASS =
+  "flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-base active:bg-muted";
 
 interface BookmarkListProps {
   bookmarks: BookmarkItem[];
@@ -110,7 +121,16 @@ export function BookmarkList({
   const [contextMenuOpenId, setContextMenuOpenId] = useState<string | null>(
     null,
   );
+  const [drawerBookmark, setDrawerBookmark] = useState<BookmarkItem | null>(
+    null,
+  );
+  const [drawerMoveView, setDrawerMoveView] = useState(false);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
+
+  const closeDrawer = () => {
+    setDrawerBookmark(null);
+    setDrawerMoveView(false);
+  };
 
   useEffect(() => {
     startTransition(() => {
@@ -205,7 +225,7 @@ export function BookmarkList({
     <div>
       <div className="mb-2 flex items-center justify-between border-b border-border px-1 pb-2 text-sm text-muted-foreground">
         <span>Title</span>
-        <span>Created At</span>
+        <span className="max-sm:hidden">Created At</span>
       </div>
       <div className="flex flex-col gap-0.5 -mx-3">
         {bookmarks.map((bookmark, index) => (
@@ -268,20 +288,27 @@ export function BookmarkList({
                     onFocus={(e) => e.target.select()}
                   />
                 ) : (
-                  <span className="text-sm font-normal truncate">
-                    {copiedId === bookmark.id ? "Copied" : bookmark.title}
-                  </span>
+                  <div className="flex min-w-0 flex-col sm:contents">
+                    <div className="flex min-w-0 items-center gap-2 sm:contents">
+                      <span className="text-sm font-normal truncate">
+                        {copiedId === bookmark.id ? "Copied" : bookmark.title}
+                      </span>
+                      {bookmark.url && !renamingId && copiedId !== bookmark.id ? (
+                        <span className="text-[13px] text-muted-foreground">
+                          {new URL(bookmark.url).hostname.replace("www.", "")}
+                        </span>
+                      ) : null}
+                    </div>
+                    <span className="text-xs tabular-nums text-muted-foreground sm:hidden">
+                      {formatDate(bookmark.createdAt)}
+                    </span>
+                  </div>
                 )}
-                {bookmark.url && !renamingId && copiedId !== bookmark.id ? (
-                  <span className="text-[13px] text-muted-foreground">
-                    {new URL(bookmark.url).hostname.replace("www.", "")}
-                  </span>
-                ) : null}
               </div>
-              <div className="relative w-[100px] h-5 flex items-center justify-end gap-1.5">
+              <div className="relative h-5 flex items-center justify-end gap-1.5 sm:w-[100px]">
                 {(selectedIndex === index || hoveredIndex === index) &&
                 !renamingId ? (
-                  <KbdGroup>
+                  <KbdGroup className="pointer-coarse:hidden">
                     <Kbd>⌘</Kbd>
                     <Kbd>Enter</Kbd>
                   </KbdGroup>
@@ -290,10 +317,25 @@ export function BookmarkList({
                     {hasUsername && !renamingId && bookmark.isPublic === true && (
                       <IconWorld className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
                     )}
-                    <span className="text-[13px] tabular-nums text-muted-foreground whitespace-nowrap">
+                    <span className="text-[13px] tabular-nums text-muted-foreground whitespace-nowrap max-sm:hidden">
                       {formatDate(bookmark.createdAt)}
                     </span>
                   </>
+                )}
+                {!renamingId && (
+                  <span
+                    role="button"
+                    aria-label="Bookmark actions"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setDrawerBookmark(bookmark);
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="hidden pointer-coarse:flex size-9 -my-2 -me-2 shrink-0 items-center justify-center rounded-lg text-muted-foreground"
+                  >
+                    <IconDots className="size-4.5" />
+                  </span>
                 )}
               </div>
             </ContextMenuTrigger>
@@ -407,6 +449,175 @@ export function BookmarkList({
           </ContextMenu>
         ))}
       </div>
+      <Drawer
+        open={drawerBookmark !== null}
+        onOpenChange={(open) => {
+          if (!open) closeDrawer();
+        }}
+      >
+        <DrawerContent
+          aria-describedby={undefined}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+        >
+          <DrawerHeader className="pb-2">
+            <DrawerTitle className="truncate">
+              {drawerMoveView ? "Move To..." : drawerBookmark?.title}
+            </DrawerTitle>
+          </DrawerHeader>
+          {drawerBookmark ? (
+            <div className="flex flex-col gap-0.5 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              {drawerMoveView ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setDrawerMoveView(false)}
+                    className={DRAWER_ITEM_CLASS}
+                  >
+                    <IconArrowLeft className="size-5 text-muted-foreground" />
+                    <span>Back</span>
+                  </button>
+                  {groups
+                    .filter((g) => g.id !== currentGroupId)
+                    .map((group) => (
+                      <button
+                        key={group.id}
+                        type="button"
+                        onClick={() => {
+                          if (
+                            selectionMode &&
+                            selectedIds.has(drawerBookmark.id) &&
+                            onBulkMove
+                          ) {
+                            onBulkMove(group.id);
+                          } else {
+                            onMove(drawerBookmark.id, group.id);
+                          }
+                          closeDrawer();
+                        }}
+                        className={DRAWER_ITEM_CLASS}
+                      >
+                        <span
+                          className="size-2.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: group.color }}
+                        />
+                        <span className="truncate">{group.name}</span>
+                      </button>
+                    ))}
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleCopy(drawerBookmark);
+                      closeDrawer();
+                    }}
+                    className={DRAWER_ITEM_CLASS}
+                  >
+                    <IconCopy className="size-5 text-muted-foreground" />
+                    <span>Copy</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleStartRename(drawerBookmark);
+                      closeDrawer();
+                    }}
+                    className={DRAWER_ITEM_CLASS}
+                  >
+                    <IconPencil className="size-5 text-muted-foreground" />
+                    <span>Rename</span>
+                  </button>
+                  {drawerBookmark.url ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onRefetch(drawerBookmark.id);
+                        closeDrawer();
+                      }}
+                      className={DRAWER_ITEM_CLASS}
+                    >
+                      <IconRefresh className="size-5 text-muted-foreground" />
+                      <span>Refetch</span>
+                    </button>
+                  ) : null}
+                  {hasUsername && onToggleVisibility && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onToggleVisibility(
+                          drawerBookmark.id,
+                          drawerBookmark.isPublic,
+                        );
+                        closeDrawer();
+                      }}
+                      className={DRAWER_ITEM_CLASS}
+                    >
+                      {isBookmarkPublic(
+                        drawerBookmark,
+                        currentGroupId,
+                        publicGroupIds,
+                      ) ? (
+                        <>
+                          <IconWorldOff className="size-5 text-muted-foreground" />
+                          <span>Make Private</span>
+                        </>
+                      ) : (
+                        <>
+                          <IconWorld className="size-5 text-muted-foreground" />
+                          <span>Make Public</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  {groups.length > 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => setDrawerMoveView(true)}
+                      className={DRAWER_ITEM_CLASS}
+                    >
+                      <IconChevronsRight className="size-5 text-muted-foreground" />
+                      <span>Move To...</span>
+                    </button>
+                  ) : null}
+                  {!selectionMode && onEnterSelectionMode && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onEnterSelectionMode(drawerBookmark.id);
+                        closeDrawer();
+                      }}
+                      className={DRAWER_ITEM_CLASS}
+                    >
+                      <IconSquaresSelected className="size-5 text-muted-foreground" />
+                      <span>Select Multiple</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        selectionMode &&
+                        selectedIds.has(drawerBookmark.id) &&
+                        onBulkDelete
+                      ) {
+                        onBulkDelete();
+                      } else {
+                        onDelete(drawerBookmark.id);
+                      }
+                      closeDrawer();
+                    }}
+                    className={cn(DRAWER_ITEM_CLASS, "text-destructive")}
+                  >
+                    <IconTrash className="size-5" />
+                    <span>Delete</span>
+                  </button>
+                </>
+              )}
+            </div>
+          ) : null}
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

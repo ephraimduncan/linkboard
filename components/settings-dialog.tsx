@@ -9,14 +9,15 @@ import type { ImportBookmarksResponse } from "@/lib/schema";
 import type { ProfileData } from "@/components/dashboard-content";
 import { ChromeIcon } from "@/components/chrome-icon";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogBody,
+  ResponsiveDialogClose,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -285,166 +286,174 @@ export function SettingsDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
-          <DialogDescription>Manage your account settings.</DialogDescription>
-        </DialogHeader>
-        <Tabs defaultValue="general">
-          <TabsList>
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="profile">Public Profile</TabsTrigger>
-            <TabsTrigger value="api">API</TabsTrigger>
-            <TabsTrigger value="billing">Billing</TabsTrigger>
-          </TabsList>
-          <TabsContent value="general">
-            <Form
-              className="space-y-4 pt-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSaveName();
-              }}
-            >
-              <Field>
-                <FieldLabel>Profile Picture</FieldLabel>
-                <div className="flex items-center gap-3">
-                  <div className="group relative">
-                    <Avatar
-                      size="lg"
-                      className="overflow-hidden *:data-[slot=avatar-image]:transition-[filter] *:data-[slot=avatar-fallback]:transition-[filter] sm:group-hover:*:data-[slot=avatar-image]:blur-sm sm:group-hover:*:data-[slot=avatar-fallback]:blur-sm"
-                    >
-                      <AvatarImage
-                        src={avatarUrl ?? undefined}
-                        alt={name || user.name}
-                      />
-                      <AvatarFallback>{initial}</AvatarFallback>
-                    </Avatar>
-                    <button
-                      type="button"
-                      disabled={isUploading}
-                      className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 hover:bg-black/55 text-white opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-100 cursor-pointer outline-none"
-                      onClick={
-                        avatarUrl
-                          ? handleAvatarRemove
-                          : () => fileInputRef.current?.click()
-                      }
-                    >
-                      <AvatarOverlayIcon
-                        isUploading={isUploading}
-                        hasAvatar={!!avatarUrl}
-                      />
-                    </button>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent className="sm:max-w-md" showCloseButton={false}>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>Settings</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            Manage your account settings.
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        <ResponsiveDialogBody>
+          <Tabs defaultValue="general">
+            <TabsList>
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="profile">Public Profile</TabsTrigger>
+              <TabsTrigger value="api">API</TabsTrigger>
+              <TabsTrigger value="billing">Billing</TabsTrigger>
+            </TabsList>
+            <TabsContent value="general">
+              <Form
+                className="space-y-4 pt-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSaveName();
+                }}
+              >
+                <Field>
+                  <FieldLabel>Profile Picture</FieldLabel>
+                  <div className="flex items-center gap-3">
+                    <div className="group relative">
+                      <Avatar
+                        size="lg"
+                        className="overflow-hidden *:data-[slot=avatar-image]:transition-[filter] *:data-[slot=avatar-fallback]:transition-[filter] sm:group-hover:*:data-[slot=avatar-image]:blur-sm sm:group-hover:*:data-[slot=avatar-fallback]:blur-sm"
+                      >
+                        <AvatarImage
+                          src={avatarUrl ?? undefined}
+                          alt={name || user.name}
+                        />
+                        <AvatarFallback>{initial}</AvatarFallback>
+                      </Avatar>
+                      <button
+                        type="button"
+                        disabled={isUploading}
+                        className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 hover:bg-black/55 text-white opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-100 cursor-pointer outline-none"
+                        onClick={
+                          avatarUrl
+                            ? handleAvatarRemove
+                            : () => fileInputRef.current?.click()
+                        }
+                      >
+                        <AvatarOverlayIcon
+                          isUploading={isUploading}
+                          hasAvatar={!!avatarUrl}
+                        />
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Upload a photo
+                    </p>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      onChange={handleAvatarChange}
+                    />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Upload a photo
-                  </p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    className="hidden"
-                    accept="image/png,image/jpeg,image/webp,image/gif"
-                    onChange={handleAvatarChange}
+                </Field>
+                <Field>
+                  <FieldLabel>Name</FieldLabel>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="duncan"
+                    type="text"
                   />
-                </div>
-              </Field>
-              <Field>
-                <FieldLabel>Name</FieldLabel>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="duncan"
-                  type="text"
-                />
-              </Field>
-              <Field>
-                <FieldLabel>Email</FieldLabel>
-                <Input
-                  value={user.email}
-                  disabled
-                  type="email"
-                  className="text-muted-foreground"
-                />
-              </Field>
-              <Field>
-                <FieldLabel>Chrome Extension</FieldLabel>
-                <a
-                  href="/chrome"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <ChromeIcon size={20} />
-                  <span>Get the Chrome Extension</span>
-                </a>
-              </Field>
-              <Field>
-                <FieldLabel>Data</FieldLabel>
-                <div className="flex flex-wrap gap-2">
-                  {onExport && (
-                    <Button type="button" variant="outline" onClick={onExport}>
-                      Export Bookmarks
-                    </Button>
-                  )}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={isImporting || !hasProAccess}
-                    onClick={handleImportBookmarks}
+                </Field>
+                <Field>
+                  <FieldLabel>Email</FieldLabel>
+                  <Input
+                    value={user.email}
+                    disabled
+                    type="email"
+                    className="text-muted-foreground"
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel>Chrome Extension</FieldLabel>
+                  <a
+                    href="/chrome"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {isImporting ? (
-                      <>
-                        <IconLoader2 className="size-4 animate-spin" />
-                        Importing...
-                      </>
-                    ) : (
-                      <>
-                        <IconDownload className="size-4" />
-                        Import Browser Bookmarks
-                        {!hasProAccess ? (
-                          <Badge
-                            variant="outline"
-                            className="ml-1 h-5 rounded-md px-1.5 text-[10px]"
-                          >
-                            Pro
-                          </Badge>
-                        ) : null}
-                      </>
+                    <ChromeIcon size={20} />
+                    <span>Get the Chrome Extension</span>
+                  </a>
+                </Field>
+                <Field>
+                  <FieldLabel>Data</FieldLabel>
+                  <div className="flex flex-wrap gap-2">
+                    {onExport && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onExport}
+                      >
+                        Export Bookmarks
+                      </Button>
                     )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isImporting || !hasProAccess}
+                      onClick={handleImportBookmarks}
+                    >
+                      {isImporting ? (
+                        <>
+                          <IconLoader2 className="size-4 animate-spin" />
+                          Importing...
+                        </>
+                      ) : (
+                        <>
+                          <IconDownload className="size-4" />
+                          Import Browser Bookmarks
+                          {!hasProAccess ? (
+                            <Badge
+                              variant="outline"
+                              className="ml-1 h-5 rounded-md px-1.5 text-[10px]"
+                            >
+                              Pro
+                            </Badge>
+                          ) : null}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </Field>
+                <ResponsiveDialogFooter className="max-md:-mx-4 max-md:-mb-4">
+                  <ResponsiveDialogClose render={<Button variant="ghost" />}>
+                    Cancel
+                  </ResponsiveDialogClose>
+                  <Button
+                    type="submit"
+                    disabled={isSaving || isUploading || !name.trim()}
+                  >
+                    {isSaving ? "Saving..." : "Save"}
                   </Button>
-                </div>
-              </Field>
-              <DialogFooter>
-                <DialogClose render={<Button variant="ghost" />}>
-                  Cancel
-                </DialogClose>
-                <Button
-                  type="submit"
-                  disabled={isSaving || isUploading || !name.trim()}
-                >
-                  {isSaving ? "Saving..." : "Save"}
-                </Button>
-              </DialogFooter>
-            </Form>
-          </TabsContent>
-          <TabsContent value="profile">
-            {profile && (
-              <ProfileTab profile={profile} onOpenChange={onOpenChange} />
-            )}
-          </TabsContent>
-          <TabsContent value="api">
-            <ApiKeyTab
-              viewOnceKey={viewOnceKey}
-              onKeyGenerated={setViewOnceKey}
-              hasProAccess={hasProAccess}
-            />
-          </TabsContent>
-          <TabsContent value="billing">
-            {profile && <BillingTab profile={profile} />}
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+                </ResponsiveDialogFooter>
+              </Form>
+            </TabsContent>
+            <TabsContent value="profile">
+              {profile && (
+                <ProfileTab profile={profile} onOpenChange={onOpenChange} />
+              )}
+            </TabsContent>
+            <TabsContent value="api">
+              <ApiKeyTab
+                viewOnceKey={viewOnceKey}
+                onKeyGenerated={setViewOnceKey}
+                hasProAccess={hasProAccess}
+              />
+            </TabsContent>
+            <TabsContent value="billing">
+              {profile && <BillingTab profile={profile} />}
+            </TabsContent>
+          </Tabs>
+        </ResponsiveDialogBody>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }
 
@@ -708,8 +717,10 @@ function ProfileTab({ profile, onOpenChange }: ProfileTabProps) {
           </Button>
         </div>
       )}
-      <DialogFooter>
-        <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
+      <ResponsiveDialogFooter className="max-md:-mx-4 max-md:-mb-4">
+        <ResponsiveDialogClose render={<Button variant="ghost" />}>
+          Cancel
+        </ResponsiveDialogClose>
         <Button
           type="submit"
           disabled={
@@ -719,7 +730,7 @@ function ProfileTab({ profile, onOpenChange }: ProfileTabProps) {
         >
           {updateMutation.isPending ? "Saving..." : "Save"}
         </Button>
-      </DialogFooter>
+      </ResponsiveDialogFooter>
     </Form>
   );
 }
@@ -1018,7 +1029,7 @@ function RevokeConfirmDialog({
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="pointer-events-auto">
         <AlertDialogHeader>
           <AlertDialogTitle>Revoke API Key</AlertDialogTitle>
           <AlertDialogDescription>
@@ -1048,7 +1059,7 @@ function RegenerateConfirmDialog({
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="pointer-events-auto">
         <AlertDialogHeader>
           <AlertDialogTitle>Regenerate API Key</AlertDialogTitle>
           <AlertDialogDescription>
